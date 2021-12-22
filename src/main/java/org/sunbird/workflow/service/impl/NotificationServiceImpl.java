@@ -16,7 +16,7 @@ import org.sunbird.workflow.models.notification.NotificationRequest;
 import org.sunbird.workflow.models.notification.Template;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
-import org.sunbird.workflow.repository.cassandra.bodhi.WfRepo;
+import org.sunbird.workflow.repository.cassandra.sunbird.WfRepo;
 import org.sunbird.workflow.service.Workflowservice;
 
 import java.util.*;

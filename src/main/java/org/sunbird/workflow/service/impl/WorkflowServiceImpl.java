@@ -27,7 +27,7 @@ import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfAuditRepo;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.producer.Producer;
-import org.sunbird.workflow.repository.cassandra.bodhi.WfRepo;
+import org.sunbird.workflow.repository.cassandra.sunbird.WfRepo;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.Workflowservice;
 
@@ -110,7 +110,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			validateWfRequest(wfRequest);
 			WfStatusEntity applicationStatus = wfStatusRepo.findByRootOrgAndOrgAndApplicationIdAndWfId(rootOrg, org,
 					wfRequest.getApplicationId(), wfRequest.getWfId());
-			Workflow workFlow = wfRepo.getWorkFlowForService(rootOrg, org, wfRequest.getServiceName());
+			Workflow workFlow = wfRepo.getWorkFlowForService(configuration.getSystemSettingsId());
 			WorkFlowModel workFlowModel = mapper.readValue(workFlow.getConfiguration(), WorkFlowModel.class);
 			WfStatus wfStatus = getWfStatus(wfRequest.getState(), workFlowModel);
 			validateUserAndWfStatus(wfRequest, wfStatus, applicationStatus);
@@ -405,7 +405,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 	public Response getNextActionForState(String rootOrg, String org, String serviceName, String state) {
 		Response response = new Response();
 		try {
-			Workflow workFlow = wfRepo.getWorkFlowForService(rootOrg, org, serviceName);
+			Workflow workFlow = wfRepo.getWorkFlowForService(configuration.getSystemSettingsId());
 			WorkFlowModel workFlowModel = mapper.readValue(workFlow.getConfiguration(), WorkFlowModel.class);
 			WfStatus wfStatus = getWfStatus(state, workFlowModel);
 			List<HashMap<String, Object>> nextActionArray = new ArrayList<>();
@@ -431,7 +431,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 	public WfStatus getWorkflowStates(String rootOrg, String org, String serviceName, String state) {
 		WfStatus wfStatus = null;
 		try {
-			Workflow workFlow = wfRepo.getWorkFlowForService(rootOrg, org, serviceName);
+			Workflow workFlow = wfRepo.getWorkFlowForService(configuration.getSystemSettingsId());
 			WorkFlowModel workFlowModel = mapper.readValue(workFlow.getConfiguration(), WorkFlowModel.class);
 			wfStatus = getWfStatus(state, workFlowModel);
 		} catch (IOException e) {

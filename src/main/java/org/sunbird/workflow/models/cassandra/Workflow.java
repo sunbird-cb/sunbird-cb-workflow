@@ -4,13 +4,13 @@ import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
-@Table("work_flow")
+@Table("system_settings")
 public class Workflow {
 
     @PrimaryKey
     private WfPrimaryKey wfPrimarykey;
 
-    @Column("config")
+    @Column("value")
     private String configuration;
 
     public WfPrimaryKey getProfileWfPrimarykey() {
