@@ -60,6 +60,20 @@ public class Configuration {
     @Value("${spring.data.cassandra.sunbird.system_settings.id}")
     private String systemSettingsId;
 
+    @Value("${system.settings.host}")
+    private String systemSettingsHost;
+
+    @Value("${system.settings.endpoint}")
+    private String systemSettingsEndpoint;
+
+    public String getSystemSettingsEndpoint() {return systemSettingsEndpoint;}
+
+    public void setSystemSettingsEndpoint(String systemSettingsEndpoint) {this.systemSettingsEndpoint = systemSettingsEndpoint;}
+
+    public String getSystemSettingsHost() {return systemSettingsHost;}
+
+    public void setSystemSettingsHost(String systemSettingsHost) {this.systemSettingsHost = systemSettingsHost;}
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }

@@ -83,6 +83,10 @@ public class Constants {
 
 	public static final String UUID = "wid";
 
+	public static final String RESULT = "result";
+	public static final String RESPONSE = "response";
+	public static final String VALUE = "value";
+
 	public static final List<String> USER_DEFAULT_FIELDS = Collections
 			.unmodifiableList(Arrays.asList(UUID, FIRST_NAME, LAST_NAME, EMAIL));
 
