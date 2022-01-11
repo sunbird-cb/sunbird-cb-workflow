@@ -63,6 +63,22 @@ public class Configuration {
     @Value("${kafka.topics.workflow.notification}")
     private String workFlowNotificationTopic;
 
+    @Value("${spring.data.cassandra.sunbird.system_settings.id}")
+    private String systemSettingsId;
+
+    @Value("${system.settings.host}")
+    private String systemSettingsHost;
+
+    @Value("${system.settings.endpoint}")
+    private String systemSettingsEndpoint;
+
+    public String getSystemSettingsEndpoint() {return systemSettingsEndpoint;}
+
+    public void setSystemSettingsEndpoint(String systemSettingsEndpoint) {this.systemSettingsEndpoint = systemSettingsEndpoint;}
+
+    public String getSystemSettingsHost() {return systemSettingsHost;}
+
+    public void setSystemSettingsHost(String systemSettingsHost) {this.systemSettingsHost = systemSettingsHost;}
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -171,6 +187,10 @@ public class Configuration {
     public void setNotifyServicePath(String notifyServicePath) {
         this.notifyServicePath = notifyServicePath;
     }
+
+    public String getSystemSettingsId() { return systemSettingsId;}
+
+    public void setSystemSettingsId(String systemSettingsId) {this.systemSettingsId = systemSettingsId;}
 
     public String getHubRootOrg() {
         return hubRootOrg;
