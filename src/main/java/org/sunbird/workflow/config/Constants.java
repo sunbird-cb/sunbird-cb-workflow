@@ -107,9 +107,15 @@ public class Constants {
 	public static final String RESPONSE = "response";
 	public static final String CONTENT = "content";
 	public static final String PROFILE_DETAILS = "profileDetails";
+	public static final String REQUEST = "request";
 	public static final String PERSONAL_DETAILS = "personalDetails";
 	public static final String USER_REGISTRATION_SERVICE_NAME = "user_registration";
 	public static final String WF_APPROVED_STATE = "WF_APPROVED";
+	public static final String OSID = "osid";
+	public static final String FIELD_KEY = "fieldKey";
+	public static final String TO_VALUE = "TO_VALUE";
+	public static final String PROFESSIONAL_DETAILS = "professionalDetails";
+
 
 
 

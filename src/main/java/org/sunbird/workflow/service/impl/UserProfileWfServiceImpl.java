@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -25,7 +28,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class UserProfileWfServiceImpl implements UserProfileWfService {
 
-	private WFLogger logger = new WFLogger(getClass().getName());
+//	private WFLogger logger = new WFLogger(getClass().getName());
+	private Logger logger = LoggerFactory.getLogger(UserProfileWfServiceImpl.class);
+
 
 	@Autowired
 	private Workflowservice workflowservice;
@@ -64,11 +69,104 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 	}
 
 	private void updateProfile(WfRequest wfRequest) {
+		final ObjectMapper mapper = new ObjectMapper();
 		StringBuilder builder = new StringBuilder();
-		String endPoint = configuration.getHubProfileUpdateEndPoint().replace(Constants.USER_ID_VALUE,
+		String endPoint = configuration.getUserProfileReadEndPoint().replace(Constants.USER_ID_VALUE,
 				wfRequest.getApplicationId());
-		builder.append(configuration.getHubServiceHost()).append(endPoint);
-		requestServiceImpl.fetchResult(builder, wfRequest.getUpdateFieldValues(), Map.class);
+		builder.append(configuration.getLmsServiceHost()).append(endPoint);
+		Object readResponse = requestServiceImpl.fetchResultUsingGet(builder);
+		Map<String, Object> readData = mapper.convertValue(readResponse,Map.class);
+		Map<String, Object> profileDetails = (Map<String, Object>)((Map<String, Object>)((Map<String, Object>) readData.get("result")).get("response")).get("profileDetails");
+		Map<String, Object> updateRequest = updateRequestWithWF(wfRequest.getApplicationId(),wfRequest.getUpdateFieldValues(), profileDetails);
+		Map<String, Object> requestObject = new HashMap<>();
+		Map<String, Object> requestWrapper = new HashMap<>();
+		requestWrapper.put(Constants.USER_ID, wfRequest.getApplicationId());
+		requestWrapper.put(Constants.PROFILE_DETAILS, updateRequest);
+		requestObject.put(Constants.REQUEST, requestWrapper);
+		HashMap<String, String> headersValue = new HashMap<>();
+		headersValue.put("Content-Type", "application/json");
+		builder = new StringBuilder();
+		builder.append(configuration.getLmsServiceHost()).append(configuration.getUserProfileUpdateEndPoint());
+		Map<String, Object> updateUserApiResp = (Map<String, Object>) requestServiceImpl
+				.fetchResultUsingPost(builder, requestObject, Map.class, headersValue);
+	}
+
+
+	public Map<String, Object> updateRequestWithWF(String uuid, List<HashMap<String, Object>> requests,Map<String, Object> search) {
+
+		final ObjectMapper mapper = new ObjectMapper();
+//		Map<String, Object> search = new HashMap<>();
+		// merge request and search to add osid(s)
+		try {
+//			search = profileUtils.readUserProfiles(uuid);
+			logger.info("profile orginal :- {}", mapper.convertValue(search, JsonNode.class));
+			for (Map<String, Object> request : requests) {
+
+				String osid = request.get(Constants.OSID) == null ? "" : request.get(Constants.OSID).toString();
+				Map<String, Object> toChange = new HashMap<>();
+				Object sf = search.get(request.get(Constants.FIELD_KEY));
+
+				if (sf instanceof ArrayList) {
+					List<Map<String, Object>> searchFields = (ArrayList) search.get(request.get(Constants.FIELD_KEY));
+					for (Map<String, Object> obj : searchFields) {
+						if (obj.get(Constants.OSID) != null
+								&& obj.get(Constants.OSID).toString().equalsIgnoreCase(osid))
+							toChange.putAll(obj);
+					}
+				}
+				if (sf instanceof HashMap) {
+					Map<String, Object> searchFields = (Map<String, Object>) search
+							.get(request.get(Constants.FIELD_KEY));
+					toChange.putAll(searchFields);
+
+				}
+
+				Map<String, Object> objectMap = (Map<String, Object>) request.get(Constants.TO_VALUE);
+				for (Map.Entry entry : objectMap.entrySet())
+					toChange.put((String) entry.getKey(), entry.getValue());
+
+				mergeLeaf(search, toChange, request.get("fieldKey").toString(), osid);
+			}
+			logger.info("profile merged changes :- {}", mapper.convertValue(search, JsonNode.class));
+		} catch (Exception e) {
+			logger.error("Merge profile exception::{}", e);
+		}
+		return search;
+	}
+
+
+	public static void mergeLeaf(Map<String, Object> mapLeft, Map<String, Object> mapRight, String leafKey, String id) {
+		// go over all the keys of the right map
+
+		if (mapLeft.containsKey(leafKey)) {
+			for (String key : mapLeft.keySet()) {
+
+				if (mapLeft.get(key) instanceof ArrayList) {
+					Set<String> childRequest = mapRight.keySet();
+					for (String keys : childRequest) {
+						List<Map<String, Object>> childExisting = (List<Map<String, Object>>) mapLeft.get(key);
+						Map<String, Object> childExistingIndex = (Map<String, Object>) childExisting.get(0);
+						childExistingIndex.put(keys, mapRight.get(keys));
+					}
+				}
+				if (key.equalsIgnoreCase(leafKey) && (mapLeft.get(key) instanceof HashMap)) {
+					mapLeft.put(key, mapRight);
+
+				}
+
+			}
+		} else {
+			if (leafKey.equals(Constants.PROFESSIONAL_DETAILS)) {
+				List<Map<String, Object>> professionalData = new ArrayList<>();
+				Map<String, Object> professionalDataChild = new HashMap<>();
+				Set<String> childRequest = mapRight.keySet();
+				for (String keys : childRequest) {
+					professionalDataChild.put(keys, mapRight.get(keys));
+				}
+				professionalData.add(professionalDataChild);
+				mapLeft.put(Constants.PROFESSIONAL_DETAILS, professionalData);
+			}
+		}
 	}
 
 	/**
@@ -133,7 +231,7 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 				}
 			}
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error(String.valueOf(e));
 			throw new ApplicationException("Hub Service ERROR: ", e);
 		}
 		return userResult;

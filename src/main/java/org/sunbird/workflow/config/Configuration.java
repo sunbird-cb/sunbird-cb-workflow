@@ -21,6 +21,12 @@ public class Configuration {
     @Value("${hub.profile.update}")
     private String hubProfileUpdateEndPoint;
 
+    @Value("${lms.user.read}")
+    private String userProfileReadEndPoint;
+
+    @Value("${lms.user.update}")
+    private String userProfileUpdateEndPoint;
+
     @Value("${lms.service.host}")
     private String lmsServiceHost;
 
@@ -80,6 +86,22 @@ public class Configuration {
 
     public void setDefaultOffset(Integer defaultOffset) {
         this.defaultOffset = defaultOffset;
+    }
+
+    public String getUserProfileReadEndPoint() {
+        return userProfileReadEndPoint;
+    }
+
+    public void setUserProfileReadEndPoint(String userProfileReadEndPoint) {
+        this.userProfileReadEndPoint = userProfileReadEndPoint;
+    }
+
+    public String getUserProfileUpdateEndPoint() {
+        return userProfileUpdateEndPoint;
+    }
+
+    public void setUserProfileUpdateEndPoint(String userProfileUpdateEndPoint) {
+        this.userProfileUpdateEndPoint = userProfileUpdateEndPoint;
     }
 
     public Integer getMaxLimit() {
