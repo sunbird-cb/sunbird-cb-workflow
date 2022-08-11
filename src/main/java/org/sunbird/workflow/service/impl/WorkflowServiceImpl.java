@@ -74,7 +74,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 	 * @return
 	 */
 
-	public Response workflowTransition(String rootOrg, String org, WfRequest wfRequest) {
+	public Response workflowTransition(String rootOrg, String org, WfRequest wfRequest,String userId) {
 		HashMap<String, String> changeStatusResponse;
 		List<String> wfIds = new ArrayList<>();
 		String changedStatus = null;

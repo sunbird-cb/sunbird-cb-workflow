@@ -115,7 +115,11 @@ public class Constants {
 	public static final String FIELD_KEY = "fieldKey";
 	public static final String TO_VALUE = "TO_VALUE";
 	public static final String PROFESSIONAL_DETAILS = "professionalDetails";
-
+	public static final String CHANNEL = "channel";
+	public static final String FORCE_MIGRATION = "forceMigration";
+	public static final String SOFT_DELETE_OLD_GROUP = "softDeleteOldOrg";
+	public static final String NOTIFY_MIGRATION = "notifyMigration";
+	public static final String X_AUTH_USER_ID = "x-authenticated-userid";
 
 
 

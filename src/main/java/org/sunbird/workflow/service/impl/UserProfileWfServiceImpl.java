@@ -76,6 +76,24 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 		builder.append(configuration.getLmsServiceHost()).append(endPoint);
 		Object readResponse = requestServiceImpl.fetchResultUsingGet(builder);
 		Map<String, Object> readData = mapper.convertValue(readResponse,Map.class);
+		String existingDeptName = (String)((Map<String, Object>)((Map<String, Object>)((Map<String, Object>) readData.get("result")).get("response")).get("rootOrg")).get("orgName");
+		String updatedDeptName = wfRequest.getDeptName();
+		if(!existingDeptName.equals(updatedDeptName)){
+			Map<String, Object> migrateRequestWrapper = new HashMap<>();
+			Map<String, Object> migrateRequestObject = new HashMap<>();
+			migrateRequestWrapper.put(Constants.USER_ID, wfRequest.getApplicationId());
+			migrateRequestWrapper.put(Constants.CHANNEL, configuration.getHubRootOrg());
+			migrateRequestWrapper.put(Constants.FORCE_MIGRATION, true);
+			migrateRequestWrapper.put(Constants.SOFT_DELETE_OLD_GROUP,true );
+			migrateRequestWrapper.put(Constants.NOTIFY_MIGRATION,false );
+			migrateRequestObject.put(Constants.REQUEST, migrateRequestWrapper);
+			builder = new StringBuilder();
+			builder.append(configuration.getLmsServiceHost()).append(configuration.getUserProfileMigrateEndPoint());
+			HashMap<String, String> headersValue = new HashMap<>();
+			headersValue.put("Content-Type", "application/json");
+			Map<String, Object> migrateeUserApiResp = (Map<String, Object>) requestServiceImpl
+					.fetchResultUsingPatch(builder, migrateRequestObject, Map.class, headersValue);
+		}
 		Map<String, Object> profileDetails = (Map<String, Object>)((Map<String, Object>)((Map<String, Object>) readData.get("result")).get("response")).get("profileDetails");
 		Map<String, Object> updateRequest = updateRequestWithWF(wfRequest.getApplicationId(),wfRequest.getUpdateFieldValues(), profileDetails);
 		Map<String, Object> requestObject = new HashMap<>();

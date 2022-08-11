@@ -27,6 +27,9 @@ public class Configuration {
     @Value("${lms.user.update}")
     private String userProfileUpdateEndPoint;
 
+    @Value("${lms.user.migrate}")
+    private String userProfileMigrateEndPoint;
+
     @Value("${lms.service.host}")
     private String lmsServiceHost;
 
@@ -102,6 +105,14 @@ public class Configuration {
 
     public void setUserProfileUpdateEndPoint(String userProfileUpdateEndPoint) {
         this.userProfileUpdateEndPoint = userProfileUpdateEndPoint;
+    }
+
+    public String getUserProfileMigrateEndPoint() {
+        return userProfileMigrateEndPoint;
+    }
+
+    public void setUserProfileMigrateEndPoint(String userProfileMigrateEndPoint) {
+        this.userProfileMigrateEndPoint = userProfileMigrateEndPoint;
     }
 
     public Integer getMaxLimit() {
