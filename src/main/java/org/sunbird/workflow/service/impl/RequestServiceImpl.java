@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,7 +84,7 @@ public class RequestServiceImpl {
 			String message = str.toString();
 			log.info(message);
 			HttpHeaders headers = new HttpHeaders();
-			if (!CollectionUtils.isEmpty(headersValue)) {
+			if (CollectionUtils.isNotEmpty(Collections.singleton(headersValue))) {
 				for (Map.Entry<String, String> map : headersValue.entrySet()) {
 					headers.set(map.getKey(), map.getValue());
 				}
@@ -109,15 +109,13 @@ public class RequestServiceImpl {
 		str.append("URI: ").append(uri.toString()).append(System.lineSeparator());
 		try {
 			str.append("Request: ").append(mapper.writeValueAsString(request)).append(System.lineSeparator());
-			String message = str.toString();
-			log.info(message);
+			log.debug(str.toString());
 			HttpHeaders headers = new HttpHeaders();
-			if (!CollectionUtils.isEmpty(headersValue)) {
+			if (CollectionUtils.isNotEmpty(Collections.singleton(headersValue))) {
 				for (Map.Entry<String, String> map : headersValue.entrySet()) {
 					headers.set(map.getKey(), map.getValue());
 				}
 			}
-			headers.set(Constants.ROOT_ORG_CONSTANT, configuration.getHubRootOrg());
 			HttpEntity<Object> entity = new HttpEntity<>(request, headers);
 			response = restTemplate.patchForObject(uri.toString(), entity, objectType);
 		} catch (HttpClientErrorException e) {

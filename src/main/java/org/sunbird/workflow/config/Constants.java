@@ -120,6 +120,15 @@ public class Constants {
 	public static final String SOFT_DELETE_OLD_GROUP = "softDeleteOldOrg";
 	public static final String NOTIFY_MIGRATION = "notifyMigration";
 	public static final String X_AUTH_USER_ID = "x-authenticated-userid";
+	public static final String ORG_NAME = "orgName";
+	public static final String OK = "OK";
+	public static final String FAILED = "FAILED";
+	public static final String PARAMS = "params";
+	public static final String ERROR_MESSAGE = "errmsg";
+
+
+
+
 
 
 
