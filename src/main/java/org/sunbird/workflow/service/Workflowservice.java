@@ -7,7 +7,7 @@ import org.sunbird.workflow.models.WfStatus;
 
 public interface Workflowservice {
 
-    public Response workflowTransition(String rootOrg, String org, WfRequest wfRequest,String userId);
+    public Response workflowTransition(String rootOrg, String org, WfRequest wfRequest, String userId);
 
     public Response getWfApplication(String rootOrg, String org, String wfId, String applicationId);
 

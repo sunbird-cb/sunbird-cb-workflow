@@ -3,19 +3,17 @@ package org.sunbird.workflow.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.apache.commons.collections.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,7 +82,7 @@ public class RequestServiceImpl {
 			String message = str.toString();
 			log.info(message);
 			HttpHeaders headers = new HttpHeaders();
-			if (CollectionUtils.isNotEmpty(Collections.singleton(headersValue))) {
+			if (!ObjectUtils.isEmpty(headersValue)) {
 				for (Map.Entry<String, String> map : headersValue.entrySet()) {
 					headers.set(map.getKey(), map.getValue());
 				}
@@ -111,7 +109,7 @@ public class RequestServiceImpl {
 			str.append("Request: ").append(mapper.writeValueAsString(request)).append(System.lineSeparator());
 			log.debug(str.toString());
 			HttpHeaders headers = new HttpHeaders();
-			if (CollectionUtils.isNotEmpty(Collections.singleton(headersValue))) {
+			if (!ObjectUtils.isEmpty(headersValue)) {
 				for (Map.Entry<String, String> map : headersValue.entrySet()) {
 					headers.set(map.getKey(), map.getValue());
 				}
