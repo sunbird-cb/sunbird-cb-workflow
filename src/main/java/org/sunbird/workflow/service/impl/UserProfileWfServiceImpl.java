@@ -1,11 +1,8 @@
 package org.sunbird.workflow.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +46,9 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 	@Autowired
 	WorkflowServiceImpl workflowService;
 
+	@Autowired
+	private WorkflowAuditProcessingServiceImpl workflowAuditProcessingService;
+
 	/**
 	 * Update user profile based on wf request
 	 *
@@ -70,14 +70,8 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 	private void updateProfile(WfRequest wfRequest) {
 		try {
 			Map<String, Object> readData = (Map<String, Object>) userProfileRead(wfRequest.getApplicationId());
-			if (null != readData) {
-				if (!Constants.OK.equals(readData.get(Constants.RESPONSE_CODE))) {
-					logger.error("user not found" + ((Map<String, Object>) readData.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
-					failedCase(wfRequest);
-					return;
-				}
-			} else {
-				logger.error("read user failed, response is empty");
+			if (null != readData && !Constants.OK.equals(readData.get(Constants.RESPONSE_CODE))) {
+				logger.error("user not found" + ((Map<String, Object>) readData.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
 				failedCase(wfRequest);
 				return;
 			}
@@ -88,17 +82,12 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 			String updatedDeptName = wfRequest.getDeptName();
 			if (!existingDeptName.equals(updatedDeptName)) {
 				Map<String, Object> response = (Map<String, Object>) migrateUser(wfRequest);
-				if (null != response) {
-					if (!Constants.OK.equals(response.get(Constants.RESPONSE_CODE))) {
-						logger.error("Migrate user failed" + ((Map<String, Object>) response.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
-						failedCase(wfRequest);
-						return;
-					}
-				} else {
-					logger.error("Migrate user failed, response is empty");
+				if (null != response && !Constants.OK.equals(response.get(Constants.RESPONSE_CODE))) {
+					logger.error("Migrate user failed" + ((Map<String, Object>) response.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
 					failedCase(wfRequest);
 					return;
 				}
+
 			}
 			Map<String, Object> profileDetails = (Map<String, Object>) existingUserResponse.get(Constants.PROFILE_DETAILS);
 			Map<String, Object> updateRequest = updateRequestWithWF(wfRequest.getApplicationId(), wfRequest.getUpdateFieldValues(), profileDetails);
@@ -111,13 +100,8 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 			builder.append(configuration.getUserProfileUpdateEndPoint());
 			Map<String, Object> updateUserApiResp = (Map<String, Object>) requestServiceImpl
 					.fetchResultUsingPost(builder, getUpdateRequest(wfRequest, updateRequest), Map.class, getHeaders());
-			if (null == updateUserApiResp) {
-				if (!Constants.OK.equals(updateUserApiResp.get(Constants.RESPONSE_CODE))) {
-					logger.error("user update failed" + ((Map<String, Object>) updateUserApiResp.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
-					failedCase(wfRequest);
-				}
-			} else {
-				logger.error("Update user failed");
+			if (null == updateUserApiResp && !Constants.OK.equals(updateUserApiResp.get(Constants.RESPONSE_CODE))) {
+				logger.error("user update failed" + ((Map<String, Object>) updateUserApiResp.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
 				failedCase(wfRequest);
 			}
 		} catch (Exception e) {
@@ -257,6 +241,9 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 		String endPoint = configuration.getUserProfileReadEndPoint().replace(Constants.USER_ID_VALUE, userId);
 		builder.append(endPoint);
 		Object response = requestServiceImpl.fetchResultUsingGet(builder);
+		if (null == response){
+			return null;
+		}
 		Map<String, Object> readResponse = mapper.convertValue(response, Map.class);
 		return readResponse;
 	}
@@ -281,7 +268,26 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 	private void failedCase(WfRequest wfRequest) {
 		wfRequest.setState(Constants.FAILED);
 		wfRequest.setAction(Constants.FAILED);
-		workflowService.workflowTransition(Constants.ROOT_ORG, Constants.ORG, wfRequest, wfRequest.getApplicationId());
+		WfStatusEntity applicationStatus = new WfStatusEntity();
+		String wfId = wfRequest.getWfId();
+		applicationStatus.setWfId(wfId);
+		applicationStatus.setServiceName(wfRequest.getServiceName());
+		applicationStatus.setUserId(wfRequest.getUserId());
+		applicationStatus.setApplicationId(wfRequest.getApplicationId());
+		applicationStatus.setRootOrg(Constants.ROOT_ORG);
+		applicationStatus.setOrg(Constants.ORG);
+		applicationStatus.setCreatedOn(new Date());
+		applicationStatus.setLastUpdatedOn(new Date());
+		applicationStatus.setCurrentStatus(Constants.REJECTED);
+		applicationStatus.setActorUUID(wfRequest.getActorUserId());
+		try {
+			applicationStatus.setUpdateFieldValues(mapper.writeValueAsString(wfRequest.getUpdateFieldValues()));
+		} catch (JsonProcessingException e) {
+			logger.error("Exception occurred : ", e);
+		}
+		applicationStatus.setInWorkflow(false);
+		applicationStatus.setDeptName(wfRequest.getDeptName());
+		wfStatusRepo.save(applicationStatus);
 	}
 
 	private Map<String, Object> getUpdateRequest(WfRequest wfRequest, Map<String, Object> updateRequest) {

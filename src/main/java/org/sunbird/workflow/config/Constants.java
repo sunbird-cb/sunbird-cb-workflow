@@ -127,6 +127,7 @@ public class Constants {
 	public static final String ERROR_MESSAGE = "errmsg";
 	public static final String CONTENT_TYPE = "Content-Type";
 	public static final String APPLICATION_JSON = "application/json";
+	public static final String REJECTED = "REJECTED";
 
 
 
