@@ -100,7 +100,7 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 			builder.append(configuration.getUserProfileUpdateEndPoint());
 			Map<String, Object> updateUserApiResp = (Map<String, Object>) requestServiceImpl
 					.fetchResultUsingPost(builder, getUpdateRequest(wfRequest, updateRequest), Map.class, getHeaders());
-			if (null == updateUserApiResp && !Constants.OK.equals(updateUserApiResp.get(Constants.RESPONSE_CODE))) {
+			if (null != updateUserApiResp && !Constants.OK.equals(updateUserApiResp.get(Constants.RESPONSE_CODE))) {
 				logger.error("user update failed" + ((Map<String, Object>) updateUserApiResp.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
 				failedCase(wfRequest);
 			}
