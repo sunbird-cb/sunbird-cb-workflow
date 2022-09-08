@@ -107,9 +107,32 @@ public class Constants {
 	public static final String RESPONSE = "response";
 	public static final String CONTENT = "content";
 	public static final String PROFILE_DETAILS = "profileDetails";
+	public static final String REQUEST = "request";
 	public static final String PERSONAL_DETAILS = "personalDetails";
 	public static final String USER_REGISTRATION_SERVICE_NAME = "user_registration";
 	public static final String WF_APPROVED_STATE = "WF_APPROVED";
+	public static final String OSID = "osid";
+	public static final String FIELD_KEY = "fieldKey";
+	public static final String TO_VALUE = "TO_VALUE";
+	public static final String PROFESSIONAL_DETAILS = "professionalDetails";
+	public static final String CHANNEL = "channel";
+	public static final String FORCE_MIGRATION = "forceMigration";
+	public static final String SOFT_DELETE_OLD_GROUP = "softDeleteOldOrg";
+	public static final String NOTIFY_MIGRATION = "notifyMigration";
+	public static final String X_AUTH_USER_ID = "x-authenticated-userid";
+	public static final String ORG_NAME = "orgName";
+	public static final String OK = "OK";
+	public static final String FAILED = "FAILED";
+	public static final String PARAMS = "params";
+	public static final String ERROR_MESSAGE = "errmsg";
+	public static final String CONTENT_TYPE = "Content-Type";
+	public static final String APPLICATION_JSON = "application/json";
+	public static final String REJECTED = "REJECTED";
+
+
+
+
+
 
 
 
