@@ -21,13 +21,11 @@ import org.sunbird.workflow.exception.ApplicationException;
 import org.sunbird.workflow.exception.BadRequestException;
 import org.sunbird.workflow.exception.InvalidDataInputException;
 import org.sunbird.workflow.models.*;
-import org.sunbird.workflow.models.cassandra.Workflow;
 import org.sunbird.workflow.postgres.entity.WfAuditEntity;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfAuditRepo;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.producer.Producer;
-import org.sunbird.workflow.repository.cassandra.bodhi.WfRepo;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.Workflowservice;
 
@@ -38,9 +36,6 @@ import java.util.stream.Stream;
 
 @Service
 public class WorkflowServiceImpl implements Workflowservice {
-
-	@Autowired
-	private WfRepo wfRepo;
 
 	@Autowired
 	private WfStatusRepo wfStatusRepo;
@@ -62,7 +57,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 
 	@Autowired
 	private Producer producer;
-	
+
 	 Logger log = LogManager.getLogger(WorkflowServiceImpl.class);
 
 	/**
@@ -110,8 +105,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			validateWfRequest(wfRequest);
 			WfStatusEntity applicationStatus = wfStatusRepo.findByRootOrgAndOrgAndApplicationIdAndWfId(rootOrg, org,
 					wfRequest.getApplicationId(), wfRequest.getWfId());
-			Workflow workFlow = wfRepo.getWorkFlowForService(rootOrg, org, wfRequest.getServiceName());
-			WorkFlowModel workFlowModel = mapper.readValue(workFlow.getConfiguration(), WorkFlowModel.class);
+			WorkFlowModel workFlowModel = getWorkFlowConfig(wfRequest.getServiceName());
 			WfStatus wfStatus = getWfStatus(wfRequest.getState(), workFlowModel);
 			validateUserAndWfStatus(wfRequest, wfStatus, applicationStatus);
 			WfAction wfAction = getWfAction(wfRequest.getAction(), wfStatus);
@@ -405,8 +399,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 	public Response getNextActionForState(String rootOrg, String org, String serviceName, String state) {
 		Response response = new Response();
 		try {
-			Workflow workFlow = wfRepo.getWorkFlowForService(rootOrg, org, serviceName);
-			WorkFlowModel workFlowModel = mapper.readValue(workFlow.getConfiguration(), WorkFlowModel.class);
+			WorkFlowModel workFlowModel = getWorkFlowConfig(serviceName);
 			WfStatus wfStatus = getWfStatus(state, workFlowModel);
 			List<HashMap<String, Object>> nextActionArray = new ArrayList<>();
 			HashMap<String, Object> actionMap = null;
@@ -422,7 +415,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 			response.put(Constants.DATA, nextActionArray);
 			response.put(Constants.STATUS, HttpStatus.OK);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new ApplicationException(Constants.JSON_PARSING_ERROR, e);
 		}
 		return response;
@@ -431,10 +424,9 @@ public class WorkflowServiceImpl implements Workflowservice {
 	public WfStatus getWorkflowStates(String rootOrg, String org, String serviceName, String state) {
 		WfStatus wfStatus = null;
 		try {
-			Workflow workFlow = wfRepo.getWorkFlowForService(rootOrg, org, serviceName);
-			WorkFlowModel workFlowModel = mapper.readValue(workFlow.getConfiguration(), WorkFlowModel.class);
+			WorkFlowModel workFlowModel = getWorkFlowConfig(serviceName);
 			wfStatus = getWfStatus(state, workFlowModel);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new ApplicationException(Constants.JSON_PARSING_ERROR, e);
 		}
 		return wfStatus;
@@ -630,7 +622,7 @@ public class WorkflowServiceImpl implements Workflowservice {
                         fieldsSet.add(toValueMap.entrySet().iterator().next().getKey());	
                     }	
                 } catch (IOException e) {	
-                    log.error("Excepiton occured while parsing wf fields!");	
+                    log.error("Exception occurred while parsing wf fields!");
                     log.error(e.toString());	
                 }	
             }	
@@ -641,4 +633,24 @@ public class WorkflowServiceImpl implements Workflowservice {
         response.put(Constants.STATUS, HttpStatus.OK);	
         return response;	
     }
+
+	private WorkFlowModel getWorkFlowConfig(String serviceName) {
+		try {
+			Map<String, Object> wfConfig = new HashMap<>();
+			if (serviceName.equalsIgnoreCase(Constants.PROFILE_SERVICE_NAME)) {
+				StringBuilder uri = new StringBuilder();
+				uri.append(configuration.getLmsServiceHost() + configuration.getWfSystemSettingsPath());
+				wfConfig = (Map<String, Object>) requestServiceImpl.fetchResultUsingGet(uri);
+			}
+			Map<String, Object> result = (Map<String, Object>) wfConfig.get(Constants.RESULT);
+			Map<String, Object> response = (Map<String, Object>) result.get(Constants.RESPONSE);
+			String value = (String) response.get(Constants.VALUE);
+			Map<String,Object> wfStates = mapper.readValue(value,Map.class);
+			WorkFlowModel workFlowModel = mapper.convertValue(wfStates, WorkFlowModel.class);
+			return workFlowModel;
+		} catch (Exception e) {
+			log.error("Exception occurred while get work flow config fields!");
+			throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE, e);
+		}
+	}
 }
