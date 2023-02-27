@@ -3,12 +3,12 @@ package org.sunbird.workflow.core;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Throwables;
 
 public class WFLogger {
 
@@ -30,35 +30,35 @@ public class WFLogger {
 		logger.log(Level.WARN, message);
 	}
 
-	public void error(Exception exception) {
+	public void error(Exception exception) throws JsonProcessingException {
 		ObjectMapper ow = new ObjectMapper();
 		// log the exception
 		try {
 			Map<String, Object> message = new HashMap<>();
 			message.put("event", exception.getClass());
 			message.put("message", exception.getMessage());
-			message.put("trace", Throwables.getStackTraceAsString(exception));
+			message.put("trace",  ow.writeValueAsString(exception));
 			logger.log(Level.ERROR, ow.writeValueAsString(message));
 		} catch (Exception e) {
 			logger.log(Level.ERROR,
 					"{\"event\":\"" + exception.getClass() + "\", \"message\":\"" + exception.getMessage()
-							+ "\", \"trace\":\"" + Throwables.getStackTraceAsString(exception) + "\"}");
+							+ "\", \"trace\":\"" + ow.writeValueAsString(exception) + "\"}");
 		}
 	}
 
-	public void fatal(Exception exception) {
+	public void fatal(Exception exception) throws JsonProcessingException {
 		ObjectMapper ow = new ObjectMapper();
 		// log the exception
 		try {
 			Map<String, Object> message = new HashMap<>();
 			message.put("event", exception.getClass());
 			message.put("message", exception.getMessage());
-			message.put("trace", Throwables.getStackTraceAsString(exception));
+			message.put("trace", ow.writeValueAsString(exception));
 			logger.log(Level.FATAL, ow.writeValueAsString(message));
 		} catch (Exception e) {
 			logger.log(Level.FATAL,
 					"{\"event\":\"" + exception.getClass() + "\", \"message\":\"" + exception.getMessage()
-							+ "\", \"trace\":\"" + Throwables.getStackTraceAsString(exception) + "\"}");
+							+ "\", \"trace\":\"" + ow.writeValueAsString(exception) + "\"}");
 		}
 	}
 

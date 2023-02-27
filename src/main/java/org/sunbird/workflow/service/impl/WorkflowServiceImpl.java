@@ -644,12 +644,11 @@ public class WorkflowServiceImpl implements Workflowservice {
 			}
 			Map<String, Object> result = (Map<String, Object>) wfConfig.get(Constants.RESULT);
 			Map<String, Object> response = (Map<String, Object>) result.get(Constants.RESPONSE);
-			String value = (String) response.get(Constants.VALUE);
-			Map<String,Object> wfStates = mapper.readValue(value,Map.class);
-			WorkFlowModel workFlowModel = mapper.convertValue(wfStates, WorkFlowModel.class);
+			Map<String,Object> wfStates = mapper.readValue((String) response.get(Constants.VALUE),Map.class);
+			WorkFlowModel workFlowModel = mapper.convertValue(wfStates, new TypeReference<WorkFlowModel>(){});
 			return workFlowModel;
 		} catch (Exception e) {
-			log.error("Exception occurred while get work flow config fields!");
+			log.error("Exception occurred while getting work flow config details!");
 			throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE, e);
 		}
 	}
