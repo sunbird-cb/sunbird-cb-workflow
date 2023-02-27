@@ -3,7 +3,6 @@ package org.sunbird.workflow.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,7 +44,7 @@ public class WFLogger {
 		}
 	}
 
-	public void fatal(Exception exception) throws JsonProcessingException {
+	public void fatal(Exception exception) {
 		ObjectMapper ow = new ObjectMapper();
 		// log the exception
 		try {
