@@ -138,9 +138,6 @@ public class Constants {
 	public static final String ORGANIZATION_ID = "organisationId";
 	public static final String ROLES = "roles";
 	public static final String PUBLIC = "PUBLIC";
-	public static final String REDIS_COMMON_KEY = "SB_WF_";
-	public static final String WF_PROFILE_CONFIG_KEY = "wfProfileServiceConfig";
-	public static final String WF_STATES = "wfstates";
 	public static final String VALUE = "value";
 
 

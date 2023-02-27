@@ -30,7 +30,7 @@ public class WFLogger {
 		logger.log(Level.WARN, message);
 	}
 
-	public void error(Exception exception) throws JsonProcessingException {
+	public void error(Exception exception) {
 		ObjectMapper ow = new ObjectMapper();
 		// log the exception
 		try {
@@ -41,8 +41,7 @@ public class WFLogger {
 			logger.log(Level.ERROR, ow.writeValueAsString(message));
 		} catch (Exception e) {
 			logger.log(Level.ERROR,
-					"{\"event\":\"" + exception.getClass() + "\", \"message\":\"" + exception.getMessage()
-							+ "\", \"trace\":\"" + ow.writeValueAsString(exception) + "\"}");
+					"{\"event\":\"" + exception.getClass() + "\", \"message\":\"" + exception.getMessage() + "\"}");
 		}
 	}
 
@@ -57,8 +56,7 @@ public class WFLogger {
 			logger.log(Level.FATAL, ow.writeValueAsString(message));
 		} catch (Exception e) {
 			logger.log(Level.FATAL,
-					"{\"event\":\"" + exception.getClass() + "\", \"message\":\"" + exception.getMessage()
-							+ "\", \"trace\":\"" + ow.writeValueAsString(exception) + "\"}");
+					"{\"event\":\"" + exception.getClass() + "\", \"message\":\"" + exception.getMessage() + "\"}");
 		}
 	}
 

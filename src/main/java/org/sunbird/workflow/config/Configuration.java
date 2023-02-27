@@ -79,7 +79,7 @@ public class Configuration {
     private String workflowCreateUserTopic;
 
     @Value("${lms.system.settings.wfProfileService.path}")
-    private String wfSystemSettingsPath;
+    private String profileServiceConfigPath;
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -272,11 +272,11 @@ public class Configuration {
 		this.workflowCreateUserTopic = workflowCreateUserTopic;
 	}
 
-    public String getWfSystemSettingsPath() {
-        return wfSystemSettingsPath;
+    public String getProfileServiceConfigPath() {
+        return profileServiceConfigPath;
     }
 
-    public void setWfSystemSettingsPath(String wfSystemSettingsPath) {
-        this.wfSystemSettingsPath = wfSystemSettingsPath;
+    public void setProfileServiceConfigPath(String profileServiceConfigPath) {
+        this.profileServiceConfigPath = profileServiceConfigPath;
     }
 }

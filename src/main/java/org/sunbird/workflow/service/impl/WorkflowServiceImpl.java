@@ -639,7 +639,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			Map<String, Object> wfConfig = new HashMap<>();
 			if (serviceName.equalsIgnoreCase(Constants.PROFILE_SERVICE_NAME)) {
 				StringBuilder uri = new StringBuilder();
-				uri.append(configuration.getLmsServiceHost() + configuration.getWfSystemSettingsPath());
+				uri.append(configuration.getLmsServiceHost() + configuration.getProfileServiceConfigPath());
 				wfConfig = (Map<String, Object>) requestServiceImpl.fetchResultUsingGet(uri);
 			}
 			Map<String, Object> result = (Map<String, Object>) wfConfig.get(Constants.RESULT);
