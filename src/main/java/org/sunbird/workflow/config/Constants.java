@@ -40,6 +40,8 @@ public class Constants {
 	public static final String WORKFLOW_STATE_CHECK_ERROR = "No wf state found on given state!";
 
 	public static final String STATE_VALIDATION_ERROR = "Work flow state can not be empty!";
+	public static final String STATUS_VALIDATION_ERROR_FOR_INITIATE = "Work flow state must be initiate!";
+	public static final String STATUS_VALIDATION_ERROR_FOR_NOT_INITIATE = "Work flow state must not be initiate!";
 
 	public static final String ACTOR_UUID_VALIDATION_ERROR = "actor uuid can not be empty!";
 
@@ -140,7 +142,14 @@ public class Constants {
 	public static final String PUBLIC = "PUBLIC";
 	public static final String VALUE = "value";
 
-	public static final String TAXONOMY_SERVIC_NAME = "taxonomy";
+	public static final String TAXONOMY_SERVICE_NAME = "taxonomy";
+	public static final String INITIATE = "initiate";
+
+	public static final String DOT_SEPARATOR = ".";
+	public static final String UNAUTHORIZED_KEY = "Unauthorized";
+	public static final String SHA_256_WITH_RSA = "SHA256withRSA";
+	public static final String SUB = "sub";
+	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken_publickey_basepath";
 
 
 }
