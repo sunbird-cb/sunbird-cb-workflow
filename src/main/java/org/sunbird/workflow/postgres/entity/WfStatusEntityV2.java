@@ -17,9 +17,6 @@ public class WfStatusEntityV2 {
 	@Column(name = "current_status")
 	private String currentStatus;
 
-	@Column(name = "application_id")
-	private String applicationId;
-
 	@Column(name = "in_workflow")
 	private boolean inWorkflow;
 
@@ -37,8 +34,6 @@ public class WfStatusEntityV2 {
 	@Column(name = "update_field_values")
 	private String updateFieldValues;
 
-	@Column(name = "dept_name")
-	private String deptName;
 
 	public String getUserId() {
 		return userId;
@@ -46,14 +41,6 @@ public class WfStatusEntityV2 {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
-	}
-
-	public String getCurrentStatus() {
-		return currentStatus;
-	}
-
-	public void setCurrentStatus(String currentStatus) {
-		this.currentStatus = currentStatus;
 	}
 
 	public Date getCreatedOn() {
@@ -96,14 +83,6 @@ public class WfStatusEntityV2 {
 		this.serviceName = serviceName;
 	}
 
-	public String getApplicationId() {
-		return applicationId;
-	}
-
-	public void setApplicationId(String applicationId) {
-		this.applicationId = applicationId;
-	}
-
 	public String getUpdateFieldValues() {
 		return updateFieldValues;
 	}
@@ -112,11 +91,11 @@ public class WfStatusEntityV2 {
 		this.updateFieldValues = updateFieldValues;
 	}
 
-	public String getDeptName() {
-		return deptName;
+	public String getCurrentStatus() {
+		return currentStatus;
 	}
 
-	public void setDeptName(String deptName) {
-		this.deptName = deptName;
+	public void setCurrentStatus(String currentStatus) {
+		this.currentStatus = currentStatus;
 	}
 }

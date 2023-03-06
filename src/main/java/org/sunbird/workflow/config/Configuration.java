@@ -87,9 +87,6 @@ public class Configuration {
     @Value("${sso.realm}")
     private String ssoRealm;
 
-    @Value("{accesstoken.publickey.basepath}")
-    private String accessTokenKey;
-
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -303,13 +300,5 @@ public class Configuration {
 
     public void setSsoRealm(String ssoRealm) {
         this.ssoRealm = ssoRealm;
-    }
-
-    public String getAccessTokenKey() {
-        return accessTokenKey;
-    }
-
-    public void setAccessTokenKey(String accessTokenKey) {
-        this.accessTokenKey = accessTokenKey;
     }
 }

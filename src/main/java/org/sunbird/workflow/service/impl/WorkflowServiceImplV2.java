@@ -109,7 +109,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
      */
     @Override
     public Response getWfApplication(String userToken, String wfId) {
-        String userId = validateAuthTokenAndFetchUserId(userToken);  // still userId not accessible this method not verified
+        String userId = validateAuthTokenAndFetchUserId(userToken);
         WfStatusEntityV2 applicationStatus = wfStatusRepoV2.findByUserIdAndWfId(userId,wfId);
         List<WfStatusEntityV2> applicationList = applicationStatus == null ? new ArrayList<>()
                 : new ArrayList<>(Arrays.asList(applicationStatus));
@@ -180,7 +180,6 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
                 applicationStatus.setWfId(wfId);
                 applicationStatus.setServiceName(wfRequest.getServiceName());
                 applicationStatus.setUserId(wfRequest.getUserId());
-                applicationStatus.setApplicationId(wfRequest.getApplicationId());
                 applicationStatus.setCreatedOn(new Date());
                 wfRequest.setWfId(wfId);
             }
@@ -191,7 +190,6 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
             applicationStatus.setCurrentStatus(nextState);
             applicationStatus.setUpdateFieldValues(mapper.writeValueAsString(wfRequest.getUpdateFieldValues()));
             applicationStatus.setInWorkflow(!wfStatusCheckForNextState.getIsLastState());
-            applicationStatus.setDeptName(wfRequest.getDeptName());
             wfStatusRepoV2.save(applicationStatus);
             producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
             producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);

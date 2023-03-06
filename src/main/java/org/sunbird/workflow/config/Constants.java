@@ -149,7 +149,7 @@ public class Constants {
 	public static final String UNAUTHORIZED_KEY = "Unauthorized";
 	public static final String SHA_256_WITH_RSA = "SHA256withRSA";
 	public static final String SUB = "sub";
-	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken_publickey_basepath";
+	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken.publickey.basepath";
 
 
 }
