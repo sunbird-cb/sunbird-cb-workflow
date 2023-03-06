@@ -163,7 +163,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
         String nextState = null;
         HashMap<String, String> data = new HashMap<>();
         try {
-            validateRequest(wfRequest);
+            validateRequest(wfRequest, userId);
             //instead of getting userId from the request object collect the userId from the auth token
             WfStatusEntityV2 applicationStatus = wfStatusRepoV2.findByUserIdAndWfId(userId, wfRequest.getWfId());
             WorkFlowModelV2 workFlowModel = getWorkFlowConfig(wfRequest.getServiceName());
@@ -179,7 +179,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
                 wfId = UUID.randomUUID().toString();
                 applicationStatus.setWfId(wfId);
                 applicationStatus.setServiceName(wfRequest.getServiceName());
-                applicationStatus.setUserId(wfRequest.getUserId());
+                applicationStatus.setUserId(userId);
                 applicationStatus.setCreatedOn(new Date());
                 wfRequest.setWfId(wfId);
             }
@@ -207,7 +207,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
      *
      * @param wfRequest
      */
-    private void validateRequest(WfRequest wfRequest) {
+    private void validateRequest(WfRequest wfRequest, String userId) {
         if (StringUtils.isEmpty(wfRequest.getWfId())) {
             if (!wfRequest.getState().equalsIgnoreCase(Constants.INITIATE)) {
                 throw new InvalidDataInputException(Constants.STATUS_VALIDATION_ERROR_FOR_INITIATE);
@@ -217,8 +217,8 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
                 throw new InvalidDataInputException(Constants.STATUS_VALIDATION_ERROR_FOR_NOT_INITIATE);
             }
         }
-        if (StringUtils.isEmpty(wfRequest.getUserId())) {
-            throw new InvalidDataInputException(Constants.USER_UUID_VALIDATION_ERROR);
+        if (StringUtils.isEmpty(userId)) {
+            throw new InvalidDataInputException(Constants.USER_ID_VALIDATION_ERROR);
         }
 
         if (StringUtils.isEmpty(wfRequest.getAction())) {

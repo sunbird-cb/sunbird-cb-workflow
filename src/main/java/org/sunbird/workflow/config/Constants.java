@@ -48,6 +48,7 @@ public class Constants {
 	public static final String APPLICATION_ID_VALIDATION_ERROR = "application id can not be empty!";
 
 	public static final String USER_UUID_VALIDATION_ERROR = "user uuid can not be empty!";
+	public static final String USER_ID_VALIDATION_ERROR = "userId can not be empty!";
 
 	public static final String ACTION_VALIDATION_ERROR = "Work flow action can not be empty!";
 
