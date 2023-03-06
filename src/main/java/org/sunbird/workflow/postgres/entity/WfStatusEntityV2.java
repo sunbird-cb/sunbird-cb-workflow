@@ -27,13 +27,15 @@ public class WfStatusEntityV2 {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date createdOn;
 
+	@Column(name = "created_by")
+	private String createdBy;
+
 	@Column(name = "lastupdated_on")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date lastUpdatedOn;
 
-	@Column(name = "update_field_values")
+	@Column(name = "update_field_values",  columnDefinition = "text")
 	private String updateFieldValues;
-
 
 	public String getUserId() {
 		return userId;
@@ -97,5 +99,13 @@ public class WfStatusEntityV2 {
 
 	public void setCurrentStatus(String currentStatus) {
 		this.currentStatus = currentStatus;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
 	}
 }

@@ -28,6 +28,7 @@ public class Constants {
 	public static final String STATUS_CHANGE_MESSAGE = "Application status changed to ";
 
 	public static final String WORKFLOW_PARSING_ERROR_MESSAGE = "Workflow parsing error occurred!";
+	public static final String UPDATED_FIELD_VALUES_ERROR_MESSAGE = "Error occurred while parsing updated fields values!";
 
 	public static final String WORKFLOW_INITIATE_ERROR_MESSAGE = "Workflow is not initiated!";
 
@@ -65,6 +66,7 @@ public class Constants {
 	public static final String ROLES_CONSTANT = "roles";
 
 	public static final String IS_WORKFLOW_TERMINATED = "inWorkflow";
+	public static final String IS_WORKFLOW_CONST = "inWorkflow";
 
 	public static final String SEARCH_CRITERIA_VALIDATION = "Provide the mandatory fields for search!";
 
@@ -75,7 +77,6 @@ public class Constants {
 	public static final String USER_ID_VALUE = "userIdValue";
 
 	public static final String APPROVED_STATE = "APPROVED";
-
 	public static final String PROCESSED_STATE = "PROCESSED";
 
 	public static final String EMAIL = "email";
@@ -151,6 +152,18 @@ public class Constants {
 	public static final String SHA_256_WITH_RSA = "SHA256withRSA";
 	public static final String SUB = "sub";
 	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken.publickey.basepath";
+	public static final String APPROVAL_STATUS = "approvalStatus";
+	public static final String DRAFT = "Draft";
+	public static final String IDENTIFIER = "identifier";
+	public static final String CURRENT_STATUS = "currentStatus";
+	public static final String SERVICE_NAME = "serviceName";
+	public static final String CREATED_ON = "createdOn";
+	public static final String CREATED_BY = "createdBy";
+	public static final String LAST_UPDATED_ON = "lastUpdatedOn";
+	public static final String UPDATED_FIELDS_VALUES = "updateFieldValues";
+	public static final String TERM_APPROVAL_STATUS_ERROR = "This terms are having wrong approval status value ";
+
+
 
 
 }

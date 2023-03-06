@@ -2,6 +2,8 @@ package org.sunbird.workflow.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.exception.ApplicationException;
@@ -73,28 +73,29 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
      */
     @Override
     public Response workflowTransition(String userToken, WfRequest wfRequest) {
-        HashMap<String, String> changeStatusResponse;
-        List<String> wfIds = new ArrayList<>();
+        Response response = new Response();
         String changedStatus = null;
         String userId = validateAuthTokenAndFetchUserId(userToken);
-        if (configuration.getMultipleWfCreationEnable() && !CollectionUtils.isEmpty(wfRequest.getUpdateFieldValues())) {
-            String wfId = wfRequest.getWfId();
+        if (!CollectionUtils.isEmpty(wfRequest.getUpdateFieldValues())) {
+            List<HashMap<String, Object>> validTerms = new ArrayList<>();
+            ArrayList<String> invalidTerms = new ArrayList<>();
             for (HashMap<String, Object> updatedField : wfRequest.getUpdateFieldValues()) {
-                wfRequest.setUpdateFieldValues(new ArrayList<>(Arrays.asList(updatedField)));
-                wfRequest.setWfId(wfId);
-                changeStatusResponse = changeStatus(wfRequest,userId);
-                wfIds.add(changeStatusResponse.get(Constants.WF_ID_CONSTANT));
-                changedStatus = changeStatusResponse.get(Constants.STATUS);
+                if (StringUtils.isEmpty((String) updatedField.get(Constants.APPROVAL_STATUS)) || updatedField.get(Constants.APPROVAL_STATUS).equals(Constants.DRAFT)) {
+                    validTerms.add(updatedField);
+                } else {
+                    invalidTerms.add((String) updatedField.get(Constants.IDENTIFIER));
+                }
             }
-        } else {
-            changeStatusResponse = changeStatus(wfRequest, userId);
-            wfIds.add(changeStatusResponse.get(Constants.WF_ID_CONSTANT));
-            changedStatus = changeStatusResponse.get(Constants.STATUS);
+            if (CollectionUtils.isNotEmpty(invalidTerms)) {
+                throw new InvalidDataInputException(Constants.TERM_APPROVAL_STATUS_ERROR + ": " + invalidTerms);
+            }
+            wfRequest.setUpdateFieldValues(validTerms);
         }
-        Response response = new Response();
+        HashMap<String, String> changeStatusResponse = changeStatus(wfRequest, userId);
+        changedStatus = changeStatusResponse.get(Constants.STATUS);
         HashMap<String, Object> data = new HashMap<>();
         data.put(Constants.STATUS, changedStatus);
-        data.put(Constants.WF_IDS_CONSTANT, wfIds);
+        data.put(Constants.WF_ID_CONSTANT, changeStatusResponse.get(Constants.WF_ID_CONSTANT));
         response.put(Constants.MESSAGE, Constants.STATUS_CHANGE_MESSAGE + changedStatus);
         response.put(Constants.DATA, data);
         response.put(Constants.STATUS, HttpStatus.OK);
@@ -103,6 +104,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
 
     /**
      * Get the application based on wfId
+     *
      * @param userToken
      * @param wfId
      * @return Wf Application based on wfId
@@ -110,9 +112,30 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
     @Override
     public Response getWfApplication(String userToken, String wfId) {
         String userId = validateAuthTokenAndFetchUserId(userToken);
-        WfStatusEntityV2 applicationStatus = wfStatusRepoV2.findByUserIdAndWfId(userId,wfId);
-        List<WfStatusEntityV2> applicationList = applicationStatus == null ? new ArrayList<>()
-                : new ArrayList<>(Arrays.asList(applicationStatus));
+        WfStatusEntityV2 applicationStatus = wfStatusRepoV2.findByUserIdAndWfId(userId, wfId);
+        List<Map<String, Object>> updateFieldValuesList = null;
+        if (StringUtils.isNotEmpty(applicationStatus.getUpdateFieldValues())) {
+            try {
+                updateFieldValuesList = mapper.readValue(applicationStatus.getUpdateFieldValues(), new TypeReference<List<Map<String, Object>>>() {
+                });
+            } catch (Exception ex) {
+                throw new ApplicationException(Constants.UPDATED_FIELD_VALUES_ERROR_MESSAGE, ex);
+            }
+        }
+        List<Object> applicationList = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(applicationStatus)) {
+            Map<String, Object> wfMap = new HashMap<>();
+            wfMap.put(Constants.WF_ID_CONSTANT, applicationStatus.getWfId());
+            wfMap.put(Constants.USER_ID, applicationStatus.getUserId());
+            wfMap.put(Constants.CURRENT_STATUS, applicationStatus.getCurrentStatus());
+            wfMap.put(Constants.IS_WORKFLOW_CONST, applicationStatus.getInWorkflow());
+            wfMap.put(Constants.SERVICE_NAME, applicationStatus.getServiceName());
+            wfMap.put(Constants.CREATED_ON, applicationStatus.getCreatedOn());
+            wfMap.put(Constants.CREATED_BY, applicationStatus.getCreatedBy());
+            wfMap.put(Constants.LAST_UPDATED_ON, applicationStatus.getLastUpdatedOn());
+            wfMap.put(Constants.UPDATED_FIELDS_VALUES, updateFieldValuesList);
+            applicationList.add(wfMap);
+        }
         Response response = new Response();
         response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
         response.put(Constants.DATA, applicationList);
@@ -122,6 +145,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
 
     /**
      * Get workflow applications based on status
+     *
      * @param userToken
      * @param criteria
      * @return workflow applications
@@ -164,7 +188,6 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
         HashMap<String, String> data = new HashMap<>();
         try {
             validateRequest(wfRequest, userId);
-            //instead of getting userId from the request object collect the userId from the auth token
             WfStatusEntityV2 applicationStatus = wfStatusRepoV2.findByUserIdAndWfId(userId, wfRequest.getWfId());
             WorkFlowModelV2 workFlowModel = getWorkFlowConfig(wfRequest.getServiceName());
             WfStatusV2 wfStatus = getWfStatus(wfRequest.getState(), workFlowModel);
@@ -180,6 +203,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
                 applicationStatus.setWfId(wfId);
                 applicationStatus.setServiceName(wfRequest.getServiceName());
                 applicationStatus.setUserId(userId);
+                applicationStatus.setCreatedBy(userId);
                 applicationStatus.setCreatedOn(new Date());
                 wfRequest.setWfId(wfId);
             }
@@ -191,9 +215,10 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
             applicationStatus.setUpdateFieldValues(mapper.writeValueAsString(wfRequest.getUpdateFieldValues()));
             applicationStatus.setInWorkflow(!wfStatusCheckForNextState.getIsLastState());
             wfStatusRepoV2.save(applicationStatus);
-            producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
+            if (wfStatus.getNotificationEnable() == Boolean.TRUE) {
+                producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
+            }
             producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
-
         } catch (IOException e) {
             throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE, e);
         }
