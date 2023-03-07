@@ -141,6 +141,14 @@ public class Constants {
 	public static final String VALUE = "value";
 
 	public static final String TAXONOMY_SERVIC_NAME = "taxonomy";
-
+	public static final String APPROVAL_STATUS = "approvalStatus";
+	public static final String INITIATE = "INITIATE";
+	public static final String SEND_FOR_REVIEW_LEVEL_1 = "SEND_FOR_REVIEW_LEVEL_1";
+	public static final String SEND_FOR_REVIEW_LEVEL_2 = "SEND_FOR_REVIEW_LEVEL_2";
+	public static final String XCHANNELID = "X-Channel-Id";
+	public static final String IDENTIFIER = "identifier";
+	public static final String CODE = "code";
+	public static final String CATEGORY = "category";
+	public static final String APPROVED = "APPROVED";
 
 }
