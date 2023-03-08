@@ -81,6 +81,9 @@ public class Configuration {
     @Value("${lms.system.settings.wfProfileService.path}")
     private String profileServiceConfigPath;
 
+    @Value("${lms.system.settings.wfTaxonomyService.path}")
+    private String taxonomyServiceConfigPath;
+
     @Value("${sso.url}")
     private String ssoUrl;
 
@@ -311,5 +314,13 @@ public class Configuration {
 
     public void setBaseKeyPath(String baseKeyPath) {
         this.baseKeyPath = baseKeyPath;
+    }
+
+    public String getTaxonomyServiceConfigPath() {
+        return taxonomyServiceConfigPath;
+    }
+
+    public void setTaxonomyServiceConfigPath(String taxonomyServiceConfigPath) {
+        this.taxonomyServiceConfigPath = taxonomyServiceConfigPath;
     }
 }

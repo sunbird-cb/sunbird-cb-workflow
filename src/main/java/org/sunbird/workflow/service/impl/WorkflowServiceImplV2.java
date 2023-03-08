@@ -351,7 +351,7 @@ public class WorkflowServiceImplV2 implements WorkflowServiceV2 {
             Map<String, Object> wfConfig = new HashMap<>();
             if (serviceName.equalsIgnoreCase(Constants.TAXONOMY_SERVICE_NAME)) {
                 StringBuilder uri = new StringBuilder();
-                uri.append(configuration.getLmsServiceHost() + configuration.getProfileServiceConfigPath());
+                uri.append(configuration.getLmsServiceHost() + configuration.getTaxonomyServiceConfigPath());
                 wfConfig = (Map<String, Object>) requestServiceImpl.fetchResultUsingGet(uri);
             }
             Map<String, Object> result = (Map<String, Object>) wfConfig.get(Constants.RESULT);

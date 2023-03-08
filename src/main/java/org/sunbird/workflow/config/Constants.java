@@ -151,7 +151,6 @@ public class Constants {
 	public static final String UNAUTHORIZED_KEY = "Unauthorized";
 	public static final String SHA_256_WITH_RSA = "SHA256withRSA";
 	public static final String SUB = "sub";
-	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken.publickey.basepath";
 	public static final String APPROVAL_STATUS = "approvalStatus";
 	public static final String DRAFT = "Draft";
 	public static final String IDENTIFIER = "identifier";
