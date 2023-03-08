@@ -4,9 +4,7 @@ package org.sunbird.workflow.postgres.repo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 
@@ -37,4 +35,5 @@ public interface WfStatusRepo extends JpaRepository<WfStatusEntity, String> {
     
     @Query(value = "select update_field_values from wingspan.wf_status where root_org= ?1 and org = ?2 and service_name = ?3 and current_status = ?4 and userid = ?5", nativeQuery = true)	
     List<String> findWfFieldsForUser(String rootOrg, String org, String servicename , String status, String userId);
+    
 }
