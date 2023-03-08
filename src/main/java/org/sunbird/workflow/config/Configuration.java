@@ -81,6 +81,15 @@ public class Configuration {
     @Value("${lms.system.settings.wfProfileService.path}")
     private String profileServiceConfigPath;
 
+    @Value("${sso.url}")
+    private String ssoUrl;
+
+    @Value("${sso.realm}")
+    private String ssoRealm;
+
+    @Value("${accesstoken.publickey.basepath}")
+    private String baseKeyPath;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -278,5 +287,29 @@ public class Configuration {
 
     public void setProfileServiceConfigPath(String profileServiceConfigPath) {
         this.profileServiceConfigPath = profileServiceConfigPath;
+    }
+
+    public String getSsoUrl() {
+        return ssoUrl;
+    }
+
+    public void setSsoUrl(String ssoUrl) {
+        this.ssoUrl = ssoUrl;
+    }
+
+    public String getSsoRealm() {
+        return ssoRealm;
+    }
+
+    public void setSsoRealm(String ssoRealm) {
+        this.ssoRealm = ssoRealm;
+    }
+
+    public String getBaseKeyPath() {
+        return baseKeyPath;
+    }
+
+    public void setBaseKeyPath(String baseKeyPath) {
+        this.baseKeyPath = baseKeyPath;
     }
 }

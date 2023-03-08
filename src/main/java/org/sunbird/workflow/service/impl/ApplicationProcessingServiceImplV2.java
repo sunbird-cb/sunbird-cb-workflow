@@ -15,7 +15,7 @@ public class ApplicationProcessingServiceImplV2 {
 
 	public void processWfApplicationRequest(WfRequest wfRequest) {
 		switch (wfRequest.getServiceName()) {
-		case Constants.TAXONOMY_SERVIC_NAME:
+			case Constants.TAXONOMY_SERVICE_NAME:
 			taxonomyService.processMessage(wfRequest);
 		default:
 			break;
