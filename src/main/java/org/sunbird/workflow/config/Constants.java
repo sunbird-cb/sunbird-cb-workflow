@@ -162,6 +162,13 @@ public class Constants {
 	public static final String LAST_UPDATED_ON = "lastUpdatedOn";
 	public static final String UPDATED_FIELDS_VALUES = "updateFieldValues";
 	public static final String TERM_APPROVAL_STATUS_ERROR = "This terms are having wrong approval status value ";
+	public static final String API_VERSION_1 = "1.0";
+	public static final String SUCCESS = "success";
+	public static final String TAXONOMY_WORKFLOW_TRANSITION = "taxonomy.workflow.transition";
+	public static final String GET_WF_APPLICATION = "taxonomy.get.workflow.application";
+	public static final String TAXONOMY_WF_APPLICATION_SEARCH = "taxonomy.workflow.application.search";
+	public static final String WF_NOT_AVAILABLE = "work flow not available for the given wfId";
+
 
 
 

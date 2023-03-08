@@ -15,19 +15,18 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sunbird.workflow.config.Constants;
+import org.springframework.stereotype.Component;
 import org.sunbird.workflow.models.KeyData;
 
+@Component
 public class KeyManager {
 
   private static Logger logger = LoggerFactory.getLogger(KeyManager.class.getName());
-  private static PropertiesCache propertiesCache = PropertiesCache.getInstance();
-
   private static Map<String, KeyData> keyMap = new HashMap<>();
 
-  public static void init() {
-    String basePath = propertiesCache.getProperty(Constants.ACCESS_TOKEN_PUBLICKEY_BASEPATH);
-    try (Stream<Path> walk = Files.walk(Paths.get(basePath))) {
+  public static void init(String keyPath) {
+    String basePath = keyPath;
+    try (Stream<Path> walk = Files.walk(Paths.get(keyPath))) {
       List<String> result =
               walk.filter(Files::isRegularFile).map(x -> x.toString()).collect(Collectors.toList());
       result.forEach(
@@ -53,8 +52,8 @@ public class KeyManager {
     }
   }
 
-  public static KeyData getPublicKey(String keyId) {
-    init();
+  public static KeyData getPublicKey(String keyId, String keyPath) {
+    init(keyPath);
     return keyMap.get(keyId);
   }
 

@@ -66,7 +66,7 @@ public class RequestInterceptor {
 			Map<Object, Object> headerData = mapper.readValue(new String(decodeFromBase64(header)), Map.class);
 			String keyId = headerData.get("kid").toString();
 			boolean isValid = CryptoUtil.verifyRSASign(payLoad, decodeFromBase64(signature),
-					KeyManager.getPublicKey(keyId).getPublicKey(), Constants.SHA_256_WITH_RSA);
+					KeyManager.getPublicKey(keyId, serverProperties.getBaseKeyPath()).getPublicKey(), Constants.SHA_256_WITH_RSA);
 			if (isValid) {
 				Map<String, Object> tokenBody = mapper.readValue(new String(decodeFromBase64(body)), Map.class);
 				boolean isExp = isExpired((Integer) tokenBody.get("exp"));
