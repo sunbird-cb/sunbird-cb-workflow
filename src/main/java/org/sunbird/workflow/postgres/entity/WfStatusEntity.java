@@ -49,9 +49,6 @@ public class WfStatusEntity {
 	@Column(name = "dept_name")
 	private String deptName;
 
-	@Column(name = "approval_state")
-	private String approvalState;
-
 	public String getUserId() {
 		return userId;
 	}
@@ -154,13 +151,5 @@ public class WfStatusEntity {
 
 	public void setDeptName(String deptName) {
 		this.deptName = deptName;
-	}
-
-	public String getApprovalState() {
-		return approvalState;
-	}
-
-	public void setApprovalState(String approvalState) {
-		this.approvalState = approvalState;
 	}
 }
