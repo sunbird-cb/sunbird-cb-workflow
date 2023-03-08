@@ -54,9 +54,11 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
     @Value("${taxonomy.workflow.approved.status}")
     private String approved;
 
+    @Value("${taxonomy.term.update.api}")
+    private String TERM_UPDATE_URI;
 
-    private static final String TERM_UPDATE_URI = "/framework/v3/term/update/{id}";
-    private static final String PUBLISH_FRAMEWORK_URI = "/framework/v3/publish/{id}";
+    @Value("${taxonomy.framework.publish.api}")
+    private String PUBLISH_FRAMEWORK_URI;
 
     @Override
     public void processMessage(WfRequest wfRequest) {
