@@ -35,5 +35,5 @@ public interface WfStatusRepo extends JpaRepository<WfStatusEntity, String> {
     
     @Query(value = "select update_field_values from wingspan.wf_status where root_org= ?1 and org = ?2 and service_name = ?3 and current_status = ?4 and userid = ?5", nativeQuery = true)	
     List<String> findWfFieldsForUser(String rootOrg, String org, String servicename , String status, String userId);
-
+    
 }
