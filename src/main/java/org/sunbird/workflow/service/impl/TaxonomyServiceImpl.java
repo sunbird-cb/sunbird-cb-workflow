@@ -13,8 +13,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.sunbird.workflow.config.Constants;
-import org.sunbird.workflow.models.Request;
-import org.sunbird.workflow.models.RequestTerm;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.postgres.entity.WfStatusEntityV2;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
@@ -86,7 +84,6 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
             } else {
                 WfStatusEntityV2 wfStatusEntityV2 =  wfStatusRepo.findBywfId(wfRequest.getWfId());
                 updateFieldValues = getUpdateFieldValues(wfStatusEntityV2);
-                System.out.println("field values :: "+updateFieldValues);
             }
 
             if (Objects.nonNull(updateFieldValues) && !CollectionUtils.isEmpty(updateFieldValues)) {
@@ -99,12 +96,20 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
                     request.put(Constants.REQUEST,term);
                     String URI = constructTermUpdateURI(id, category);
                     logger.info("printing URI For Term Update {} ", URI);
-                    requestService.fetchResultUsingPatch(URI,request, null);
+                    Map<String, Object> response = requestService.fetchResultUsingPatch(URI,request, null);
+                    String responseCode = (String) response.get(Constants.RESPONSE_CODE);
+                    if (!responseCode.equals(Constants.OK)){
+                        logger.error("Unable To Update Term Status");
+                    }
                 }
                 StringBuilder frameworkURI = constructPublishFrameworkURI();
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put(Constants.XCHANNELID,channelId);
-                requestService.fetchResultUsingPost(frameworkURI,null,Map.class,headers);
+                Map<String,Object> publishApiResponse = (Map<String, Object>) requestService.fetchResultUsingPost(frameworkURI,null,Map.class,headers);
+                String responseCode = (String) publishApiResponse.get(Constants.RESPONSE_CODE);
+                if (!responseCode.equals(Constants.OK)){
+                    logger.error("Unable To Publish Your Framework");
+                }
             }
         }
 
