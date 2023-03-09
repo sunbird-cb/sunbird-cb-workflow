@@ -173,4 +173,7 @@ public class Constants {
 	public static final String GET_WF_APPLICATION = "taxonomy.get.workflow.application";
 	public static final String TAXONOMY_WF_APPLICATION_SEARCH = "taxonomy.workflow.application.search";
 	public static final String WF_NOT_AVAILABLE = "work flow not available for the given wfId";
+	public static final String TERM = "term";
+	public static final String FRAMEWORK = "framework";
+	public static final String ID = "{id}";
 }
