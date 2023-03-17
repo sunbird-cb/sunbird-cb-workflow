@@ -61,53 +61,64 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
     @Value("${taxonomy.framework.publish.api}")
     private String PUBLISH_FRAMEWORK_URI;
 
+    @Value("{$taxonomy.term.read.api}")
+    private String termReadURI;
+
+    @Value("{$taxonomy.workflow.live}")
+    private String live;
+
+    @Value("{$taxonomy.workflow.publish}")
+    private String underPublish;
     @Override
     public void processMessage(WfRequest wfRequest) {
-        if (Objects.nonNull(wfRequest) && !StringUtils.isEmpty(wfRequest)){
-            String state = wfRequest.getState();
-            HashMap<String, Object> request = new HashMap<>();
-            HashMap<String, Object> term = new HashMap<>();
-            HashMap<String, Object> requestMap = new HashMap<>();
-            List <HashMap<String, Object>> updateFieldValues = null;
-            if (state.equals(Constants.INITIATE)){
-                requestMap.put(Constants.APPROVAL_STATUS, draft);
-            } else if (state.equals(Constants.SEND_FOR_REVIEW_LEVEL_1)){
-                requestMap.put(Constants.APPROVAL_STATUS, under_L1_Review);
-            } else if (state.equals(Constants.SEND_FOR_REVIEW_LEVEL_2)){
-                requestMap.put(Constants.APPROVAL_STATUS, under_L2_Review);
-            } else if (state.equals(Constants.APPROVED)){
-                requestMap.put(Constants.APPROVAL_STATUS, approved);
-            }
-
-            if (state.equals(Constants.INITIATE)){
-                updateFieldValues  =  wfRequest.getUpdateFieldValues();
-            } else {
-                WfStatusEntityV2 wfStatusEntityV2 =  wfStatusRepoV2.findBywfId(wfRequest.getWfId());
-                updateFieldValues = getUpdateFieldValues(wfStatusEntityV2);
-            }
-
+        if (Objects.nonNull(wfRequest) && !StringUtils.isEmpty(wfRequest.getWfId())) {
+            WfStatusEntityV2 wfStatusEntityV2 = wfStatusRepoV2.findBywfId(wfRequest.getWfId());
+            List<HashMap<String, Object>> updateFieldValues = getUpdateFieldValues(wfStatusEntityV2);
             if (Objects.nonNull(updateFieldValues) && !CollectionUtils.isEmpty(updateFieldValues)) {
                 for (HashMap<String, Object> updateFieldValue : updateFieldValues) {
                     String identifier = (String) updateFieldValue.get(Constants.IDENTIFIER);
                     String id = (String) updateFieldValue.get(Constants.CODE);
                     String category = (String) updateFieldValue.get(Constants.CATEGORY);
-                    requestMap.put(Constants.IDENTIFIER, identifier);
-                    term.put(Constants.TERM,requestMap);
-                    request.put(Constants.REQUEST,term);
-                    String URI = constructTermUpdateURI(id, category);
-                    logger.info("printing URI For Term Update {} ", URI);
-                    Map<String, Object> response = requestService.fetchResultUsingPatch(URI,request, null);
-                    String responseCode = (String) response.get(Constants.RESPONSE_CODE);
-                    if (!responseCode.equals(Constants.OK)){
-                        logger.error("Unable To Update Term Status");
+                    StringBuilder termRead = constructReadTermApiURI(id, category);
+                    Map<String, Object> termResponse = (Map<String, Object>) requestService.fetchResultUsingGet(termRead);
+                    String responseForTermRead = (String) termResponse.get(Constants.RESPONSE_CODE);
+                    if (responseForTermRead.equals(Constants.OK)) {
+                        Map<String, Object> resultMap = (Map<String, Object>) termResponse.get(Constants.RESULT);
+                        Map<String, Object> resultTerm = (Map<String, Object>) resultMap.get(Constants.TERM);
+                        String currentApprovalStatus = (String) resultTerm.get(Constants.APPROVAL_STATUS);
+                        if (!currentApprovalStatus.equals(Constants.Live)) {
+                            String currentStatus = wfStatusEntityV2.getCurrentStatus();
+                            HashMap<String, Object> request = new HashMap<>();
+                            HashMap<String, Object> term = new HashMap<>();
+                            HashMap<String, Object> requestMap = new HashMap<>();
+                            if (currentStatus.equals(Constants.SEND_FOR_REVIEW_LEVEL_1)) {
+                                requestMap.put(Constants.APPROVAL_STATUS, under_L1_Review);
+                            } else if (currentStatus.equals(Constants.SEND_FOR_REVIEW_LEVEL_2)) {
+                                requestMap.put(Constants.APPROVAL_STATUS, under_L2_Review);
+                            } else if (currentStatus.equals(Constants.SEND_FOR_PUBLISH)) {
+                                requestMap.put(Constants.APPROVAL_STATUS, underPublish);
+                            } else if (currentStatus.equals(Constants.APPROVED)) {
+                                requestMap.put(Constants.APPROVAL_STATUS, live);
+                            }
+                            requestMap.put(Constants.IDENTIFIER, identifier);
+                            term.put(Constants.TERM, requestMap);
+                            request.put(Constants.REQUEST, term);
+                            String URI = constructTermUpdateURI(id, category);
+                            logger.info("printing URI For Term Update {} ", URI);
+                            Map<String, Object> response = requestService.fetchResultUsingPatch(URI, request, null);
+                            String responseCode = (String) response.get(Constants.RESPONSE_CODE);
+                            if (!responseCode.equals(Constants.OK)) {
+                                logger.error("Unable To Update Term Status");
+                            }
+                        }
                     }
                 }
                 StringBuilder frameworkURI = constructPublishFrameworkURI();
                 HashMap<String, String> headers = new HashMap<>();
-                headers.put(Constants.XCHANNELID,channelId);
-                Map<String,Object> publishApiResponse = (Map<String, Object>) requestService.fetchResultUsingPost(frameworkURI,null,Map.class,headers);
+                headers.put(Constants.XCHANNELID, channelId);
+                Map<String, Object> publishApiResponse = (Map<String, Object>) requestService.fetchResultUsingPost(frameworkURI, null, Map.class, headers);
                 String responseCode = (String) publishApiResponse.get(Constants.RESPONSE_CODE);
-                if (!responseCode.equals(Constants.OK)){
+                if (!responseCode.equals(Constants.OK)) {
                     logger.error("Unable To Publish Your Framework");
                 }
             }
@@ -148,5 +159,17 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
             }
         }
         return updateFieldValuesList;
+    }
+
+    private StringBuilder constructReadTermApiURI(String term, String category) {
+        StringBuilder builder = null;
+        if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(category)) {
+            builder = new StringBuilder();
+            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + termReadURI.replace(Constants.ID, term))
+                    .queryParam(Constants.FRAMEWORK, frameworkId).queryParam(Constants.CATEGORY, category)
+                    .build();
+            builder.append(uriComponents);
+        }
+        return builder;
     }
 }
