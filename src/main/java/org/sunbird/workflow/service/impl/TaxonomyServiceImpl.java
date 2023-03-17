@@ -69,6 +69,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
 
     @Value("{$taxonomy.workflow.publish}")
     private String underPublish;
+
     @Override
     public void processMessage(WfRequest wfRequest) {
         if (Objects.nonNull(wfRequest) && !StringUtils.isEmpty(wfRequest.getWfId())) {
@@ -79,25 +80,21 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
                     String identifier = (String) updateFieldValue.get(Constants.IDENTIFIER);
                     String id = (String) updateFieldValue.get(Constants.CODE);
                     String category = (String) updateFieldValue.get(Constants.CATEGORY);
-                    StringBuilder termRead = constructReadTermApiURI(id, category);
-                    Map<String, Object> termResponse = (Map<String, Object>) requestService.fetchResultUsingGet(termRead);
-                    String responseForTermRead = (String) termResponse.get(Constants.RESPONSE_CODE);
-                    if (responseForTermRead.equals(Constants.OK)) {
+                    Map<String, Object> termResponse = readTermObject(id, category);
+                    if (Constants.OK.equalsIgnoreCase((String) termResponse.get(Constants.RESPONSE_CODE))) {
                         Map<String, Object> resultMap = (Map<String, Object>) termResponse.get(Constants.RESULT);
                         Map<String, Object> resultTerm = (Map<String, Object>) resultMap.get(Constants.TERM);
-                        String currentApprovalStatus = (String) resultTerm.get(Constants.APPROVAL_STATUS);
-                        if (!currentApprovalStatus.equals(Constants.Live)) {
-                            String currentStatus = wfStatusEntityV2.getCurrentStatus();
+                        if (!((String) resultTerm.get(Constants.APPROVAL_STATUS)).equals(Constants.Live)) {
                             HashMap<String, Object> request = new HashMap<>();
                             HashMap<String, Object> term = new HashMap<>();
                             HashMap<String, Object> requestMap = new HashMap<>();
-                            if (currentStatus.equals(Constants.SEND_FOR_REVIEW_LEVEL_1)) {
+                            if (wfStatusEntityV2.getCurrentStatus().equals(Constants.SEND_FOR_REVIEW_LEVEL_1)) {
                                 requestMap.put(Constants.APPROVAL_STATUS, under_L1_Review);
-                            } else if (currentStatus.equals(Constants.SEND_FOR_REVIEW_LEVEL_2)) {
+                            } else if (wfStatusEntityV2.getCurrentStatus().equals(Constants.SEND_FOR_REVIEW_LEVEL_2)) {
                                 requestMap.put(Constants.APPROVAL_STATUS, under_L2_Review);
-                            } else if (currentStatus.equals(Constants.SEND_FOR_PUBLISH)) {
+                            } else if (wfStatusEntityV2.getCurrentStatus().equals(Constants.SEND_FOR_PUBLISH)) {
                                 requestMap.put(Constants.APPROVAL_STATUS, underPublish);
-                            } else if (currentStatus.equals(Constants.APPROVED)) {
+                            } else if (wfStatusEntityV2.getCurrentStatus().equals(Constants.APPROVE_STATE)) {
                                 requestMap.put(Constants.APPROVAL_STATUS, live);
                             }
                             requestMap.put(Constants.IDENTIFIER, identifier);
@@ -127,20 +124,20 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
     }
 
     private String constructTermUpdateURI(String term, String category) {
-       String uri = null;
-        if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(frameworkId) && !StringUtils.isEmpty(category)){
-            UriComponents  uriComponents = UriComponentsBuilder.fromUriString(host + TERM_UPDATE_URI.replace(Constants.ID, term)).
+        String uri = null;
+        if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(frameworkId) && !StringUtils.isEmpty(category)) {
+            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + TERM_UPDATE_URI.replace(Constants.ID, term)).
                     queryParam(Constants.FRAMEWORK, frameworkId).queryParam(Constants.CATEGORY, category).build();
-           uri = uriComponents.toString();
+            uri = uriComponents.toString();
         }
         return uri;
     }
 
     private StringBuilder constructPublishFrameworkURI() {
         StringBuilder builder = null;
-        if (!StringUtils.isEmpty(frameworkId)){
+        if (!StringUtils.isEmpty(frameworkId)) {
             builder = new StringBuilder();
-            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + PUBLISH_FRAMEWORK_URI.replace(Constants.ID,frameworkId)).build();
+            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + PUBLISH_FRAMEWORK_URI.replace(Constants.ID, frameworkId)).build();
             builder.append(uriComponents);
         }
         return builder;
@@ -172,4 +169,19 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         }
         return builder;
     }
+
+    private Map<String, Object> readTermObject(String term, String category) {
+        StringBuilder builder = null;
+        Map<String, Object> termResponse = null;
+        if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(category)) {
+            builder = new StringBuilder();
+            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + termReadURI.replace(Constants.ID, term))
+                    .queryParam(Constants.FRAMEWORK, frameworkId).queryParam(Constants.CATEGORY, category)
+                    .build();
+            builder.append(uriComponents);
+            termResponse = (Map<String, Object>) requestService.fetchResultUsingGet(builder);
+        }
+        return termResponse;
+    }
 }
+
