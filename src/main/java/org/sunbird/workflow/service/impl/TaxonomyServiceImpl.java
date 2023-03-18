@@ -61,13 +61,13 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
     @Value("${taxonomy.framework.publish.api}")
     private String PUBLISH_FRAMEWORK_URI;
 
-    @Value("{$taxonomy.term.read.api}")
+    @Value("${taxonomy.term.read.api}")
     private String termReadURI;
 
-    @Value("{$taxonomy.workflow.live}")
+    @Value("${taxonomy.workflow.live}")
     private String live;
 
-    @Value("{$taxonomy.workflow.publish}")
+    @Value("${taxonomy.workflow.publish}")
     private String underPublish;
 
     @Override
@@ -84,7 +84,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
                     if (Constants.OK.equalsIgnoreCase((String) termResponse.get(Constants.RESPONSE_CODE))) {
                         Map<String, Object> resultMap = (Map<String, Object>) termResponse.get(Constants.RESULT);
                         Map<String, Object> resultTerm = (Map<String, Object>) resultMap.get(Constants.TERM);
-                        if (!((String) resultTerm.get(Constants.APPROVAL_STATUS)).equals(Constants.Live)) {
+                        if (!((String) resultTerm.get(Constants.STATUS)).equals(Constants.Live)) {
                             HashMap<String, Object> request = new HashMap<>();
                             HashMap<String, Object> term = new HashMap<>();
                             HashMap<String, Object> requestMap = new HashMap<>();
