@@ -123,7 +123,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
 
     }
 
-    public String constructTermUpdateURI(String term, String category) {
+    private String constructTermUpdateURI(String term, String category) {
         String uri = null;
         StringBuilder builder = null;
         if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(frameworkId) && !StringUtils.isEmpty(category)) {
@@ -135,7 +135,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         return builder.toString();
     }
 
-    public StringBuilder constructPublishFrameworkURI() {
+    private StringBuilder constructPublishFrameworkURI() {
         StringBuilder builder = null;
         if (!StringUtils.isEmpty(frameworkId)) {
             builder = new StringBuilder();
@@ -158,7 +158,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         }
         return updateFieldValuesList;
     }
-    public Map<String, Object> readTermObject(String term, String category) {
+    private Map<String, Object> readTermObject(String term, String category) {
         Map<String, Object> termResponse = null;
         if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(category)) {
             StringBuilder builder = new StringBuilder();
