@@ -123,22 +123,23 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
 
     }
 
-    private String constructTermUpdateURI(String term, String category) {
+    public String constructTermUpdateURI(String term, String category) {
         String uri = null;
+        StringBuilder builder = null;
         if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(frameworkId) && !StringUtils.isEmpty(category)) {
-            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + TERM_UPDATE_URI.replace(Constants.ID, term)).
-                    queryParam(Constants.FRAMEWORK, frameworkId).queryParam(Constants.CATEGORY, category).build();
-            uri = uriComponents.toString();
+            builder = new StringBuilder();
+            builder = builder.append(host+TERM_UPDATE_URI.replace(Constants.ID, term))
+                    .append(Constants.QUESTION_MARK).append(Constants.FRAMEWORK).append(Constants.EQUAL_TO).append(frameworkId)
+                    .append(Constants.AND).append(Constants.CATEGORY).append(Constants.EQUAL_TO).append(category);
         }
-        return uri;
+        return builder.toString();
     }
 
-    private StringBuilder constructPublishFrameworkURI() {
+    public StringBuilder constructPublishFrameworkURI() {
         StringBuilder builder = null;
         if (!StringUtils.isEmpty(frameworkId)) {
             builder = new StringBuilder();
-            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + PUBLISH_FRAMEWORK_URI.replace(Constants.ID, frameworkId)).build();
-            builder.append(uriComponents);
+            builder.append(host+PUBLISH_FRAMEWORK_URI.replace(Constants.ID, frameworkId));
         }
         return builder;
     }
@@ -157,28 +158,13 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         }
         return updateFieldValuesList;
     }
-
-    private StringBuilder constructReadTermApiURI(String term, String category) {
-        StringBuilder builder = null;
-        if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(category)) {
-            builder = new StringBuilder();
-            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + termReadURI.replace(Constants.ID, term))
-                    .queryParam(Constants.FRAMEWORK, frameworkId).queryParam(Constants.CATEGORY, category)
-                    .build();
-            builder.append(uriComponents);
-        }
-        return builder;
-    }
-
-    private Map<String, Object> readTermObject(String term, String category) {
-        StringBuilder builder = null;
+    public Map<String, Object> readTermObject(String term, String category) {
         Map<String, Object> termResponse = null;
         if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(category)) {
-            builder = new StringBuilder();
-            UriComponents uriComponents = UriComponentsBuilder.fromUriString(host + termReadURI.replace(Constants.ID, term))
-                    .queryParam(Constants.FRAMEWORK, frameworkId).queryParam(Constants.CATEGORY, category)
-                    .build();
-            builder.append(uriComponents);
+            StringBuilder builder = new StringBuilder();
+            builder = builder.append(host+termReadURI.replace(Constants.ID, term))
+                    .append(Constants.QUESTION_MARK).append(Constants.FRAMEWORK).append(Constants.EQUAL_TO).append(frameworkId)
+                    .append(Constants.AND).append(Constants.CATEGORY).append(Constants.EQUAL_TO).append(category);
             termResponse = (Map<String, Object>) requestService.fetchResultUsingGet(builder);
         }
         return termResponse;

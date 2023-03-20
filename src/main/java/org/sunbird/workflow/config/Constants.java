@@ -182,5 +182,7 @@ public class Constants {
 	public static final String USER_ID_VALIDATION_ERROR = "Invalid user auth token";
 	public static final String Live = "Live";
 	public static final String SEND_FOR_PUBLISH = "SEND_FOR_PUBLISH";
-
+	public static final String QUESTION_MARK = "?";
+	public static final String EQUAL_TO = "=";
+	public static final String AND = "&";
 }
