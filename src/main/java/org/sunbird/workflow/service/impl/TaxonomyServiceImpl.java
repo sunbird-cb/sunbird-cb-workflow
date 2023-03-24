@@ -78,12 +78,12 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
                     String identifier = (String) updateFieldValue.get(Constants.IDENTIFIER);
                     String id = (String) updateFieldValue.get(Constants.CODE);
                     String category = (String) updateFieldValue.get(Constants.CATEGORY);
-                    invokeTermUpdateApi((String) updateFieldValue.get(Constants.APPROVAL_STATUS),wfStatusEntityV2.getCurrentStatus(),identifier,category,id);
+                    changeStatus((String) updateFieldValue.get(Constants.APPROVAL_STATUS),wfStatusEntityV2.getCurrentStatus(),identifier,category,id);
                     List<HashMap<String, Object>> associationsList = (List<HashMap<String, Object>>) updateFieldValue.get(Constants.ASSOCIATIONS);
                      if (!CollectionUtils.isEmpty(associationsList)) {
                             for (Map association : associationsList) {
                                 if (!CollectionUtils.isEmpty(association)) {
-                                    invokeTermUpdateApi((String) association.get(Constants.APPROVAL_STATUS),wfStatusEntityV2.getCurrentStatus(),(String) association.get(Constants.IDENTIFIER),(String) association.get(Constants.CATEGORY),(String) association.get(Constants.CODE));
+                                    changeStatus((String) association.get(Constants.APPROVAL_STATUS),wfStatusEntityV2.getCurrentStatus(),(String) association.get(Constants.IDENTIFIER),(String) association.get(Constants.CATEGORY),(String) association.get(Constants.CODE));
                                 }
                             }
                      }
@@ -136,7 +136,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         }
         return updateFieldValuesList;
     }
-    private void invokeTermUpdateApi(String currentApprovalStatus, String currentStatus, String identifier, String category, String id) {
+    private void changeStatus(String currentApprovalStatus, String currentStatus, String identifier, String category, String id) {
         if (StringUtils.isNotEmpty(currentStatus) && StringUtils.isNotEmpty(identifier) && StringUtils.isNotEmpty(category) && StringUtils.isNotEmpty(id)) {
         if (!currentApprovalStatus.equals(Constants.Live)) {
             HashMap<String, Object> request = new HashMap<>();
