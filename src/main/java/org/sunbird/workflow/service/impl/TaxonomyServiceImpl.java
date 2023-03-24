@@ -2,6 +2,7 @@ package org.sunbird.workflow.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.postgres.entity.WfStatusEntityV2;
@@ -80,35 +78,15 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
                     String identifier = (String) updateFieldValue.get(Constants.IDENTIFIER);
                     String id = (String) updateFieldValue.get(Constants.CODE);
                     String category = (String) updateFieldValue.get(Constants.CATEGORY);
-                    Map<String, Object> termResponse = readTermObject(id, category);
-                    if (Constants.OK.equalsIgnoreCase((String) termResponse.get(Constants.RESPONSE_CODE))) {
-                        Map<String, Object> resultMap = (Map<String, Object>) termResponse.get(Constants.RESULT);
-                        Map<String, Object> resultTerm = (Map<String, Object>) resultMap.get(Constants.TERM);
-                        if (!((String) resultTerm.get(Constants.APPROVAL_STATUS)).equals(Constants.Live)) {
-                            HashMap<String, Object> request = new HashMap<>();
-                            HashMap<String, Object> term = new HashMap<>();
-                            HashMap<String, Object> requestMap = new HashMap<>();
-                            if (wfStatusEntityV2.getCurrentStatus().equals(Constants.SEND_FOR_REVIEW_LEVEL_1)) {
-                                requestMap.put(Constants.APPROVAL_STATUS, under_L1_Review);
-                            } else if (wfStatusEntityV2.getCurrentStatus().equals(Constants.SEND_FOR_REVIEW_LEVEL_2)) {
-                                requestMap.put(Constants.APPROVAL_STATUS, under_L2_Review);
-                            } else if (wfStatusEntityV2.getCurrentStatus().equals(Constants.SEND_FOR_PUBLISH)) {
-                                requestMap.put(Constants.APPROVAL_STATUS, underPublish);
-                            } else if (wfStatusEntityV2.getCurrentStatus().equals(Constants.APPROVED)) {
-                                requestMap.put(Constants.APPROVAL_STATUS, live);
+                    invokeTermUpdateApi((String) updateFieldValue.get(Constants.APPROVAL_STATUS),wfStatusEntityV2.getCurrentStatus(),identifier,category,id);
+                    List<HashMap<String, Object>> associationsList = (List<HashMap<String, Object>>) updateFieldValue.get(Constants.ASSOCIATIONS);
+                     if (!CollectionUtils.isEmpty(associationsList)) {
+                            for (Map association : associationsList) {
+                                if (!CollectionUtils.isEmpty(association)) {
+                                    invokeTermUpdateApi((String) association.get(Constants.APPROVAL_STATUS),wfStatusEntityV2.getCurrentStatus(),(String) association.get(Constants.IDENTIFIER),(String) association.get(Constants.CATEGORY),(String) association.get(Constants.CODE));
+                                }
                             }
-                            requestMap.put(Constants.IDENTIFIER, identifier);
-                            term.put(Constants.TERM, requestMap);
-                            request.put(Constants.REQUEST, term);
-                            String URI = constructTermUpdateURI(id, category);
-                            logger.info("printing URI For Term Update {} ", URI);
-                            Map<String, Object> response = requestService.fetchResultUsingPatch(URI, request, null);
-                            String responseCode = (String) response.get(Constants.RESPONSE_CODE);
-                            if (!responseCode.equals(Constants.OK)) {
-                                logger.error("Unable To Update Term Status");
-                            }
-                        }
-                    }
+                     }
                 }
                 StringBuilder frameworkURI = constructPublishFrameworkURI();
                 HashMap<String, String> headers = new HashMap<>();
@@ -158,16 +136,34 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         }
         return updateFieldValuesList;
     }
-    private Map<String, Object> readTermObject(String term, String category) {
-        Map<String, Object> termResponse = null;
-        if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(category)) {
-            StringBuilder builder = new StringBuilder();
-            builder = builder.append(host+termReadURI.replace(Constants.ID, term))
-                    .append(Constants.QUESTION_MARK).append(Constants.FRAMEWORK).append(Constants.EQUAL_TO).append(frameworkId)
-                    .append(Constants.AND).append(Constants.CATEGORY).append(Constants.EQUAL_TO).append(category);
-            termResponse = (Map<String, Object>) requestService.fetchResultUsingGet(builder);
+    private void invokeTermUpdateApi(String currentApprovalStatus, String currentStatus, String identifier, String category, String id) {
+        if (StringUtils.isNotEmpty(currentStatus) && StringUtils.isNotEmpty(identifier) && StringUtils.isNotEmpty(category) && StringUtils.isNotEmpty(id)) {
+        if (!currentApprovalStatus.equals(Constants.Live)) {
+            HashMap<String, Object> request = new HashMap<>();
+            HashMap<String, Object> term = new HashMap<>();
+            HashMap<String, Object> requestMap = new HashMap<>();
+            if (currentStatus.equals(Constants.SEND_FOR_REVIEW_LEVEL_1)) {
+                requestMap.put(Constants.APPROVAL_STATUS, under_L1_Review);
+            } else if (currentStatus.equals(Constants.SEND_FOR_REVIEW_LEVEL_2)) {
+                requestMap.put(Constants.APPROVAL_STATUS, under_L2_Review);
+            } else if (currentStatus.equals(Constants.SEND_FOR_PUBLISH)) {
+                requestMap.put(Constants.APPROVAL_STATUS, underPublish);
+            } else if (currentStatus.equals(Constants.APPROVED)) {
+                requestMap.put(Constants.APPROVAL_STATUS, live);
+            }
+            requestMap.put(Constants.IDENTIFIER, identifier);
+            term.put(Constants.TERM, requestMap);
+            request.put(Constants.REQUEST, term);
+            String URI = constructTermUpdateURI(id, category);
+            logger.info("printing URI For Term Update {} ", URI);
+            Map<String, Object> response = requestService.fetchResultUsingPatch(URI, request, null);
+            String responseCode = (String) response.get(Constants.RESPONSE_CODE);
+            if (!responseCode.equals(Constants.OK)) {
+                logger.error("Unable To Update Term Status");
+            }
         }
-        return termResponse;
     }
+    }
+
 }
 
