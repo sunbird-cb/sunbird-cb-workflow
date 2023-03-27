@@ -89,9 +89,7 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         }
 
     }
-
     private String constructTermUpdateURI(String term, String category) {
-        String uri = null;
         StringBuilder builder = null;
         if (!StringUtils.isEmpty(term) && !StringUtils.isEmpty(frameworkId) && !StringUtils.isEmpty(category)) {
             builder = new StringBuilder();
@@ -129,24 +127,13 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         String termIdentifier = (String) updateFieldValue.get(Constants.IDENTIFIER);
         String termCode = (String) updateFieldValue.get(Constants.CODE);
         String category = (String) updateFieldValue.get(Constants.CATEGORY);
+        String termStatus = (String) updateFieldValue.get(Constants.APPROVAL_STATUS);
 
         String approvalStatus;
-        switch (currentStatus) {
-            case Constants.SEND_FOR_REVIEW_LEVEL_1:
-                approvalStatus = under_L1_Review;
-                break;
-            case Constants.SEND_FOR_REVIEW_LEVEL_2:
-                approvalStatus = under_L2_Review;
-                break;
-            case Constants.SEND_FOR_PUBLISH:
-                approvalStatus = underPublish;
-                break;
-            case Constants.APPROVED:
-                approvalStatus = live;
-                break;
-            default:
-                logger.error("Invalid current status {}", currentStatus);
-                return;
+        if (currentStatus.equals(Constants.REJECTED)){
+            approvalStatus = getUpdatedAssociationStatusForReject(termStatus);
+        } else {
+            approvalStatus = getUpdatedAssociationStatus(termStatus);
         }
 
         Map<String, Object> request = new HashMap<>();
@@ -160,17 +147,19 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
         if (!CollectionUtils.isEmpty(associationsList)) {
             for (Map associations : associationsList)
             {
+                if (association == null) {
+                    association = new ArrayList<>();
+                }
                 Map<String,Object> map = (Map) associations.get(Constants.ASSOCIATION_PROPERTIES);
-                String associationStatus = (String) map.get(Constants.APPROVAL_STATUS);
                 Map<String, Object> associationMap = new HashMap<>();
-                if (!associationStatus.equals(Constants.Live)) {
-                    if (CollectionUtils.isEmpty(association)) {
-                        association = new ArrayList<>();
-                    }
-                    associationMap.put(Constants.APPROVAL_STATUS, approvalStatus);
+                String associationStatus = (String) map.get(Constants.APPROVAL_STATUS);
+                if (!currentStatus.equals(Constants.REJECTED)) {
+                    String status = getUpdatedAssociationStatus(associationStatus);
+                    associationMap.put(Constants.APPROVAL_STATUS, status);
                     associationMap.put(Constants.IDENTIFIER, (String) associations.get(Constants.IDENTIFIER));
                 } else {
-                    associationMap.put(Constants.APPROVAL_STATUS, Constants.Live);
+                    String status = getUpdatedAssociationStatusForReject(associationStatus);
+                    associationMap.put(Constants.APPROVAL_STATUS, status);
                     associationMap.put(Constants.IDENTIFIER, (String) associations.get(Constants.IDENTIFIER));
                 }
                 association.add(associationMap);
@@ -189,5 +178,40 @@ public class TaxonomyServiceImpl implements WfServiceHandler {
             logger.error("Unable to update term status");
         }
     }
+    private String getUpdatedAssociationStatus(String associationStatus) {
+        String status = null;
+        switch (associationStatus) {
+            case Constants.DRAFT:
+                status = under_L1_Review;
+                break;
+            case Constants.IN_REVIEW_L1:
+                status = under_L2_Review;
+                break;
+            case Constants.IN_REVIEW_L2:
+                status = underPublish;
+                break;
+            case Constants.IN_REVIEW_FOR_PUBLISH:
+                status = live;
+                break;
+        }
+        return status;
+    }
+
+    private String getUpdatedAssociationStatusForReject(String associationStatus) {
+        String status = null;
+        switch (associationStatus) {
+            case Constants.IN_REVIEW_L1:
+                status = draft;
+                break;
+            case Constants.IN_REVIEW_L2:
+                status = under_L1_Review;
+                break;
+            case Constants.IN_REVIEW_FOR_PUBLISH:
+                status = under_L2_Review;
+                break;
+        }
+        return status;
+    }
+
 }
 

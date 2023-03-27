@@ -187,4 +187,7 @@ public class Constants {
 	public static final String AND = "&";
 	public static final String ASSOCIATIONS = "associations";
 	public static final String ASSOCIATION_PROPERTIES = "associationProperties";
+	public static final String IN_REVIEW_L1 = "IN_REVIEW_L1";
+	public static final String IN_REVIEW_L2 = "IN_REVIEW_L2";
+	public static final String IN_REVIEW_FOR_PUBLISH = "IN_REVIEW_FOR_PUBLISH";
 }
