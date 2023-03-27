@@ -186,4 +186,5 @@ public class Constants {
 	public static final String EQUAL_TO = "=";
 	public static final String AND = "&";
 	public static final String ASSOCIATIONS = "associations";
+	public static final String ASSOCIATION_PROPERTIES = "associationProperties";
 }
