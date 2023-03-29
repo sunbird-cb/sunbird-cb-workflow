@@ -290,16 +290,6 @@ public class TaxonomyWorkflowServiceImpl implements TaxonomyWorkflowService {
         }
         if (CollectionUtils.isEmpty(wfRequest.getUpdateFieldValues())) {
             params.add(Constants.FIELD_VALUE_VALIDATION_ERROR);
-        } else {
-            ArrayList<String> invalidTerms = new ArrayList<>();
-            for (HashMap<String, Object> updatedField : wfRequest.getUpdateFieldValues()) {
-                if (!Constants.DRAFT.equalsIgnoreCase((String) updatedField.get(Constants.APPROVAL_STATUS))) {
-                    invalidTerms.add((String) updatedField.get(Constants.IDENTIFIER));
-                }
-            }
-            if (CollectionUtils.isNotEmpty(invalidTerms)) {
-                params.add(Constants.TERM_APPROVAL_STATUS_ERROR + ": " + invalidTerms);
-            }
         }
         if (StringUtils.isEmpty(wfRequest.getAction())) {
             params.add(Constants.ACTION_VALIDATION_ERROR);
