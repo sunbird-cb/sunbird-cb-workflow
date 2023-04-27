@@ -36,10 +36,12 @@ public class NotificationConsumer {
 		}
 		switch (wfRequest.getServiceName()) {
 			case Constants.PROFILE_SERVICE_NAME:
+				notificationService.sendNotification(wfRequest);
+				break;
 			case Constants.POSITION_SERVICE_NAME:
 			case Constants.DOMAIN_SERVICE_NAME:
 			case Constants.ORGANISATION_SERVICE_NAME:
-				notificationService.sendNotification(wfRequest);
+				notificationService.sendEmailNotification(wfRequest);
 				break;
 			case Constants.USER_REGISTRATION_SERVICE_NAME:
 				// nothing to do

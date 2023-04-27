@@ -90,6 +90,9 @@ public class Configuration {
     @Value("${lms.system.settings.wfDomainService.path}")
     private String domainServiceConfigPath;
 
+    @Value("${notification.sender.mail}")
+    private String senderMail;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -311,5 +314,13 @@ public class Configuration {
 
     public void setDomainServiceConfigPath(String domainServiceConfigPath) {
         this.domainServiceConfigPath = domainServiceConfigPath;
+    }
+
+    public String getSenderMail() {
+        return senderMail;
+    }
+
+    public void setSenderMail(String senderMail) {
+        this.senderMail = senderMail;
     }
 }

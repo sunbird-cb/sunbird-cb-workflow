@@ -64,7 +64,7 @@ public class NotificationServiceImpl {
 
 	/**
 	 * Send notification to the user based on state of application
-	 * 
+	 *
 	 * @param wfRequest workflow request
 	 */
 	public void sendNotification(WfRequest wfRequest) {
@@ -97,7 +97,7 @@ public class NotificationServiceImpl {
 			if (updatedFieldValue.isPresent()) {
 				HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
 				params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()).replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey())
-				.replace(TO_VALUE_TAG, (String)toValue.entrySet().iterator().next().getValue()));
+						.replace(TO_VALUE_TAG, (String)toValue.entrySet().iterator().next().getValue()));
 			}
 			params.put("orgImageUrl", null);
 			template.setParams(params);
@@ -113,6 +113,62 @@ public class NotificationServiceImpl {
 			sendNotification(req);
 		}
 	}
+
+	public void sendEmailNotification(WfRequest wfRequest) {
+		WfStatusEntity wfStatusEntity = wfStatusRepo.findByApplicationIdAndWfId(wfRequest.getApplicationId(),
+				wfRequest.getWfId());
+		WfStatus wfStatus = workflowservice.getWorkflowStates(wfStatusEntity.getRootOrg(), wfStatusEntity.getOrg(),
+				wfStatusEntity.getServiceName(), wfStatusEntity.getCurrentStatus());
+		try {
+			logger.info("Notification workflow status entity, {}", mapper.writeValueAsString(wfStatusEntity));
+			logger.info("Notification workflow status model, {}", mapper.writeValueAsString(wfStatus));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()) {
+			logger.info("Enters in the email notification block");
+			List<HashMap<String, Object>> updatedFieldValues = wfRequest.getUpdateFieldValues();
+			Set<String> emailSet = new HashSet<>();
+			// Find the email address from the updated field values
+			for (Map<String, Object> fieldValue : updatedFieldValues) {
+				if (fieldValue.containsKey("email")) {
+					String email = (String) fieldValue.get("email");
+					emailSet.add(email);
+					break;
+				}
+			}
+			if (!emailSet.isEmpty()) {
+				HashMap<String, Object> params = new HashMap<>();
+				NotificationRequest request = new NotificationRequest();
+				request.setDeliveryType("message");
+				request.setIds(new ArrayList<>(emailSet));
+				request.setMode("email");
+				Template template = new Template();
+				template.setId(EMAILTEMPLATE);
+				Optional<HashMap<String, Object>> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst();
+				if (updatedFieldValue.isPresent()) {
+					HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
+					params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()).replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey())
+							.replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
+				}
+				params.put("orgImageUrl", null);
+				template.setParams(params);
+				Config config = new Config();
+				config.setSubject(MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()));
+				config.setSender(configuration.getSenderMail());
+				Map<String, Object> req = new HashMap<>();
+				request.setTemplate(template);
+				request.setConfig(config);
+				Map<String, List<NotificationRequest>> notificationMap = new HashMap<>();
+				notificationMap.put("notifications", Arrays.asList(request));
+				req.put("request", notificationMap);
+				sendNotification(req);
+			} else {
+				logger.warn("Email address not found in the update field values.");
+			}
+		}
+	}
+
 
 	/**
 	 * Post to the Notification service
