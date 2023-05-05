@@ -31,7 +31,7 @@ public class OrganisationWorkFlowController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/{wfId}/{applicationId}/read", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/read/{wfId}/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> getOrgWfApplication(@RequestHeader String rootOrg, @RequestHeader String org,
                                                      @PathVariable("wfId") String wfId, @PathVariable("applicationId") String applicationId) {
         Response response = organisationWorkFlowService.readOrgWFApplication(rootOrg, org, wfId, applicationId);

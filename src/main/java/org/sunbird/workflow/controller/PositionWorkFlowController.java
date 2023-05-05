@@ -31,7 +31,7 @@ public class PositionWorkFlowController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/{wfId}/{applicationId}/read", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/read/{wfId}/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> getPositionWfApplication(@RequestHeader String rootOrg, @RequestHeader String org,
                                               @PathVariable("wfId") String wfId, @PathVariable("applicationId") String applicationId) {
         Response response = signUpWorkFlowService.readPositionWFApplication(rootOrg, org, wfId, applicationId);
