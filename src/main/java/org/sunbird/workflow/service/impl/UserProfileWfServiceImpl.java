@@ -375,4 +375,52 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 		requestObject.put("request", request);
 		return requestObject;
 	}
+
+	public List<Map<String,Object>> getMdoAdminDetails(String rootOrgId) {
+		List<Map<String,Object>> mdoResults = new ArrayList<>();
+		Map<String, Object> requestObject = new HashMap<>();
+		Map<String, Object> request = new HashMap<>();
+		List<String> roles = new ArrayList<>();
+		roles.add(Constants.MDO_ADMIN);
+		Map<String, Object> filters = new HashMap<>();
+		filters.put("rootOrgId", rootOrgId);
+		filters.put("organisations.roles", roles);
+		request.put("filters", filters);
+		request.put(Constants.FIELDS, configuration.getMdoAdminSearchFields());
+		requestObject.put("request", request);
+		HashMap<String, String> headersValue = new HashMap<>();
+		headersValue.put("Content-Type", "application/json");
+		try {
+			StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
+			builder.append(configuration.getLmsUserSearchEndPoint());
+			Map<String, Object> mdoAdminSearchResult = (Map<String, Object>) requestServiceImpl
+					.fetchResultUsingPost(builder, requestObject, Map.class, getHeaders());
+			if (mdoAdminSearchResult != null
+					&& "OK".equalsIgnoreCase((String) mdoAdminSearchResult.get(Constants.RESPONSE_CODE))) {
+				Map<String, Object> map = (Map<String, Object>) mdoAdminSearchResult.get(Constants.RESULT);
+				Map<String, Object> response = (Map<String, Object>) map.get(Constants.RESPONSE);
+				List<Map<String, Object>> contents = (List<Map<String, Object>>) response.get(Constants.CONTENT);
+				if (!CollectionUtils.isEmpty(contents)) {
+					for (Map<String, Object> content : contents) {
+						HashMap<String, Object> profileDetails = (HashMap<String, Object>) content
+								.get(Constants.PROFILE_DETAILS);
+						if (!CollectionUtils.isEmpty(profileDetails)) {
+							HashMap<String, Object> personalDetails = (HashMap<String, Object>) profileDetails
+									.get(Constants.PERSONAL_DETAILS);
+							if (!CollectionUtils.isEmpty(personalDetails)) {
+								Map<String, Object> record = new HashMap<>();
+								record.put(Constants.USER_ID, content.get(Constants.USER_ID));
+								record.put(Constants.EMAIL, personalDetails.get(Constants.PRIMARY_EMAIL));
+								mdoResults.add(record);
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Exception while fetching user setails : ",e);
+			throw new ApplicationException("Hub Service ERROR: ", e);
+		}
+		return mdoResults;
+	}
 }

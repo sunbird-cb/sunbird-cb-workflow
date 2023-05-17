@@ -145,4 +145,8 @@ public class Constants {
 	public static final boolean POSITION_SEARCH_ENABLED = true;
 	public static final boolean DOMAIN_SEARCH_ENABLED = true;
 	public static final boolean ORG_SEARCH_ENABLED = true;
+	public static final String MDO_ADMIN = "MDO_ADMIN";
+	public static final String FIELDS = "fields";
+	public static final String APPROVED = "APPROVED";
+	public static final String TO_APPROVE_CONST = "/to-approve";
 }

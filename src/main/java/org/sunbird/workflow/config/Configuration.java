@@ -3,6 +3,9 @@ package org.sunbird.workflow.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Component
 public class Configuration {
 
@@ -92,6 +95,12 @@ public class Configuration {
 
     @Value("${notification.sender.mail}")
     private String senderMail;
+
+    @Value("${mdo.search.fields}")
+    private String mdoAdminSearchFields;
+
+    @Value("${mdo.base.url}")
+    private String mdoBaseUrl;
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -322,5 +331,21 @@ public class Configuration {
 
     public void setSenderMail(String senderMail) {
         this.senderMail = senderMail;
+    }
+
+    public List<String> getMdoAdminSearchFields() {
+        return Arrays.asList(mdoAdminSearchFields.split(",", -1));
+    }
+
+    public void setMdoAdminSearchFields(String getMdoAdminSearchFields) {
+        this.mdoAdminSearchFields = getMdoAdminSearchFields;
+    }
+
+    public String getMdoBaseUrl() {
+        return mdoBaseUrl;
+    }
+
+    public void setMdoBaseUrl(String mdoBaseUrl) {
+        this.mdoBaseUrl = mdoBaseUrl;
     }
 }

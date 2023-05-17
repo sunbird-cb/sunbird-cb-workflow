@@ -25,6 +25,8 @@ public class WfRequest {
 
 	private String deptName;
 
+	private String rootOrgId;
+
 	public String getState() {
 		return state;
 	}
@@ -105,4 +107,11 @@ public class WfRequest {
 		this.deptName = deptName;
 	}
 
+	public String getRootOrgId() {
+		return rootOrgId;
+	}
+
+	public void setRootOrgId(String rootOrgId) {
+		this.rootOrgId = rootOrgId;
+	}
 }
