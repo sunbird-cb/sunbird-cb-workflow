@@ -650,6 +650,9 @@ public class WorkflowServiceImpl implements Workflowservice {
 				case Constants.PROFILE_SERVICE_NAME:
 					uri.append(configuration.getLmsServiceHost() + configuration.getProfileServiceConfigPath());
 					break;
+				case Constants.USER_REGISTRATION_SERVICE_NAME:
+					uri.append(configuration.getLmsServiceHost() + configuration.getUserRegistrationServiceConfigPath());
+					break;
 				case Constants.POSITION_SERVICE_NAME:
 					uri.append(configuration.getLmsServiceHost() + configuration.getPositionServiceConfigPath());
 					break;
