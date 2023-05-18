@@ -93,6 +93,9 @@ public class Configuration {
     @Value("${notification.sender.mail}")
     private String senderMail;
 
+    @Value("${lms.system.settings.wfUserRegistrationService.path}")
+    private String userRegistrationServiceConfigPath;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -322,5 +325,13 @@ public class Configuration {
 
     public void setSenderMail(String senderMail) {
         this.senderMail = senderMail;
+    }
+
+    public String getUserRegistrationServiceConfigPath() {
+        return userRegistrationServiceConfigPath;
+    }
+
+    public void setUserRegistrationServiceConfigPath(String userRegistrationServiceConfigPath) {
+        this.userRegistrationServiceConfigPath = userRegistrationServiceConfigPath;
     }
 }
