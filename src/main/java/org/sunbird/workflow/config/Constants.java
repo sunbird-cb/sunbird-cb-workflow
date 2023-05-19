@@ -148,5 +148,8 @@ public class Constants {
 	public static final String MDO_ADMIN = "MDO_ADMIN";
 	public static final String FIELDS = "fields";
 	public static final String APPROVED = "APPROVED";
-	public static final String TO_APPROVE_CONST = "/to-approve";
+	public static final String SUPPORT_EMAIL = "supportEmail";
+	public static final String LINK = "link";
+	public static final String USER_NAME = "userName";
+
 }

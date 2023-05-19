@@ -99,8 +99,14 @@ public class Configuration {
     @Value("${mdo.search.fields}")
     private String mdoAdminSearchFields;
 
-    @Value("${mdo.base.url}")
+    @Value("${mdo.approval.base.url}")
     private String mdoBaseUrl;
+
+    @Value("${domain.host}")
+    private String domainHost;
+
+    @Value("${mdo.email.template}")
+    private String mdoEmailTemplate;
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -347,5 +353,21 @@ public class Configuration {
 
     public void setMdoBaseUrl(String mdoBaseUrl) {
         this.mdoBaseUrl = mdoBaseUrl;
+    }
+
+    public String getDomainHost() {
+        return domainHost;
+    }
+
+    public void setDomainHost(String domainHost) {
+        this.domainHost = domainHost;
+    }
+
+    public String getMdoEmailTemplate() {
+        return mdoEmailTemplate;
+    }
+
+    public void setMdoEmailTemplate(String mdoEmailTemplate) {
+        this.mdoEmailTemplate = mdoEmailTemplate;
     }
 }

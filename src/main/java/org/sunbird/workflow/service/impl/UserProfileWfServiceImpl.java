@@ -376,8 +376,8 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 		return requestObject;
 	}
 
-	public List<Map<String,Object>> getMdoAdminDetails(String rootOrgId) {
-		List<Map<String,Object>> mdoResults = new ArrayList<>();
+	public List<String> getMdoAdminDetails(String rootOrgId) {
+		List<String> mdoResults = new ArrayList<>();
 		Map<String, Object> requestObject = new HashMap<>();
 		Map<String, Object> request = new HashMap<>();
 		List<String> roles = new ArrayList<>();
@@ -408,10 +408,7 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 							HashMap<String, Object> personalDetails = (HashMap<String, Object>) profileDetails
 									.get(Constants.PERSONAL_DETAILS);
 							if (!CollectionUtils.isEmpty(personalDetails)) {
-								Map<String, Object> record = new HashMap<>();
-								record.put(Constants.USER_ID, content.get(Constants.USER_ID));
-								record.put(Constants.EMAIL, personalDetails.get(Constants.PRIMARY_EMAIL));
-								mdoResults.add(record);
+								mdoResults.add((String) personalDetails.get(Constants.PRIMARY_EMAIL));
 							}
 						}
 					}

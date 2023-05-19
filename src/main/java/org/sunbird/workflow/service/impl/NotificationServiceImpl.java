@@ -2,12 +2,17 @@ package org.sunbird.workflow.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.sunbird.workflow.cassandra.entity.EmailTemplateEntity;
+import org.sunbird.workflow.cassandra.repo.EmailTemplateRepo;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.consumer.ApplicationProcessingConsumer;
@@ -20,9 +25,9 @@ import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.service.Workflowservice;
 
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 public class NotificationServiceImpl {
@@ -47,6 +52,9 @@ public class NotificationServiceImpl {
 
 	@Autowired
 	private UserProfileWfServiceImpl userProfileWfService;
+
+	@Autowired
+	private EmailTemplateRepo emailTemplateRepo;
 
 	private static final String WORK_FLOW_EVENT_NAME = "workflow_service_notification";
 
@@ -83,7 +91,7 @@ public class NotificationServiceImpl {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable() && Constants.APPROVED.equalsIgnoreCase(wfStatus.getState())) {
+		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()) {
 			logger.info("Enter's in the notification block");
             Set<String> usersId = new HashSet<>();
             usersId.add(wfRequest.getActorUserId());
@@ -179,31 +187,35 @@ public class NotificationServiceImpl {
 				wfRequest.getWfId());
 		WfStatus wfStatus = workflowservice.getWorkflowStates(wfStatusEntity.getRootOrg(), wfStatusEntity.getOrg(),
 				wfStatusEntity.getServiceName(), wfStatusEntity.getCurrentStatus());
-		try {
-			logger.info("Notification workflow status entity, {}", mapper.writeValueAsString(wfStatusEntity));
-			logger.info("Notification workflow status model, {}", mapper.writeValueAsString(wfStatus));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()) {
+		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()
+				&& !Arrays.asList(Constants.REJECTED, Constants.APPROVED).contains(wfStatus.getState())) {
 			logger.info("Enter in the notification block");
-			List<Map<String, Object>> mdoAdminList = userProfileWfService.getMdoAdminDetails(wfRequest.getRootOrgId());
+			List<String> mdoAdminList = userProfileWfService.getMdoAdminDetails(wfRequest.getRootOrgId());
 			Map<String, Object> params = new HashMap<>();
 			NotificationRequest request = new NotificationRequest();
 			request.setDeliveryType("message");
-			List<String> mdoMailList = mdoAdminList.stream().map(mdoAdmin -> (String) mdoAdmin.get("email")).collect(Collectors.toList());
+			List<String> mdoMailList = mdoAdminList.stream().collect(Collectors.toList());
 			if (!CollectionUtils.isEmpty(mdoMailList)) {
 				request.setIds(mdoMailList);
 				request.setMode("email");
 				Template template = new Template();
-				template.setId(EMAILTEMPLATE);
-				Optional<HashMap<String, Object>> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst();
+				template.setId(configuration.getMdoEmailTemplate());
 				HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(Collections.singleton(wfRequest.getUserId()));
-				Map<String, Object> recipientInfo = (Map<String, Object>)usersObj.get(wfStatusEntity.getUserId());
+				Map<String, Object> recipientInfo = (Map<String, Object>) usersObj.get(wfStatusEntity.getUserId());
+				params.put(Constants.USER_NAME, recipientInfo.get(Constants.FIRST_NAME));
+				Optional<HashMap<String, Object>> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst();
 				if (updatedFieldValue.isPresent()) {
-					params.put("body", constructMdoEmailBody((String) recipientInfo.get(Constants.FIRST_NAME), updatedFieldValue, wfRequest.getApplicationId()));
+					HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
+					List<String> fieldNames = toValue.keySet().stream().collect(Collectors.toList());
+					String approvalUrl = configuration.getDomainHost() + configuration.getMdoBaseUrl().replace("{id}", wfRequest.getApplicationId());
+					params.put(Constants.LINK, approvalUrl);
+					params.put(Constants.FIELDS, fieldNames);
+					params.put(Constants.SUPPORT_EMAIL, configuration.getSenderMail());
 				}
-				params.put("orgImageUrl", null);
+				String constructedEmailTemplate = constructEmailTemplate(configuration.getMdoEmailTemplate(), params);
+				if (StringUtils.isNotEmpty(constructedEmailTemplate)) {
+					template.setData(constructedEmailTemplate);
+				}
 				template.setParams(params);
 				Config config = new Config();
 				config.setSubject(MDO_MAIL_SUBJECT);
@@ -219,16 +231,24 @@ public class NotificationServiceImpl {
 		}
 	}
 
-	public String constructMdoEmailBody(String userName, Optional<HashMap<String, Object>> updatedFieldValue, String applicationId) {
-		HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
-		List<String> fieldNames = toValue.keySet().stream().collect(Collectors.toList());
-		String requestString = IntStream.range(0, fieldNames.size())
-				.mapToObj(i -> "&nbsp;&nbsp;" + (i + 1) + ". " + fieldNames.get(i).toUpperCase())
-				.collect(Collectors.joining("<br>"));
-		requestString = "Dear Admin, <br><br> &nbsp; You have received the below requests for approval from " + userName + "<br>" + requestString;
-		String approvalUrl = configuration.getMdoBaseUrl() + applicationId + Constants.TO_APPROVE_CONST;
-		String body = requestString + "<br><br> Please Click <a href='" + approvalUrl + "' style='color: blue;'>here</a> to view the requests.";
-		return body;
+	private String constructEmailTemplate(String templateName, Map<String, Object> params) {
+		String replacedHTML = new String();
+		try {
+			EmailTemplateEntity templateEntity = emailTemplateRepo.findByName(templateName);
+			String htmlTemplate = templateEntity.getTemplate();
+			VelocityEngine velocityEngine = new VelocityEngine();
+			velocityEngine.init();
+			VelocityContext context = new VelocityContext();
+			for (Map.Entry<String, Object> entry : params.entrySet()) {
+				context.put(entry.getKey(), entry.getValue());
+			}
+			StringWriter writer = new StringWriter();
+			velocityEngine.evaluate(context, writer, "HTMLTemplate", htmlTemplate);
+			replacedHTML = writer.toString();
+		} catch (Exception e) {
+			logger.error("Unable to create template "+e);
+		}
+		return replacedHTML;
 	}
 
 		/**
