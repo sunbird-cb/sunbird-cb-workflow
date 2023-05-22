@@ -108,6 +108,9 @@ public class Configuration {
     @Value("${mdo.email.template}")
     private String mdoEmailTemplate;
 
+    @Value("${lms.system.settings.wfUserRegistrationService.path}")
+    private String userRegistrationServiceConfigPath;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -369,5 +372,13 @@ public class Configuration {
 
     public void setMdoEmailTemplate(String mdoEmailTemplate) {
         this.mdoEmailTemplate = mdoEmailTemplate;
+    }
+
+    public String getUserRegistrationServiceConfigPath() {
+        return userRegistrationServiceConfigPath;
+    }
+
+    public void setUserRegistrationServiceConfigPath(String userRegistrationServiceConfigPath) {
+        this.userRegistrationServiceConfigPath = userRegistrationServiceConfigPath;
     }
 }
