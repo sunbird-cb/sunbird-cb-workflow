@@ -95,7 +95,7 @@ public class Configuration {
 
     @Value("${notification.sender.mail}")
     private String senderMail;
-
+  
     @Value("${mdo.search.fields}")
     private String mdoAdminSearchFields;
 
@@ -107,7 +107,7 @@ public class Configuration {
 
     @Value("${mdo.email.template}")
     private String mdoEmailTemplate;
-
+  
     @Value("${lms.system.settings.wfUserRegistrationService.path}")
     private String userRegistrationServiceConfigPath;
 
