@@ -3,6 +3,9 @@ package org.sunbird.workflow.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Component
 public class Configuration {
 
@@ -92,7 +95,19 @@ public class Configuration {
 
     @Value("${notification.sender.mail}")
     private String senderMail;
+  
+    @Value("${mdo.search.fields}")
+    private String mdoAdminSearchFields;
 
+    @Value("${mdo.approval.base.url}")
+    private String mdoBaseUrl;
+
+    @Value("${domain.host}")
+    private String domainHost;
+
+    @Value("${mdo.email.template}")
+    private String mdoEmailTemplate;
+  
     @Value("${lms.system.settings.wfUserRegistrationService.path}")
     private String userRegistrationServiceConfigPath;
 
@@ -325,6 +340,38 @@ public class Configuration {
 
     public void setSenderMail(String senderMail) {
         this.senderMail = senderMail;
+    }
+
+    public List<String> getMdoAdminSearchFields() {
+        return Arrays.asList(mdoAdminSearchFields.split(",", -1));
+    }
+
+    public void setMdoAdminSearchFields(String getMdoAdminSearchFields) {
+        this.mdoAdminSearchFields = getMdoAdminSearchFields;
+    }
+
+    public String getMdoBaseUrl() {
+        return mdoBaseUrl;
+    }
+
+    public void setMdoBaseUrl(String mdoBaseUrl) {
+        this.mdoBaseUrl = mdoBaseUrl;
+    }
+
+    public String getDomainHost() {
+        return domainHost;
+    }
+
+    public void setDomainHost(String domainHost) {
+        this.domainHost = domainHost;
+    }
+
+    public String getMdoEmailTemplate() {
+        return mdoEmailTemplate;
+    }
+
+    public void setMdoEmailTemplate(String mdoEmailTemplate) {
+        this.mdoEmailTemplate = mdoEmailTemplate;
     }
 
     public String getUserRegistrationServiceConfigPath() {
