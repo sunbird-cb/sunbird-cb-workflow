@@ -77,7 +77,6 @@ public class Configuration {
 
     @Value("${kafka.topics.workflow.notification}")
     private String workFlowNotificationTopic;
-    
     @Value("${kafka.topics.user.registration.createUser}")
     private String workflowCreateUserTopic;
 
@@ -95,7 +94,7 @@ public class Configuration {
 
     @Value("${notification.sender.mail}")
     private String senderMail;
-  
+
     @Value("${mdo.search.fields}")
     private String mdoAdminSearchFields;
 
@@ -107,9 +106,12 @@ public class Configuration {
 
     @Value("${mdo.email.template}")
     private String mdoEmailTemplate;
-  
+
     @Value("${lms.system.settings.wfUserRegistrationService.path}")
     private String userRegistrationServiceConfigPath;
+
+    @Value("${lms.system.settings.verified.profile.fields.path}")
+    private String verifiedProfileFieldsPath;
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -282,25 +284,30 @@ public class Configuration {
     public void setWorkFlowNotificationTopic(String workFlowNotificationTopic) {
         this.workFlowNotificationTopic = workFlowNotificationTopic;
     }
-    public String getLmsServiceHost() { return lmsServiceHost; }
+
+    public String getLmsServiceHost() {
+        return lmsServiceHost;
+    }
 
     public void setLmsServiceHost(String lmsServiceHost) {
         this.lmsServiceHost = lmsServiceHost;
     }
 
-    public String getLmsUserSearchEndPoint() { return lmsUserSearchEndPoint; }
+    public String getLmsUserSearchEndPoint() {
+        return lmsUserSearchEndPoint;
+    }
 
     public void setLmsUserSearchEndPoint(String lmsUserSearchEndPoint) {
         this.lmsUserSearchEndPoint = lmsUserSearchEndPoint;
     }
 
-	public String getWorkflowCreateUserTopic() {
-		return workflowCreateUserTopic;
-	}
+    public String getWorkflowCreateUserTopic() {
+        return workflowCreateUserTopic;
+    }
 
-	public void setWorkflowCreateUserTopic(String workflowCreateUserTopic) {
-		this.workflowCreateUserTopic = workflowCreateUserTopic;
-	}
+    public void setWorkflowCreateUserTopic(String workflowCreateUserTopic) {
+        this.workflowCreateUserTopic = workflowCreateUserTopic;
+    }
 
     public String getProfileServiceConfigPath() {
         return profileServiceConfigPath;
@@ -380,5 +387,14 @@ public class Configuration {
 
     public void setUserRegistrationServiceConfigPath(String userRegistrationServiceConfigPath) {
         this.userRegistrationServiceConfigPath = userRegistrationServiceConfigPath;
+    }
+
+
+    public String getVerifiedProfileFieldsPath() {
+        return verifiedProfileFieldsPath;
+    }
+
+    public void setVerifiedProfileFieldsPath(String verifiedProfileFieldsPath) {
+        this.verifiedProfileFieldsPath = verifiedProfileFieldsPath;
     }
 }
