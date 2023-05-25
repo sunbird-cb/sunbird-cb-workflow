@@ -80,14 +80,12 @@ public class Constants {
 
 	public static final String EMAIL = "email";
 
-	public static final String LAST_NAME = "last_name";
-
 	public static final String FIRST_NAME = "first_name";
 
 	public static final String UUID = "wid";
 
 	public static final List<String> USER_DEFAULT_FIELDS = Collections
-			.unmodifiableList(Arrays.asList(UUID, FIRST_NAME, LAST_NAME, EMAIL));
+			.unmodifiableList(Arrays.asList(UUID, FIRST_NAME, EMAIL));
 
 	public static final String CBP_WF_SERVICE_NAME = "cbp-content";
 
@@ -102,8 +100,6 @@ public class Constants {
 	public static final String USER_ID = "userId";
 
 	public static final String FIRSTNAME = "firstname";
-
-	public static final String LASTNAME = "surname";
 
 	public static final String PRIMARY_EMAIL = "primaryEmail";
 
