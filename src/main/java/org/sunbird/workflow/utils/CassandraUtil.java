@@ -2,7 +2,7 @@ package org.sunbird.workflow.utils;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import org.sunbird.common.util.Constants;
+import org.sunbird.workflow.config.Constants;
 
 import java.util.*;
 import java.util.stream.Collectors;

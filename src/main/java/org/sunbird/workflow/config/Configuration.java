@@ -113,6 +113,9 @@ public class Configuration {
     @Value("${lms.system.settings.verified.profile.fields.path}")
     private String verifiedProfileFieldsPath;
 
+    @Value("${lms.system.settings.wfBlendedProgramService.path}")
+    private String blendedProgramServicePath;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -396,5 +399,13 @@ public class Configuration {
 
     public void setVerifiedProfileFieldsPath(String verifiedProfileFieldsPath) {
         this.verifiedProfileFieldsPath = verifiedProfileFieldsPath;
+    }
+
+    public String getBlendedProgramServicePath() {
+        return blendedProgramServicePath;
+    }
+
+    public void setBlendedProgramServicePath(String blendedProgramServicePath) {
+        this.blendedProgramServicePath = blendedProgramServicePath;
     }
 }

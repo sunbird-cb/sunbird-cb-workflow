@@ -13,4 +13,5 @@ public interface BPWorkFlowService {
     public Response readBPWFApplication(String rootOrg, String org, String wfId, String applicationId);
 
     public Response blendedProgramSearch(String rootOrg, String org, SearchCriteria criteria);
+    public Response updateEnrolmentDetails(WfRequest wfRequest);
 }

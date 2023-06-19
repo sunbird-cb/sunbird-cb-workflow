@@ -27,6 +27,8 @@ public class WfRequest {
 
 	private String rootOrgId;
 
+	private String courseId;
+
 	public String getState() {
 		return state;
 	}
@@ -113,5 +115,13 @@ public class WfRequest {
 
 	public void setRootOrgId(String rootOrgId) {
 		this.rootOrgId = rootOrgId;
+	}
+
+	public String getCourseId() {
+		return courseId;
+	}
+
+	public void setCourseId(String courseId) {
+		this.courseId = courseId;
 	}
 }

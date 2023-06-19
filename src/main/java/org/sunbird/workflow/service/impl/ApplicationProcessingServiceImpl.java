@@ -33,6 +33,9 @@ public class ApplicationProcessingServiceImpl {
 	@Autowired
 	private UserRegistrationWfService userRegService;
 
+	@Autowired
+	private BPWorkFlowServiceImpl bpWorkFlowService;
+
 	Logger logger = LogManager.getLogger(ApplicationProcessingServiceImpl.class);
 
 	public void processWfApplicationRequest(WfRequest wfRequest) {
@@ -46,7 +49,8 @@ public class ApplicationProcessingServiceImpl {
 			userRegService.processMessage(wfRequest);
 			break;
 		case Constants.Blended_Program_SERVICE_NAME:
-
+			bpWorkFlowService.updateEnrolmentDetails(wfRequest);
+			break;
 		default:
 			break;
 		}
