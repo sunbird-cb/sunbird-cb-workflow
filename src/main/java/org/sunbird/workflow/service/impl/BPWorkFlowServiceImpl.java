@@ -9,6 +9,7 @@ import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.BPWorkFlowService;
 import org.sunbird.workflow.service.Workflowservice;
+import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.CassandraOperationImpl;
 
 import java.util.*;
@@ -20,7 +21,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     private Workflowservice workflowService;
 
     @Autowired
-    private CassandraOperationImpl cassandraOperation;
+    private CassandraOperation cassandraOperation;
 
     @Override
     public Response enrolBPWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
