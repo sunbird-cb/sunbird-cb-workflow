@@ -66,6 +66,8 @@ public class Constants {
 	public static final String SEARCH_CRITERIA_VALIDATION = "Provide the mandatory fields for search!";
 
 	public static final String PROFILE_SERVICE_NAME = "profile";
+
+	public static final String Blended_Program_SERVICE_NAME = "blendedprogram";
 	public static final String POSITION_SERVICE_NAME = "position";
 	public static final String ORGANISATION_SERVICE_NAME = "organisation";
 	public static final String DOMAIN_SERVICE_NAME = "domain";
@@ -141,6 +143,8 @@ public class Constants {
 	public static final boolean POSITION_SEARCH_ENABLED = true;
 	public static final boolean DOMAIN_SEARCH_ENABLED = true;
 	public static final boolean ORG_SEARCH_ENABLED = true;
+
+	public static final boolean BLENDED_PROGRAM_SEARCH_ENABLED = true;
 	public static final String MDO_ADMIN = "MDO_ADMIN";
 	public static final String FIELDS = "fields";
 	public static final String APPROVED = "APPROVED";

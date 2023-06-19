@@ -45,6 +45,8 @@ public class ApplicationProcessingServiceImpl {
 		case Constants.USER_REGISTRATION_SERVICE_NAME:
 			userRegService.processMessage(wfRequest);
 			break;
+		case Constants.Blended_Program_SERVICE_NAME:
+
 		default:
 			break;
 		}
