@@ -1,4 +1,4 @@
-package org.sunbird.workflow.utils;
+package org.sunbird.workflow.cassandra.utils;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;

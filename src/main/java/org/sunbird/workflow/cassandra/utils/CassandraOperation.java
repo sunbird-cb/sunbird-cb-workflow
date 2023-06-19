@@ -1,4 +1,4 @@
-package org.sunbird.workflow.utils;
+package org.sunbird.workflow.cassandra.utils;
 
 import org.sunbird.common.model.SBApiResponse;
 
