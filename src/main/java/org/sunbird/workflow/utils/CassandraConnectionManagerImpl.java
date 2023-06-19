@@ -1,4 +1,4 @@
-package org.sunbird.workflow.cassandra.utils;
+package org.sunbird.workflow.utils;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;

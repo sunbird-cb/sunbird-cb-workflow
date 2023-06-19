@@ -1,4 +1,4 @@
-package org.sunbird.workflow.cassandra.utils;
+package org.sunbird.workflow.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

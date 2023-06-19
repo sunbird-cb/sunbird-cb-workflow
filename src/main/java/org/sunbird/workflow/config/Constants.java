@@ -152,4 +152,14 @@ public class Constants {
 	public static final String LINK = "link";
 	public static final String USER_NAME = "userName";
 	public static final String VERIFIED_KARMAYOGI = "verifiedKarmayogi";
+	public static final String SUCCESS = "success";
+	public static final String EXCEPTION_MSG_FETCH = "Exception occurred while fetching record from ";
+	public static final String EXCEPTION_MSG_DELETE = "Exception occurred while deleting record from ";
+	public static final String INSERT_INTO = "INSERT INTO ";
+	public static final String DOT = ".";
+	public static final String OPEN_BRACE = "(";
+	public static final String VALUES_WITH_BRACE = ") VALUES (";
+	public static final String QUE_MARK = "?";
+	public static final String COMMA = ",";
+	public static final String CLOSING_BRACE = ");";
 }
