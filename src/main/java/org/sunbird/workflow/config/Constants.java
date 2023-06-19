@@ -174,4 +174,14 @@ public class Constants {
 	public static final String ID = "id";
 	public static final String ENROLLED_DATE = "enrolled_date";
 	public static final String ENROLMENT_END_DATE = "enrollmentenddate";
+	public static final String CORE_CONNECTIONS_PER_HOST_FOR_LOCAL = "coreConnectionsPerHostForLocal";
+	public static final String CORE_CONNECTIONS_PER_HOST_FOR_REMOTE = "coreConnectionsPerHostForRemote";
+	public static final String MAX_CONNECTIONS_PER_HOST_FOR_LOCAl = "maxConnectionsPerHostForLocal";
+	public static final String MAX_CONNECTIONS_PER_HOST_FOR_REMOTE = "maxConnectionsPerHostForRemote";
+	public static final String MAX_REQUEST_PER_CONNECTION = "maxRequestsPerConnection";
+	public static final String HEARTBEAT_INTERVAL = "heartbeatIntervalSeconds";
+	public static final String POOL_TIMEOUT = "poolTimeoutMillis";
+	public static final String CASSANDRA_CONFIG_HOST = "cassandra.config.host";
+	public static final String SUNBIRD_CASSANDRA_CONSISTENCY_LEVEL = "sunbird_cassandra_consistency_level";
+	public static final String UNAUTHORIZED = "unauthorized";
 }

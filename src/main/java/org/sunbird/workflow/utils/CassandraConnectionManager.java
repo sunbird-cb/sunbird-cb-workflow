@@ -2,6 +2,8 @@ package org.sunbird.workflow.utils;
 
 import com.datastax.driver.core.Session;
 
+import java.util.List;
+
 /**
  * Interface for cassandra connection manager , implementation would be Standalone and Embedde
  * cassandra connection manager 
@@ -15,4 +17,6 @@ public interface CassandraConnectionManager {
 	   * @return Session
 	   */
 	  Session getSession(String keyspaceName);
+
+	List<String> getTableList(String keyspacename);
 }

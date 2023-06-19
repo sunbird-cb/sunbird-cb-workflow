@@ -51,4 +51,5 @@ public class BPWorkFlowController {
         Response response = bPWorkFlowService.updateEnrolmentDetails(wfRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 }
