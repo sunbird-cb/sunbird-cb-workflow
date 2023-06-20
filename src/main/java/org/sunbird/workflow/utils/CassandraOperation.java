@@ -90,4 +90,6 @@ public interface CassandraOperation {
 
 	List<Map<String, Object>> getRecordsWithInClause(String keyspaceName, String tableName,
 													 List<Map<String, Object>> propertyMaps, List<String> fields);
+
+	int getCountByProperties(String keyspaceName, String tableName, Map<String, Object> propertyMap);
 }

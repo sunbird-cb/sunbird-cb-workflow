@@ -152,6 +152,25 @@ public class CassandraOperationImpl implements CassandraOperation {
 		return response;
 	}
 
+	@Override
+	public int getCountByProperties(String keyspaceName, String tableName, Map<String, Object> propertyMap) {
+		Select.Where selectQuery = QueryBuilder.select().countAll().from(keyspaceName, tableName).where();
+		for (Map.Entry<String, Object> entry : propertyMap.entrySet()) {
+			selectQuery.and(QueryBuilder.eq(entry.getKey(), entry.getValue()));
+		}
+		int count = 0;
+		try {
+			ResultSet resultSet = connectionManager.getSession(keyspaceName).execute(selectQuery);
+			Row row = resultSet.one();
+			if (row != null) {
+				count = (int) row.getLong(0);
+			}
+		} catch (Exception e) {
+			logger.error(Constants.EXCEPTION_MSG_FETCH + tableName + " : " + e.getMessage(), e);
+		}
+		return count;
+	}
+
 	private Select processQuery(String keyspaceName, String tableName, Map<String, Object> propertyMap,
 			List<String> fields) {
 		Select selectQuery = null;
