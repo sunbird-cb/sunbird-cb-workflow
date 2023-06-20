@@ -172,11 +172,9 @@ public class WorkflowServiceImpl implements Workflowservice {
 				break;
 			case Constants.Blended_Program_SERVICE_NAME:
 				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
-				List<Map<String, Object>> userProfile = userProfileWfService.enrichUserData(
-						(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
 				response = new Response();
 				response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
-				response.put(Constants.DATA, userProfile);
+				response.put(Constants.DATA, wfApplicationSearchResponse);
 				response.put(Constants.STATUS, HttpStatus.OK);
 				break;
 			default:
