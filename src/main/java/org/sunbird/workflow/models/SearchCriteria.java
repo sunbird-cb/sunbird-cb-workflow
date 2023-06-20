@@ -18,6 +18,8 @@ public class SearchCriteria {
 
 	private String deptName;
 
+	private String userId;
+
 	public String getServiceName() {
 		return serviceName;
 	}
@@ -69,4 +71,13 @@ public class SearchCriteria {
 	public void setDeptName(String deptName) {
 		this.deptName = deptName;
 	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
 }

@@ -10,7 +10,6 @@ import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.BPWorkFlowService;
 import org.sunbird.workflow.service.Workflowservice;
 import org.sunbird.workflow.utils.CassandraOperation;
-import org.sunbird.workflow.utils.CassandraOperationImpl;
 
 import java.util.*;
 
@@ -112,4 +111,13 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         boolean enrolAccess = totalUserEnrolCount <= currentBatchSize || enrollmentEndDate.before(new Date());
         return enrolAccess;
     }
+
+
+    @Override
+    public Response blendedProgramUserSearch(String rootOrg, String org, String userId, SearchCriteria searchCriteria) {
+        searchCriteria.setUserId(userId);
+        Response response = workflowService.applicationsSearch(rootOrg, org, searchCriteria, Constants.BLENDED_PROGRAM_SEARCH_ENABLED);
+        return response;
+    }
+
 }

@@ -162,7 +162,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			case Constants.POSITION_SERVICE_NAME:
 			case Constants.ORGANISATION_SERVICE_NAME:
 			case Constants.DOMAIN_SERVICE_NAME:
-				wfApplicationSearchResponse = applicationSerachOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
+				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
 				List<Map<String, Object>> userProfiles = userProfileWfService.enrichUserData(
 						(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
 				response = new Response();
@@ -170,8 +170,17 @@ public class WorkflowServiceImpl implements Workflowservice {
 				response.put(Constants.DATA, userProfiles);
 				response.put(Constants.STATUS, HttpStatus.OK);
 				break;
+			case Constants.Blended_Program_SERVICE_NAME:
+				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
+				List<Map<String, Object>> userProfile = userProfileWfService.enrichUserData(
+						(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
+				response = new Response();
+				response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+				response.put(Constants.DATA, userProfile);
+				response.put(Constants.STATUS, HttpStatus.OK);
+				break;
 			default:
-				response = applicationSerachOnApplicationIdGroup(rootOrg, searchCriteria);
+				response = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria);
 				break;
 		}
 		return response;
@@ -570,7 +579,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 		return response;
 	}*/
 
-	public Response applicationSerachOnApplicationIdGroup(String rootOrg, SearchCriteria criteria, boolean... isSearchEnabled) {
+	public Response applicationSearchOnApplicationIdGroup(String rootOrg, SearchCriteria criteria, boolean... isSearchEnabled) {
 		boolean searchEnabled = (isSearchEnabled.length < 1)?false:isSearchEnabled[0];
 		Pageable pageable = getPageReqForApplicationSearch(criteria);
 		List<String> applicationIds = criteria.getApplicationIds();
@@ -678,5 +687,21 @@ public class WorkflowServiceImpl implements Workflowservice {
 			log.error("Exception occurred while getting work flow config details!");
 			throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE, e);
 		}
+	}
+
+	public Response applicationUserSearchOnApplicationIdGroup(String rootOrg, SearchCriteria criteria, boolean... isSearchEnabled) {
+		List<String> applicationIds = criteria.getApplicationIds();
+		Map<String, List<WfStatusEntity>> infos = null;
+		if (CollectionUtils.isEmpty(applicationIds)) {
+			throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE);
+		}
+		List<WfStatusEntity> wfStatusEntities = wfStatusRepo.findByServiceNameAndUserIdAndApplicationIdIn(
+					criteria.getServiceName(), criteria.getUserId(), applicationIds);
+		infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getApplicationId));
+		Response response = new Response();
+		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+		response.put(Constants.DATA, infos);
+		response.put(Constants.STATUS, HttpStatus.OK);
+		return response;
 	}
 }

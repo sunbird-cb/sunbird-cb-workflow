@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
@@ -49,6 +50,13 @@ public class BPWorkFlowController {
     @PostMapping("/check")
     public ResponseEntity<Response> blendedProgramEnrolWf(@RequestBody WfRequest wfRequest) {
         Response response = bPWorkFlowService.updateEnrolmentDetails(wfRequest);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/user/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Response> userWfSearch(@RequestHeader(Constants.X_AUTH_USER_ID) String userId, @RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
+        System.out.println("In controller");
+        Response response = bPWorkFlowService.blendedProgramUserSearch(rootOrg, org, userId, searchCriteria);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
