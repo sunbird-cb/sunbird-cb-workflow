@@ -170,8 +170,8 @@ public class WorkflowServiceImpl implements Workflowservice {
 				response.put(Constants.DATA, userProfiles);
 				response.put(Constants.STATUS, HttpStatus.OK);
 				break;
-			case Constants.Blended_Program_SERVICE_NAME:
-				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
+			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
+				wfApplicationSearchResponse = applicationUserSearchOnApplicationIdGroup(searchCriteria);
 				response = new Response();
 				response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 				response.put(Constants.DATA, wfApplicationSearchResponse);
@@ -669,7 +669,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 				case Constants.DOMAIN_SERVICE_NAME:
 					uri.append(configuration.getLmsServiceHost() + configuration.getDomainServiceConfigPath());
 					break;
-				case Constants.Blended_Program_SERVICE_NAME:
+				case Constants.BLENDED_PROGRAM_SERVICE_NAME:
 					uri.append(configuration.getLmsServiceHost() + configuration.getBlendedProgramServicePath());
 					break;
 				default:
@@ -687,7 +687,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 		}
 	}
 
-	public Response applicationUserSearchOnApplicationIdGroup(String rootOrg, SearchCriteria criteria, boolean... isSearchEnabled) {
+	public Response applicationUserSearchOnApplicationIdGroup(SearchCriteria criteria) {
 		List<String> applicationIds = criteria.getApplicationIds();
 		Map<String, List<WfStatusEntity>> infos = null;
 		if (CollectionUtils.isEmpty(applicationIds)) {
