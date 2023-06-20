@@ -184,4 +184,9 @@ public class Constants {
 	public static final String CASSANDRA_CONFIG_HOST = "cassandra.config.host";
 	public static final String SUNBIRD_CASSANDRA_CONSISTENCY_LEVEL = "sunbird_cassandra_consistency_level";
 	public static final String UNAUTHORIZED = "unauthorized";
+	public static final String SEND_FOR_MDO_APPROVAL = "SEND_FOR_MDO_APPROVAL";
+	public static final String SEND_FOR_PC_APPROVAL = "SEND_FOR_PC_APPROVAL";
+	public static final String PROGRAM_COORDINATOR = "PROGRAM_COORDINATOR";
+	public static final String TEMPLATE = "template";
+	public static final String TABLE_EMAIL_TEMPLATE = "email_template";
 }

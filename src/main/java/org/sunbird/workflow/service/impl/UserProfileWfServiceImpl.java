@@ -386,12 +386,10 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 		return requestObject;
 	}
 
-	public List<String> getMdoAdminDetails(String rootOrgId) {
+	public List<String> getMdoAdminAndPCDetails(String rootOrgId, List<String> roles) {
 		List<String> mdoResults = new ArrayList<>();
 		Map<String, Object> requestObject = new HashMap<>();
 		Map<String, Object> request = new HashMap<>();
-		List<String> roles = new ArrayList<>();
-		roles.add(Constants.MDO_ADMIN);
 		Map<String, Object> filters = new HashMap<>();
 		filters.put("rootOrgId", rootOrgId);
 		filters.put("organisations.roles", roles);

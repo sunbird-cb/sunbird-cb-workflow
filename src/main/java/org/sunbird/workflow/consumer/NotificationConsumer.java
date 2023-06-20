@@ -44,6 +44,10 @@ public class NotificationConsumer {
 			case Constants.ORGANISATION_SERVICE_NAME:
 				notificationService.sendEmailNotification(wfRequest);
 				break;
+			case Constants.Blended_Program_SERVICE_NAME:
+				notificationService.sendNotification(wfRequest);
+				notificationService.sendNotificationToMdoAdminAndPC(wfRequest);
+				break;
 			case Constants.USER_REGISTRATION_SERVICE_NAME:
 				// nothing to do
 				break;

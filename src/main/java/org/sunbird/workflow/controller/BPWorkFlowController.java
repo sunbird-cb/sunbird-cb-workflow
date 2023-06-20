@@ -47,12 +47,6 @@ public class BPWorkFlowController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PostMapping("/check")
-    public ResponseEntity<Response> blendedProgramEnrolWf(@RequestBody WfRequest wfRequest) {
-        Response response = bPWorkFlowService.updateEnrolmentDetails(wfRequest);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
     @PostMapping(path = "/user/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> userWfSearch(@RequestHeader(Constants.X_AUTH_USER_ID) String userId, @RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
         System.out.println("In controller");
@@ -60,4 +54,9 @@ public class BPWorkFlowController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PostMapping("/check")
+    public ResponseEntity<String> blendedProgramEnrolWf(@RequestBody WfRequest wfRequest) {
+        bPWorkFlowService.updateEnrolmentDetails(wfRequest);
+        return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
 }

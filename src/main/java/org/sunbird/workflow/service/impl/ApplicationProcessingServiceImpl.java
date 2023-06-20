@@ -14,6 +14,7 @@ import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
+import org.sunbird.workflow.service.BPWorkFlowService;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.UserRegistrationWfService;
 
@@ -33,6 +34,9 @@ public class ApplicationProcessingServiceImpl {
 	@Autowired
 	private UserRegistrationWfService userRegService;
 
+	@Autowired
+	private BPWorkFlowService bpWorkFlowService;
+
 	Logger logger = LogManager.getLogger(ApplicationProcessingServiceImpl.class);
 
 	public void processWfApplicationRequest(WfRequest wfRequest) {
@@ -45,8 +49,9 @@ public class ApplicationProcessingServiceImpl {
 		case Constants.USER_REGISTRATION_SERVICE_NAME:
 			userRegService.processMessage(wfRequest);
 			break;
-	//	case Constants.Blended_Program_SERVICE_NAME:
-
+	    case Constants.Blended_Program_SERVICE_NAME:
+		    bpWorkFlowService.updateEnrolmentDetails(wfRequest);
+		    break;
 		default:
 			break;
 		}
