@@ -67,7 +67,7 @@ public class Constants {
 
 	public static final String PROFILE_SERVICE_NAME = "profile";
 
-	public static final String Blended_Program_SERVICE_NAME = "blendedprogram";
+	public static final String BLENDED_PROGRAM_SERVICE_NAME = "blendedprogram";
 	public static final String POSITION_SERVICE_NAME = "position";
 	public static final String ORGANISATION_SERVICE_NAME = "organisation";
 	public static final String DOMAIN_SERVICE_NAME = "domain";
@@ -189,4 +189,5 @@ public class Constants {
 	public static final String PROGRAM_COORDINATOR = "PROGRAM_COORDINATOR";
 	public static final String TEMPLATE = "template";
 	public static final String TABLE_EMAIL_TEMPLATE = "email_template";
+	public static final String MISSING_APPLICATION_IDS_ERROR_MESSAGE = "Application Ids are missing in the request";
 }

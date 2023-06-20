@@ -157,7 +157,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     @Override
     public Response blendedProgramUserSearch(String rootOrg, String org, String userId, SearchCriteria searchCriteria) {
         searchCriteria.setUserId(userId);
-        Response response = workflowService.applicationsSearch(rootOrg, org, searchCriteria, Constants.BLENDED_PROGRAM_SEARCH_ENABLED);
+        Response response = workflowService.applicationsSearch(rootOrg, org, searchCriteria);
         return response;
     }
 
