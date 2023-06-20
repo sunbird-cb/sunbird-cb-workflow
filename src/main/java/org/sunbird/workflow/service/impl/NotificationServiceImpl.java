@@ -111,7 +111,7 @@ public class NotificationServiceImpl {
                 HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
                 params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()).replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey())
                         .replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
-            } else if (Constants.Blended_Program_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
+            } else if (Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
                 params.put("body", BP_MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()));
             }
             params.put("orgImageUrl", null);

@@ -53,10 +53,4 @@ public class BPWorkFlowController {
         Response response = bPWorkFlowService.blendedProgramUserSearch(rootOrg, org, userId, searchCriteria);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    @PostMapping("/check")
-    public ResponseEntity<String> blendedProgramEnrolWf(@RequestBody WfRequest wfRequest) {
-        bPWorkFlowService.updateEnrolmentDetails(wfRequest);
-        return new ResponseEntity<>("OK", HttpStatus.OK);
-    }
 }

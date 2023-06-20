@@ -41,19 +41,19 @@ public class ApplicationProcessingServiceImpl {
 
 	public void processWfApplicationRequest(WfRequest wfRequest) {
 		switch (wfRequest.getServiceName()) {
-		// Or condition in case statement
-		case Constants.PROFILE_SERVICE_NAME:
-		case Constants.USER_PROFILE_FLAG_SERVICE:
-			userProfileWfService.updateUserProfile(wfRequest);
-			break;
-		case Constants.USER_REGISTRATION_SERVICE_NAME:
-			userRegService.processMessage(wfRequest);
-			break;
-	    case Constants.Blended_Program_SERVICE_NAME:
-		    bpWorkFlowService.updateEnrolmentDetails(wfRequest);
-		    break;
-		default:
-			break;
+			// Or condition in case statement
+			case Constants.PROFILE_SERVICE_NAME:
+			case Constants.USER_PROFILE_FLAG_SERVICE:
+				userProfileWfService.updateUserProfile(wfRequest);
+				break;
+			case Constants.USER_REGISTRATION_SERVICE_NAME:
+				userRegService.processMessage(wfRequest);
+				break;
+			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
+				bpWorkFlowService.updateEnrolmentDetails(wfRequest);
+				break;
+			default:
+				break;
 		}
 	}
 
