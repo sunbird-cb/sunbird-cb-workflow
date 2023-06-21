@@ -53,4 +53,18 @@ public class BPWorkFlowController {
         Response response = bPWorkFlowService.blendedProgramUserSearch(rootOrg, org, userId, searchCriteria);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @GetMapping(path = "/read/mdo/{wfId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Response> getBPApplicationByMdo(
+                                                     @PathVariable("wfId") String wfId) {
+        Response response = bPWorkFlowService.readBPWFApplication(wfId, false);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/read/pc/{wfId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Response> getBpApplicationByPC(
+                                                     @PathVariable("wfId") String wfId) {
+        Response response = bPWorkFlowService.readBPWFApplication(wfId, true);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
