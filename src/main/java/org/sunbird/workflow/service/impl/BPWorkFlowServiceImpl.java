@@ -4,12 +4,15 @@ import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
+import org.sunbird.workflow.postgres.entity.WfStatusEntity;
+import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.service.BPWorkFlowService;
 import org.sunbird.workflow.service.Workflowservice;
 import org.sunbird.workflow.utils.CassandraOperation;
@@ -33,6 +36,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+	private WfStatusRepo wfStatusRepo;
 
     @Override
     public Response enrolBPWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
@@ -156,6 +162,20 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         searchCriteria.setUserId(userId);
         Response response = workflowService.applicationsSearch(rootOrg, org, searchCriteria);
         return response;
+    }
+
+    public Response readBPWFApplication(String wfId, boolean isPc) {
+        WfStatusEntity applicationStatus = wfStatusRepo.findByWfId(wfId);
+		List<WfStatusEntity> applicationList = applicationStatus == null ? new ArrayList<>()
+				: new ArrayList<>(Arrays.asList(applicationStatus));
+		Response response = new Response();
+        if (isPc) {
+            // TODO - Need to enrich this response with User Profile Details ?
+        }
+		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+		response.put(Constants.DATA, applicationList);
+		response.put(Constants.STATUS, HttpStatus.OK);
+		return response;
     }
 
 }
