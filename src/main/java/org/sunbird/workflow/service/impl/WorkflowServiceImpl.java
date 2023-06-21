@@ -606,7 +606,11 @@ public class WorkflowServiceImpl implements Workflowservice {
 			wfStatusEntities = wfStatusRepo.findByServiceNameAndCurrentStatusAndApplicationIdIn(
 					criteria.getServiceName(), criteria.getApplicationStatus(), applicationIds);
 		}
-		infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getApplicationId));
+		if (criteria.getServiceName().equalsIgnoreCase(Constants.BLENDED_PROGRAM_SERVICE_NAME)) {
+			infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getUserId));
+		} else {
+			infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getApplicationId));
+		}
 		Response response = new Response();
 		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 		response.put(Constants.DATA, infos);
@@ -703,7 +707,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 		}
 		List<WfStatusEntity> wfStatusEntities = wfStatusRepo.findByServiceNameAndUserIdAndApplicationIdIn(
 					criteria.getServiceName(), criteria.getUserId(), applicationIds);
-		infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getApplicationId));
+		infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getUserId));
 		Response response = new Response();
 		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 		response.put(Constants.DATA, infos);
