@@ -118,8 +118,8 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                             ? (String) batchAttributes.get(Constants.CURRENT_BATCH_SIZE)
                             : "0";
                     int currentBatchSize = Integer.parseInt(currentBatchSizeString);
-                    String enrollmentEndDate = details.containsKey(Constants.ENROLMENT_END_DATE)
-                            ? (String) details.get(Constants.ENROLMENT_END_DATE)
+                    Date enrollmentEndDate = details.containsKey(Constants.ENROLMENT_END_DATE)
+                            ? (Date) details.get(Constants.ENROLMENT_END_DATE)
                             : null;
                     Map<String, Object> result = new HashMap<>();
                     result.put(Constants.CURRENT_BATCH_SIZE, currentBatchSize);
@@ -145,12 +145,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         if (courseBatchDetails.containsKey(Constants.CURRENT_BATCH_SIZE)) {
             currentBatchSize = (int) courseBatchDetails.get(Constants.CURRENT_BATCH_SIZE);
         }
-        String enrollmentEndDateStr = (String) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
-        if (enrollmentEndDateStr == null || enrollmentEndDateStr.isEmpty()) {
-            return false;
-        }
-        LocalDate enrollmentEndDate = LocalDate.parse(enrollmentEndDateStr);
-        boolean enrolAccess = (totalUserEnrolCount <= currentBatchSize) && (enrollmentEndDate.isAfter(LocalDate.now()));
+        Date enrollmentEndDate = (Date) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
+
+        boolean enrolAccess = (totalUserEnrolCount <= currentBatchSize) && (enrollmentEndDate.after(new Date()));
         return enrolAccess;
     }
 

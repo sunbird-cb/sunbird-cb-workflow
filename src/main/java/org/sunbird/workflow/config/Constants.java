@@ -173,7 +173,7 @@ public class Constants {
 	public static final String COURSE_ID = "courseId";
 	public static final String ID = "id";
 	public static final String ENROLLED_DATE = "enrolled_date";
-	public static final String ENROLMENT_END_DATE = "enrollmentenddate";
+	public static final String ENROLMENT_END_DATE = "enrollment_enddate";
 	public static final String CORE_CONNECTIONS_PER_HOST_FOR_LOCAL = "coreConnectionsPerHostForLocal";
 	public static final String CORE_CONNECTIONS_PER_HOST_FOR_REMOTE = "coreConnectionsPerHostForRemote";
 	public static final String MAX_CONNECTIONS_PER_HOST_FOR_LOCAl = "maxConnectionsPerHostForLocal";
