@@ -34,14 +34,14 @@ public class BPWorkFlowController {
     }
 
     @GetMapping(path = "/read/{wfId}/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Response> getDomainWfApplication(@RequestHeader String rootOrg, @RequestHeader String org,
+    public ResponseEntity<Response> getBlendedProgramWfApplication(@RequestHeader String rootOrg, @RequestHeader String org,
                                                      @PathVariable("wfId") String wfId, @PathVariable("applicationId") String applicationId) {
         Response response = bPWorkFlowService.readBPWFApplication(rootOrg, org, wfId, applicationId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Response> domainWfSearch(@RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
+    public ResponseEntity<Response> blendedProgramWfSearch(@RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
         System.out.println("In controller");
         Response response = bPWorkFlowService.blendedProgramSearch(rootOrg, org, searchCriteria);
         return new ResponseEntity<>(response, HttpStatus.OK);

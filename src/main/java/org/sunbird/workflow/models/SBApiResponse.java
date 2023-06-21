@@ -3,7 +3,6 @@ package org.sunbird.workflow.models;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 
 public class SBApiResponse {
