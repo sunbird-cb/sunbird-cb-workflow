@@ -163,24 +163,32 @@ public class WorkflowServiceImpl implements Workflowservice {
 			case Constants.ORGANISATION_SERVICE_NAME:
 			case Constants.DOMAIN_SERVICE_NAME:
 				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
-				List<Map<String, Object>> userProfiles = userProfileWfService.enrichUserData(
-						(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
-				response = new Response();
-				response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
-				response.put(Constants.DATA, userProfiles);
-				response.put(Constants.STATUS, HttpStatus.OK);
+				response = getResponse(rootOrg, wfApplicationSearchResponse);
 				break;
-			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
-				wfApplicationSearchResponse = applicationUserSearchOnApplicationIdGroup(searchCriteria);
-				response = new Response();
-				response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
-				response.put(Constants.DATA, wfApplicationSearchResponse);
-				response.put(Constants.STATUS, HttpStatus.OK);
-				break;
+			case Constants.BLENDED_PROGRAM_SERVICE_NAME: {
+				if (searchCriteria.getApplicationStatus() != null) {
+					wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
+				} else {
+					wfApplicationSearchResponse = applicationUserSearchOnApplicationIdGroup(searchCriteria);
+				}
+				response = getResponse(rootOrg, wfApplicationSearchResponse);
+			}
+			break;
 			default:
 				response = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria);
 				break;
 		}
+		return response;
+	}
+
+	private Response getResponse(String rootOrg, Response wfApplicationSearchResponse) {
+		Response response;
+		List<Map<String, Object>> userProfiles = userProfileWfService.enrichUserData(
+				(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
+		response = new Response();
+		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+		response.put(Constants.DATA, userProfiles);
+		response.put(Constants.STATUS, HttpStatus.OK);
 		return response;
 	}
 
