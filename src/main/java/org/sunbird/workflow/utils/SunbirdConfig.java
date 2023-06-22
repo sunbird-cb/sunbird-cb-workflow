@@ -15,16 +15,16 @@ import org.springframework.data.cassandra.core.CassandraAdminTemplate;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
 
 @Configuration
-@ConfigurationProperties("spring.data.cassandra.sb")
+@ConfigurationProperties("spring.data.cassandra")
 @EnableCassandraRepositories(basePackages = { "org.sunbird" }, cassandraTemplateRef = "sunbirdTemplate")
 public class SunbirdConfig extends CassandraConfig {
 
 	private Logger logger = LoggerFactory.getLogger(SunbirdConfig.class);
 
-	@Value("${spring.data.cassandra.sb.username}")
+	@Value("${spring.data.cassandra.username}")
 	private String sunbirdUser;
 
-	@Value("${spring.data.cassandra.sb.password}")
+	@Value("${spring.data.cassandra.password}")
 	private String sunbirdPassword;
 
 	@Override
