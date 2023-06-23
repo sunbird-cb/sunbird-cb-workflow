@@ -97,12 +97,17 @@ public class NotificationServiceImpl {
             usersId.add(wfRequest.getActorUserId());
             usersId.add(wfStatusEntity.getApplicationId());
             HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(usersId);
-            Map<String, Object> recipientInfo = (Map<String, Object>) usersObj.get(wfRequest.getActorUserId());
-            Map<String, Object> senderInfo = (Map<String, Object>) usersObj.get(wfRequest.getActorUserId());
+            Map<String, Object> recipientInfo;
+            if (Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
+                recipientInfo = (Map<String, Object>)usersObj.get(wfRequest.getActorUserId());
+            } else {
+                recipientInfo = (Map<String, Object>)usersObj.get(wfStatusEntity.getApplicationId());
+            }
+            Map<String, Object> senderInfo = (Map<String, Object>)usersObj.get(wfRequest.getActorUserId());
             Map<String, Object> params = new HashMap<>();
             NotificationRequest request = new NotificationRequest();
             request.setDeliveryType("message");
-            request.setIds(Arrays.asList((String) recipientInfo.get("email")));
+            request.setIds(Arrays.asList((String)recipientInfo.get("email")));
             request.setMode("email");
             Template template = new Template();
             template.setId(EMAILTEMPLATE);
@@ -118,7 +123,7 @@ public class NotificationServiceImpl {
             template.setParams(params);
             Config config = new Config();
             config.setSubject(MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()));
-            config.setSender((String) senderInfo.get("email"));
+            config.setSender((String)senderInfo.get("email"));
             Map<String, Object> req = new HashMap<>();
             request.setTemplate(template);
             request.setConfig(config);
@@ -302,10 +307,8 @@ public class NotificationServiceImpl {
         return replacedHTML;
     }
 
-
     /**
      * Post to the Notification service
-     *
      * @param request
      */
     public void sendNotification(Map<String, Object> request) {
