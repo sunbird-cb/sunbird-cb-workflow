@@ -95,7 +95,6 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 if (enrolResp != null
                         && "OK".equalsIgnoreCase((String) enrolResp.get(Constants.RESPONSE_CODE))) {
                     logger.info("User enrolment success");
-                    System.out.println("User successfully enrol");
                 } else {
                     logger.error("user enrolment failed" + ((Map<String, Object>) enrolResp.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
                 }
