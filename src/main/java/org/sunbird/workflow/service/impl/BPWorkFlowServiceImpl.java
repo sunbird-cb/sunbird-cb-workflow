@@ -48,6 +48,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         if (!enrolAccess) {
             Response response = new Response();
             response.put(Constants.ERROR_MESSAGE, "BATCH_IS_FULL");
+            response.put(Constants.STATUS,HttpStatus.BAD_REQUEST);
             return response;
         }
         Response response = workflowService.workflowTransition(rootOrg, org, wfRequest);
