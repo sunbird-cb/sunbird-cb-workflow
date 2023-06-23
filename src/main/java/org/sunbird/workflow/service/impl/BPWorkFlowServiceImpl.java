@@ -153,7 +153,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         }
         Date enrollmentEndDate = (Date) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
 
-        boolean enrolAccess = (totalUserEnrolCount <= currentBatchSize) && (enrollmentEndDate.after(new Date()));
+        boolean enrolAccess = (totalUserEnrolCount + 1 <= currentBatchSize) && (enrollmentEndDate.after(new Date()));
         return enrolAccess;
     }
 
