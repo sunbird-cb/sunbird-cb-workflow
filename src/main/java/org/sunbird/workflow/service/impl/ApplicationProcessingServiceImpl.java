@@ -42,19 +42,19 @@ public class ApplicationProcessingServiceImpl {
 	public void processWfApplicationRequest(WfRequest wfRequest) {
 		switch (wfRequest.getServiceName()) {
 			// Or condition in case statement
-			// case Constants.PROFILE_SERVICE_NAME:
-		case Constants.USER_PROFILE_FLAG_SERVICE:
+			case Constants.PROFILE_SERVICE_NAME:
+			case Constants.USER_PROFILE_FLAG_SERVICE:
 				userProfileWfService.updateUserProfile(wfRequest);
 				break;
-		case Constants.USER_REGISTRATION_SERVICE_NAME:
+			case Constants.USER_REGISTRATION_SERVICE_NAME:
 				userRegService.processMessage(wfRequest);
 				break;
-		case Constants.BLENDED_PROGRAM_SERVICE_NAME:
+			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
 				if (Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfRequest.getState())) {
 					bpWorkFlowService.updateEnrolmentDetails(wfRequest);
 				}
 				break;
-		default:
+			default:
 				break;
 		}
 	}
