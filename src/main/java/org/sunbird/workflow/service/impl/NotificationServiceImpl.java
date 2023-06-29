@@ -73,6 +73,7 @@ public class NotificationServiceImpl {
     private static final String MDO_MAIL_SUBJECT = "Request for approval";
 
     private static final String MAIL_BODY = "Your request to update #fieldKey to #toValue is #state.";
+
     private static final String BP_MAIL_BODY = "Your request for batch enrollment is  #state.";
 
     /**
