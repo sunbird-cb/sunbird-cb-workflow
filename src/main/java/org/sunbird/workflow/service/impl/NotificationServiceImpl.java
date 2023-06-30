@@ -247,10 +247,11 @@ public class NotificationServiceImpl {
 				wfStatusEntity.getServiceName(), wfStatusEntity.getCurrentStatus());
 		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()
 				&& !Arrays.asList(Constants.REJECTED, Constants.APPROVED).contains(wfStatus.getState())) {
-			logger.info("Enter in the notification block");
+			logger.info("Enter in the sendNotificationToMdoAdminAndPC block");
 			List<String> emailToSend = new ArrayList<>();
 			emailToSend.add(Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus()) ? Constants.MDO_ADMIN :
 					Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus()) ? Constants.PROGRAM_COORDINATOR : null);
+			logger.info("current role to send notification "+emailToSend);
 			List<String> mdoAdminList = userProfileWfService.getMdoAdminAndPCDetails(wfRequest.getRootOrgId(), emailToSend);
 			Map<String, Object> params = new HashMap<>();
 			NotificationRequest request = new NotificationRequest();
