@@ -249,8 +249,8 @@ public class NotificationServiceImpl {
 				&& !Arrays.asList(Constants.REJECTED, Constants.APPROVED).contains(wfStatus.getState())) {
 			logger.info("Enter in the notification block");
 			List<String> emailToSend = new ArrayList<>();
-			emailToSend.add(Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatus.getState()) ? Constants.MDO_ADMIN :
-					Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatus.getState()) ? Constants.PROGRAM_COORDINATOR : null);
+			emailToSend.add(Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus()) ? Constants.MDO_ADMIN :
+					Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus()) ? Constants.PROGRAM_COORDINATOR : null);
 			List<String> mdoAdminList = userProfileWfService.getMdoAdminAndPCDetails(wfRequest.getRootOrgId(), emailToSend);
 			Map<String, Object> params = new HashMap<>();
 			NotificationRequest request = new NotificationRequest();
