@@ -148,4 +148,6 @@ public class Constants {
 	public static final String LINK = "link";
 	public static final String USER_NAME = "userName";
 	public static final String VERIFIED_KARMAYOGI = "verifiedKarmayogi";
+	public static final String ADDITIONAL_PROPERTIES = "additionalProperties";
+	public static final String TAG = "tag";
 }
