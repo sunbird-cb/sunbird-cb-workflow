@@ -113,6 +113,18 @@ public class Configuration {
     @Value("${lms.system.settings.verified.profile.fields.path}")
     private String verifiedProfileFieldsPath;
 
+    @Value("${lms.system.settings.wfBlendedProgramService.path}")
+    private String blendedProgramServicePath;
+
+    @Value("${course.service.host}")
+    private String courseServiceHost;
+
+    @Value("${course.admin.enrol}")
+    private String adminEnrolEndPoint;
+
+    @Value("${bp.email.template}")
+    private String bpAprroveAndRejectEmailTemplate;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -396,5 +408,37 @@ public class Configuration {
 
     public void setVerifiedProfileFieldsPath(String verifiedProfileFieldsPath) {
         this.verifiedProfileFieldsPath = verifiedProfileFieldsPath;
+    }
+
+    public String getBlendedProgramServicePath() {
+        return blendedProgramServicePath;
+    }
+
+    public void setBlendedProgramServicePath(String blendedProgramServicePath) {
+        this.blendedProgramServicePath = blendedProgramServicePath;
+    }
+
+    public String getCourseServiceHost() {
+        return courseServiceHost;
+    }
+
+    public void setCourseServiceHost(String courseServiceHost) {
+        this.courseServiceHost = courseServiceHost;
+    }
+
+    public String getAdminEnrolEndPoint() {
+        return adminEnrolEndPoint;
+    }
+
+    public void setAdminEnrolEndPoint(String adminEnrolEndPoint) {
+        this.adminEnrolEndPoint = adminEnrolEndPoint;
+    }
+
+    public String getBpAprroveAndRejectEmailTemplate() {
+        return bpAprroveAndRejectEmailTemplate;
+    }
+
+    public void setBpAprroveAndRejectEmailTemplate(String bpAprroveAndRejectEmailTemplate) {
+        this.bpAprroveAndRejectEmailTemplate = bpAprroveAndRejectEmailTemplate;
     }
 }

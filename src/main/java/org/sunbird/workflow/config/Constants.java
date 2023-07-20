@@ -66,6 +66,8 @@ public class Constants {
 	public static final String SEARCH_CRITERIA_VALIDATION = "Provide the mandatory fields for search!";
 
 	public static final String PROFILE_SERVICE_NAME = "profile";
+
+	public static final String BLENDED_PROGRAM_SERVICE_NAME = "blendedprogram";
 	public static final String POSITION_SERVICE_NAME = "position";
 	public static final String ORGANISATION_SERVICE_NAME = "organisation";
 	public static final String DOMAIN_SERVICE_NAME = "domain";
@@ -141,6 +143,8 @@ public class Constants {
 	public static final boolean POSITION_SEARCH_ENABLED = true;
 	public static final boolean DOMAIN_SEARCH_ENABLED = true;
 	public static final boolean ORG_SEARCH_ENABLED = true;
+
+	public static final boolean BLENDED_PROGRAM_SEARCH_ENABLED = true;
 	public static final String MDO_ADMIN = "MDO_ADMIN";
 	public static final String FIELDS = "fields";
 	public static final String APPROVED = "APPROVED";
@@ -148,6 +152,44 @@ public class Constants {
 	public static final String LINK = "link";
 	public static final String USER_NAME = "userName";
 	public static final String VERIFIED_KARMAYOGI = "verifiedKarmayogi";
+	public static final String SUCCESS = "success";
+	public static final String EXCEPTION_MSG_FETCH = "Exception occurred while fetching record from ";
+	public static final String EXCEPTION_MSG_DELETE = "Exception occurred while deleting record from ";
+	public static final String INSERT_INTO = "INSERT INTO ";
+	public static final String DOT = ".";
+	public static final String OPEN_BRACE = "(";
+	public static final String VALUES_WITH_BRACE = ") VALUES (";
+	public static final String QUE_MARK = "?";
+	public static final String COMMA = ",";
+	public static final String CLOSING_BRACE = ");";
+
+	public static final String KEYSPACE_SUNBIRD = "sunbird";
+	public static final String KEYSPACE_SUNBIRD_COURSES = "sunbird_courses";
+	public static final String TABLE_COURSE_BATCH = "course_batch";
+	public static final String TABLE_ENROLMENT_BATCH_LOOKUP = "enrollment_batch_lookup";
+	public static final String BATCH_ATTRIBUTES = "batchattributes";
+	public static final String CURRENT_BATCH_SIZE = "currentBatchSize";
+	public static final String BATCH_ID = "batchId";
+	public static final String COURSE_ID = "courseId";
+	public static final String ID = "id";
+	public static final String ENROLLED_DATE = "enrolled_date";
+	public static final String ENROLMENT_END_DATE = "enrollment_enddate";
+	public static final String CORE_CONNECTIONS_PER_HOST_FOR_LOCAL = "coreConnectionsPerHostForLocal";
+	public static final String CORE_CONNECTIONS_PER_HOST_FOR_REMOTE = "coreConnectionsPerHostForRemote";
+	public static final String MAX_CONNECTIONS_PER_HOST_FOR_LOCAl = "maxConnectionsPerHostForLocal";
+	public static final String MAX_CONNECTIONS_PER_HOST_FOR_REMOTE = "maxConnectionsPerHostForRemote";
+	public static final String MAX_REQUEST_PER_CONNECTION = "maxRequestsPerConnection";
+	public static final String HEARTBEAT_INTERVAL = "heartbeatIntervalSeconds";
+	public static final String POOL_TIMEOUT = "poolTimeoutMillis";
+	public static final String CASSANDRA_CONFIG_HOST = "cassandra.config.host";
+	public static final String SUNBIRD_CASSANDRA_CONSISTENCY_LEVEL = "sunbird_cassandra_consistency_level";
+	public static final String UNAUTHORIZED = "unauthorized";
+	public static final String SEND_FOR_MDO_APPROVAL = "SEND_FOR_MDO_APPROVAL";
+	public static final String SEND_FOR_PC_APPROVAL = "SEND_FOR_PC_APPROVAL";
+	public static final String PROGRAM_COORDINATOR = "PROGRAM_COORDINATOR";
+	public static final String TEMPLATE = "template";
+	public static final String TABLE_EMAIL_TEMPLATE = "email_template";
+	public static final String MISSING_APPLICATION_IDS_ERROR_MESSAGE = "Application Ids are missing in the request";
 	public static final String ADDITIONAL_PROPERTIES = "additionalProperties";
 	public static final String TAG = "tag";
 }

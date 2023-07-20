@@ -163,18 +163,33 @@ public class WorkflowServiceImpl implements Workflowservice {
 			case Constants.POSITION_SERVICE_NAME:
 			case Constants.ORGANISATION_SERVICE_NAME:
 			case Constants.DOMAIN_SERVICE_NAME:
-				wfApplicationSearchResponse = applicationSerachOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
-				List<Map<String, Object>> userProfiles = userProfileWfService.enrichUserData(
-						(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
-				response = new Response();
-				response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
-				response.put(Constants.DATA, userProfiles);
-				response.put(Constants.STATUS, HttpStatus.OK);
+				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
+				response = getResponse(rootOrg, wfApplicationSearchResponse);
 				break;
+			case Constants.BLENDED_PROGRAM_SERVICE_NAME: {
+				if (searchCriteria.getApplicationStatus() != null) {
+					wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
+				} else {
+					wfApplicationSearchResponse = applicationUserSearchOnApplicationIdGroup(searchCriteria);
+				}
+				response = getResponse(rootOrg, wfApplicationSearchResponse);
+			}
+			break;
 			default:
-				response = applicationSerachOnApplicationIdGroup(rootOrg, searchCriteria);
+				response = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria);
 				break;
 		}
+		return response;
+	}
+
+	private Response getResponse(String rootOrg, Response wfApplicationSearchResponse) {
+		Response response;
+		List<Map<String, Object>> userProfiles = userProfileWfService.enrichUserData(
+				(Map<String, List<WfStatusEntity>>) wfApplicationSearchResponse.get(Constants.DATA), rootOrg);
+		response = new Response();
+		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+		response.put(Constants.DATA, userProfiles);
+		response.put(Constants.STATUS, HttpStatus.OK);
 		return response;
 	}
 
@@ -571,7 +586,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 		return response;
 	}*/
 
-	public Response applicationSerachOnApplicationIdGroup(String rootOrg, SearchCriteria criteria, boolean... isSearchEnabled) {
+	public Response applicationSearchOnApplicationIdGroup(String rootOrg, SearchCriteria criteria, boolean... isSearchEnabled) {
 		boolean searchEnabled = (isSearchEnabled.length < 1)?false:isSearchEnabled[0];
 		Pageable pageable = getPageReqForApplicationSearch(criteria);
 		List<String> applicationIds = criteria.getApplicationIds();
@@ -583,7 +598,11 @@ public class WorkflowServiceImpl implements Workflowservice {
 		List<WfStatusEntity> wfStatusEntities = null;
 		if (!StringUtils.isEmpty(criteria.getDeptName())) {
 			if (searchEnabled==true) {
-				wfStatusEntities = wfStatusRepo.findByServiceNameAndCurrentStatusAndDeptName(criteria.getServiceName(), criteria.getApplicationStatus(), criteria.getDeptName());
+				if (Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(criteria.getServiceName())) {
+					wfStatusEntities = wfStatusRepo.findByServiceNameAndCurrentStatusAndDeptNameAndApplicationId(criteria.getServiceName(), criteria.getApplicationStatus(), criteria.getDeptName(), applicationIds);
+				} else {
+					wfStatusEntities = wfStatusRepo.findByServiceNameAndCurrentStatusAndDeptName(criteria.getServiceName(), criteria.getApplicationStatus(), criteria.getDeptName());
+				}
 			} else {
 				wfStatusEntities = wfStatusRepo.findByServiceNameAndCurrentStatusAndDeptNameAndApplicationIdIn(
 						criteria.getServiceName(), criteria.getApplicationStatus(), criteria.getDeptName(), applicationIds);
@@ -592,7 +611,11 @@ public class WorkflowServiceImpl implements Workflowservice {
 			wfStatusEntities = wfStatusRepo.findByServiceNameAndCurrentStatusAndApplicationIdIn(
 					criteria.getServiceName(), criteria.getApplicationStatus(), applicationIds);
 		}
-		infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getApplicationId));
+		if (criteria.getServiceName().equalsIgnoreCase(Constants.BLENDED_PROGRAM_SERVICE_NAME)) {
+			infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getUserId));
+		} else {
+			infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getApplicationId));
+		}
 		Response response = new Response();
 		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 		response.put(Constants.DATA, infos);
@@ -663,6 +686,9 @@ public class WorkflowServiceImpl implements Workflowservice {
 				case Constants.DOMAIN_SERVICE_NAME:
 					uri.append(configuration.getLmsServiceHost() + configuration.getDomainServiceConfigPath());
 					break;
+				case Constants.BLENDED_PROGRAM_SERVICE_NAME:
+					uri.append(configuration.getLmsServiceHost() + configuration.getBlendedProgramServicePath());
+					break;
 				default:
 					break;
 			}
@@ -676,5 +702,21 @@ public class WorkflowServiceImpl implements Workflowservice {
 			log.error("Exception occurred while getting work flow config details!");
 			throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE, e);
 		}
+	}
+
+	public Response applicationUserSearchOnApplicationIdGroup(SearchCriteria criteria) {
+		List<String> applicationIds = criteria.getApplicationIds();
+		Map<String, List<WfStatusEntity>> infos = null;
+		if (CollectionUtils.isEmpty(applicationIds)) {
+			throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE);
+		}
+		List<WfStatusEntity> wfStatusEntities = wfStatusRepo.findByServiceNameAndUserIdAndApplicationIdIn(
+					criteria.getServiceName(), criteria.getUserId(), applicationIds);
+		infos = wfStatusEntities.stream().collect(Collectors.groupingBy(WfStatusEntity::getUserId));
+		Response response = new Response();
+		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+		response.put(Constants.DATA, infos);
+		response.put(Constants.STATUS, HttpStatus.OK);
+		return response;
 	}
 }

@@ -14,6 +14,7 @@ import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
+import org.sunbird.workflow.service.BPWorkFlowService;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.UserRegistrationWfService;
 
@@ -33,20 +34,28 @@ public class ApplicationProcessingServiceImpl {
 	@Autowired
 	private UserRegistrationWfService userRegService;
 
+	@Autowired
+	private BPWorkFlowService bpWorkFlowService;
+
 	Logger logger = LogManager.getLogger(ApplicationProcessingServiceImpl.class);
 
 	public void processWfApplicationRequest(WfRequest wfRequest) {
 		switch (wfRequest.getServiceName()) {
-		// Or condition in case statement
-		case Constants.PROFILE_SERVICE_NAME:
-		case Constants.USER_PROFILE_FLAG_SERVICE:
-			userProfileWfService.updateUserProfile(wfRequest);
-			break;
-		case Constants.USER_REGISTRATION_SERVICE_NAME:
-			userRegService.processMessage(wfRequest);
-			break;
-		default:
-			break;
+			// Or condition in case statement
+			case Constants.PROFILE_SERVICE_NAME:
+			case Constants.USER_PROFILE_FLAG_SERVICE:
+				userProfileWfService.updateUserProfile(wfRequest);
+				break;
+			case Constants.USER_REGISTRATION_SERVICE_NAME:
+				userRegService.processMessage(wfRequest);
+				break;
+			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
+				if (Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfRequest.getState())) {
+					bpWorkFlowService.updateEnrolmentDetails(wfRequest);
+				}
+				break;
+			default:
+				break;
 		}
 	}
 
