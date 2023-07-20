@@ -239,13 +239,17 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 						if (!CollectionUtils.isEmpty(profileDetails)) {
 							HashMap<String, Object> personalDetails = (HashMap<String, Object>) profileDetails
 									.get(Constants.PERSONAL_DETAILS);
+							Map<String, Object> record = new HashMap<>();
 							if (!CollectionUtils.isEmpty(personalDetails)) {
-								Map<String, Object> record = new HashMap<>();
 								record.put(Constants.UUID, content.get(Constants.USER_ID));
 								record.put(Constants.FIRST_NAME, personalDetails.get(Constants.FIRSTNAME));
 								record.put(Constants.EMAIL, personalDetails.get(Constants.PRIMARY_EMAIL));
-								userResult.put(record.get(Constants.UUID).toString(), record);
 							}
+							Map<String, Object> additionalProperties = (Map<String, Object>) profileDetails.get(Constants.ADDITIONAL_PROPERTIES);
+							if (!CollectionUtils.isEmpty(additionalProperties)) {
+								record.put(Constants.TAG, additionalProperties.get(Constants.TAG));
+							}
+							userResult.put((String) content.get(Constants.USER_ID), record);
 						}
 					}
 				}
