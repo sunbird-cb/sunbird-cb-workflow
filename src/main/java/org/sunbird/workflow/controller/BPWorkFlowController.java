@@ -43,6 +43,8 @@ public class BPWorkFlowController {
     @PostMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> blendedProgramWfSearch(@RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
         System.out.println("In controller");
+        //Department is not eligible filter for the Blended Program Search, marking it as null.
+        if(searchCriteria !=null) searchCriteria.setDeptName(null);
         Response response = bPWorkFlowService.blendedProgramSearch(rootOrg, org, searchCriteria);
         return new ResponseEntity<>(response, (HttpStatus) response.get(Constants.STATUS));
     }
