@@ -36,15 +36,12 @@ public class NotificationConsumer {
 		switch (wfRequest.getServiceName()) {
 			case Constants.PROFILE_SERVICE_NAME:
 				notificationService.sendNotification(wfRequest);
-				logger.info("Profile service notification sent");
 				notificationService.sendNotificationToMdoAdmin(wfRequest);
-				logger.info("Profile service notification sent to MDO");
 				break;
 			case Constants.POSITION_SERVICE_NAME:
 			case Constants.DOMAIN_SERVICE_NAME:
 			case Constants.ORGANISATION_SERVICE_NAME:
 				notificationService.sendEmailNotification(wfRequest);
-				logger.info("Organisation email notification sent");
 				break;
 			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
 				notificationService.sendNotification(wfRequest);
