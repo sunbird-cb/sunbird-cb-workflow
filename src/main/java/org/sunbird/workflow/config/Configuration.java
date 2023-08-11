@@ -107,6 +107,8 @@ public class Configuration {
     @Value("${mdo.email.template}")
     private String mdoEmailTemplate;
 
+    @Value("${notification.email.body}")
+    private String mailBody;
     @Value("${lms.system.settings.wfUserRegistrationService.path}")
     private String userRegistrationServiceConfigPath;
 
@@ -150,7 +152,13 @@ public class Configuration {
     public Integer getMaxLimit() {
         return maxLimit;
     }
+    public String getMailBody() {
+        return mailBody;
+    }
 
+    public void setMailBody(String mailBody) {
+        this.mailBody = mailBody;
+    }
     public void setMaxLimit(Integer maxLimit) {
         this.maxLimit = maxLimit;
     }
