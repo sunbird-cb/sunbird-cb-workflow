@@ -23,6 +23,7 @@ public interface BPWorkFlowService {
     public Response readBPWFApplication(String wfId, boolean isPc);
 
     /**
+
      * This method is responsible for processing the wfRequest based on the state of the wfRequest
      *
      * @param wfRequest - Recieves a wfRequest with the request params.
@@ -35,4 +36,12 @@ public interface BPWorkFlowService {
      * @return - returns the statistics information of user count for each course and batch.
      */
     public Response readStats(Map<String, Object> request);
+     /*
+     * @param rootOrg   - Root Organization Name ex: "igot"
+     * @param org       - Organization name ex: "dopt"
+     * @param wfRequest - WorkFlow request which needs to be processed.
+     * @return - Return the response of success/failure after processing the request.
+     */
+    Response adminEnrolBPWorkFlow(String rootOrg, String org, WfRequest wfRequest);
+
 }

@@ -47,5 +47,18 @@ public interface WfStatusRepo extends JpaRepository<WfStatusEntity, String> {
 
     WfStatusEntity findByWfId(String wfId);
 
+
     List<WfStatusEntity> findByServiceNameAndApplicationId(String serviceName, String applicationId);
+
+    /**
+     * Query to fetch the data from the wf_status based on the service name, userId and the applicationId/BatchId
+     *
+     * @param serviceName   -Blended Program.
+     * @param userId        - user id of the learner to be enrolled in the Blended program.
+     * @param applicationId - batch id of the blended program to be enrolled.
+     * @return - Return the data if the user is already enrolled or not using the wf_status table.
+     */
+    @Query(value = "select * from wingspan.wf_status where service_name= ?1 and userid = ?2 and application_id = ?3", nativeQuery = true)
+    List<WfStatusEntity> findByServiceNameAndUserIdAndApplicationId(String serviceName, String userId, String applicationId);
+
 }

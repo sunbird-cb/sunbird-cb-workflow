@@ -19,6 +19,10 @@ import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.BPWorkFlowService;
 
+import org.sunbird.workflow.service.DomainWhiteListWorkFlowService;
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/blendedprogram/workflow")
 public class BPWorkFlowController {
@@ -75,9 +79,28 @@ public class BPWorkFlowController {
         return new ResponseEntity<>(response, (HttpStatus) response.get(Constants.STATUS));
     }
 
+
     @PostMapping(path = "/stats")
     public ResponseEntity<Response> getBatchStats(@RequestBody Map<String, Object> request) {
         Response response = bPWorkFlowService.readStats(request);
         return new ResponseEntity<Response>(response, response.getResponseCode());
+
+
+    /**
+     * @param rootOrg   - Root Organization Name ex: "igot"
+     * @param org       - Organization name ex: "dopt"
+     * @param wfRequests - Bulk WorkFlow requests which needs to be processed.
+     * @return - Return the response of success/failure after processing the request.
+     */
+    @PostMapping("/admin/enrol")
+    public ResponseEntity<List<Response>> blendedProgramAdminEnrolWf(@RequestHeader String rootOrg, @RequestHeader String org,
+                                                                     @RequestBody List<WfRequest> wfRequests)  {
+        List<Response> responses = new ArrayList<>();
+        for(WfRequest wfRequest:wfRequests){
+            Response response = bPWorkFlowService.adminEnrolBPWorkFlow(rootOrg, org, wfRequest);
+            responses.add(response);
+        }
+        return new ResponseEntity<>(responses,HttpStatus.OK);
+
     }
 }
