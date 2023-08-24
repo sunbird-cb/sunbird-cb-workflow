@@ -173,7 +173,6 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         if (courseBatchDetails.containsKey(Constants.CURRENT_BATCH_SIZE)) {
             currentBatchSize = (int) courseBatchDetails.get(Constants.CURRENT_BATCH_SIZE);
         }
-
         Date enrollmentEndDate = (Date) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
         if(currentBatchSize != 0 && Constants.BP_ENROLL_STATE.equals(bpState)) {
             currentBatchSize = (int)Math.round(currentBatchSize + ((configuration.getBpBatchEnrolLimitBufferSize()/100)*currentBatchSize));
@@ -203,6 +202,23 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
 		return response;
     }
 
+    /**
+     * This method is responsible for processing the wfRequest based on the state of the wfRequest
+     *
+     * @param wfRequest - Recieves a wfRequest with the request params.
+     */
+    public void processWFRequest(WfRequest wfRequest) {
+        WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(wfRequest.getWfId());
+        switch (wfStatusEntity.getCurrentStatus()) {
+            case Constants.APPROVED:
+                updateEnrolmentDetails(wfRequest);
+                break;
+            default:
+                logger.info("Status is Skipped by Blended Program Workflow Handler - Current Status: "+wfStatusEntity.getCurrentStatus());
+                break;
+        }
+    }
+
     private boolean validateBatchUserRequestAccess(WfRequest wfRequest) {
         if(configuration.getBpBatchFullValidationExcludeStates().contains(wfRequest.getAction())) {
             return true;
@@ -210,5 +226,4 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(), wfRequest.getCourseId());
         return validateBatchEnrolment(courseBatchDetails, getTotalUserEnrolCount(wfRequest), Constants.BP_UPDATE_STATE);
     }
-
 }
