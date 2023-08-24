@@ -207,7 +207,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 updateEnrolmentDetails(wfRequest);
                 break;
             default:
-                logger.info("Status is Skipped by Blended Program Workflow Handler - Current Status {}", wfStatusEntity.getCurrentStatus());
+                logger.info("Status is Skipped by Blended Program Workflow Handler - Current Status: "+wfStatusEntity.getCurrentStatus());
                 break;
         }
     }
