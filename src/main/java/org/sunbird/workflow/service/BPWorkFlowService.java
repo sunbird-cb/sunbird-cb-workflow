@@ -19,4 +19,11 @@ public interface BPWorkFlowService {
     Response blendedProgramUserSearch(String rootOrg, String org, String userId, SearchCriteria searchCriteria);
 
     public Response readBPWFApplication(String wfId, boolean isPc);
+
+    /**
+     * This method is responsible for processing the wfRequest based on the state of the wfRequest
+     *
+     * @param wfRequest - Recieves a wfRequest with the request params.
+     */
+    public void processWFRequest(WfRequest wfRequest);
 }

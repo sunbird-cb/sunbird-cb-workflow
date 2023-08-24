@@ -195,4 +195,17 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
 		return response;
     }
 
+    /**
+     * This method is responsible for processing the wfRequest based on the state of the wfRequest
+     *
+     * @param wfRequest - Recieves a wfRequest with the request params.
+     */
+    public void processWFRequest(WfRequest wfRequest) {
+        if (Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfRequest.getState())) {
+            updateEnrolmentDetails(wfRequest);
+        }
+        if (Constants.APPROVED.equalsIgnoreCase(wfRequest.getState())) {
+            updateEnrolmentDetails(wfRequest);
+        }
+    }
 }
