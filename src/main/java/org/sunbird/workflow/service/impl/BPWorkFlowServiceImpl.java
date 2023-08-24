@@ -201,8 +201,14 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
      * @param wfRequest - Recieves a wfRequest with the request params.
      */
     public void processWFRequest(WfRequest wfRequest) {
-        if (Constants.APPROVED.equalsIgnoreCase(wfRequest.getState())) {
-            updateEnrolmentDetails(wfRequest);
+        WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(wfRequest.getWfId());
+        switch (wfStatusEntity.getCurrentStatus()) {
+            case Constants.APPROVED:
+                updateEnrolmentDetails(wfRequest);
+                break;
+            default:
+                logger.info("Status is Skipped by Blended Program Workflow Handler - Current Status {}", wfStatusEntity.getCurrentStatus());
+                break;
         }
     }
 }
