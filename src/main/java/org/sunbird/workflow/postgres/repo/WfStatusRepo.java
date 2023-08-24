@@ -46,4 +46,6 @@ public interface WfStatusRepo extends JpaRepository<WfStatusEntity, String> {
     List<WfStatusEntity> findByServiceNameAndCurrentStatusAndDeptNameAndApplicationId(String serviceName, String currentStatus, String deptName, List<String> applicationIds);
 
     WfStatusEntity findByWfId(String wfId);
+
+    List<WfStatusEntity> findByServiceNameAndApplicationId(String serviceName, String applicationId);
 }

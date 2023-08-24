@@ -40,7 +40,6 @@ public class DomainWorkFlowController {
 
     @PostMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> domainWfSearch(@RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
-        System.out.println("In controller");
         Response response = domainWhiteListWorkFlowService.domainSearch(rootOrg, org, searchCriteria);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -1,11 +1,23 @@
 package org.sunbird.workflow.service.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.Response;
@@ -17,8 +29,8 @@ import org.sunbird.workflow.service.BPWorkFlowService;
 import org.sunbird.workflow.service.Workflowservice;
 import org.sunbird.workflow.utils.CassandraOperation;
 
-import java.time.LocalDate;
-import java.util.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class BPWorkFlowServiceImpl implements BPWorkFlowService {
@@ -44,7 +56,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     public Response enrolBPWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
         Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(), wfRequest.getCourseId());
         int totalUserEnrolCount = getTotalUserEnrolCount(wfRequest);
-        boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalUserEnrolCount);
+        boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalUserEnrolCount, Constants.BP_ENROLL_STATE);
         if (!enrolAccess) {
             Response response = new Response();
             response.put(Constants.ERROR_MESSAGE, "BATCH_IS_FULL");
@@ -57,7 +69,12 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
 
     @Override
     public Response updateBPWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
-        Response response = workflowService.workflowTransition(rootOrg, org, wfRequest);
+        if(validateBatchUserRequestAccess(wfRequest)) {
+            return workflowService.workflowTransition(rootOrg, org, wfRequest);
+        }
+        Response response = new Response();
+        response.put(Constants.ERROR_MESSAGE, "BATCH_IS_FULL");
+        response.put(Constants.STATUS,HttpStatus.BAD_REQUEST);
         return response;
     }
 
@@ -77,7 +94,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     public void updateEnrolmentDetails(WfRequest wfRequest) {
         Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(), wfRequest.getCourseId());
         int totalUserEnrolCount = getTotalUserEnrolCount(wfRequest);
-        boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalUserEnrolCount);
+        boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalUserEnrolCount, Constants.BP_UPDATE_STATE);
         if (enrolAccess) {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put(Constants.USER_ID, wfRequest.getUserId());
@@ -112,27 +129,35 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 Constants.KEYSPACE_SUNBIRD_COURSES,
                 Constants.TABLE_COURSE_BATCH,
                 propertyMap,
-                Arrays.asList(Constants.BATCH_ATTRIBUTES, Constants.ENROLMENT_END_DATE)
-        );
-        return batchAttributesDetails.stream()
-                .findFirst()
-                .map(Optional::ofNullable)
-                .orElse(Optional.empty())
-                .map(details -> {
-                    Map<String, Object> batchAttributes = (Map<String, Object>) details.get(Constants.BATCH_ATTRIBUTES);
-                    String currentBatchSizeString = batchAttributes != null && batchAttributes.containsKey(Constants.CURRENT_BATCH_SIZE)
-                            ? (String) batchAttributes.get(Constants.CURRENT_BATCH_SIZE)
-                            : "0";
+                Arrays.asList(Constants.BATCH_ATTRIBUTES, Constants.ENROLMENT_END_DATE));
+        if (CollectionUtils.isNotEmpty(batchAttributesDetails)) {
+            Map<String, Object> courseBatch = (Map<String, Object>) batchAttributesDetails.get(0);
+            if (courseBatch.containsKey(Constants.BATCH_ATTRIBUTES)) {
+                try {
+                    Map<String, Object> batchAttributes = (new ObjectMapper()).readValue(
+                            (String) courseBatch.get(Constants.BATCH_ATTRIBUTES),
+                            new TypeReference<HashMap<String, Object>>() {
+                            });
+
+                    String currentBatchSizeString = batchAttributes != null
+                            && batchAttributes.containsKey(Constants.CURRENT_BATCH_SIZE)
+                                    ? (String) batchAttributes.get(Constants.CURRENT_BATCH_SIZE)
+                                    : "0";
                     int currentBatchSize = Integer.parseInt(currentBatchSizeString);
-                    Date enrollmentEndDate = details.containsKey(Constants.ENROLMENT_END_DATE)
-                            ? (Date) details.get(Constants.ENROLMENT_END_DATE)
+                    Date enrollmentEndDate = courseBatch.containsKey(Constants.ENROLMENT_END_DATE)
+                            ? (Date) courseBatch.get(Constants.ENROLMENT_END_DATE)
                             : null;
                     Map<String, Object> result = new HashMap<>();
                     result.put(Constants.CURRENT_BATCH_SIZE, currentBatchSize);
                     result.put(Constants.ENROLMENT_END_DATE, enrollmentEndDate);
                     return result;
-                })
-                .orElse(Collections.emptyMap());
+                } catch (Exception e) {
+                    logger.error(String.format("Failed to retrieve course batch details. CourseId: %s, BatchId: %s",
+                            courseId, batchId), e);
+                }
+            }
+        }
+        return Collections.emptyMap();
     }
 
 
@@ -143,7 +168,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         return totalCount;
     }
 
-    private boolean validateBatchEnrolment(Map<String, Object> courseBatchDetails, int totalUserEnrolCount) {
+    private boolean validateBatchEnrolment(Map<String, Object> courseBatchDetails, int totalUserEnrolCount, String bpState) {
         if (MapUtils.isEmpty(courseBatchDetails)) {
             return false;
         }
@@ -152,8 +177,10 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             currentBatchSize = (int) courseBatchDetails.get(Constants.CURRENT_BATCH_SIZE);
         }
         Date enrollmentEndDate = (Date) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
-
-        boolean enrolAccess = (totalUserEnrolCount + 1 <= currentBatchSize) && (enrollmentEndDate.after(new Date()));
+        if(currentBatchSize != 0 && Constants.BP_ENROLL_STATE.equals(bpState)) {
+            currentBatchSize = (int)Math.round(currentBatchSize + ((configuration.getBpBatchEnrolLimitBufferSize()/100)*currentBatchSize));
+        }
+        boolean enrolAccess = (totalUserEnrolCount < currentBatchSize) && (enrollmentEndDate.after(new Date()));
         return enrolAccess;
     }
 
@@ -178,4 +205,135 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
 		return response;
     }
 
+    /**
+     * This method is responsible for processing the wfRequest based on the state of the wfRequest
+     *
+     * @param wfRequest - Recieves a wfRequest with the request params.
+     */
+    public void processWFRequest(WfRequest wfRequest) {
+        WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(wfRequest.getWfId());
+        switch (wfStatusEntity.getCurrentStatus()) {
+            case Constants.APPROVED:
+                updateEnrolmentDetails(wfRequest);
+                break;
+            default:
+                logger.info("Status is Skipped by Blended Program Workflow Handler - Current Status: "+wfStatusEntity.getCurrentStatus());
+                break;
+        }
+    }
+
+    private boolean validateBatchUserRequestAccess(WfRequest wfRequest) {
+        if(configuration.getBpBatchFullValidationExcludeStates().contains(wfRequest.getAction())) {
+            return true;
+        }
+        Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(), wfRequest.getCourseId());
+        return validateBatchEnrolment(courseBatchDetails, getTotalUserEnrolCount(wfRequest), Constants.BP_UPDATE_STATE);
+    }
+
+    public Response readStats(Map<String, Object> request) {
+        Response response = new Response();
+        try {
+            String errMsg = validateRequest(request);
+            if (StringUtils.isNotBlank(errMsg)) {
+                response.put(Constants.MESSAGE, Constants.FAILED);
+                response.put(Constants.ERROR_MESSAGE, errMsg);
+                response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
+                response.setResponseCode(HttpStatus.BAD_REQUEST);
+                return response;
+            }
+            Map<String, Object> respCourseDetails = new HashMap<String, Object>();
+            Map<String, Object> requestBody = (Map<String, Object>) request.get(Constants.REQUEST);
+            List<String> courseIdList = (List<String>) requestBody.get(Constants.COURSE_ID_LIST);
+            List<String> fileds = Arrays.asList(Constants.COURSE_ID, Constants.BATCH_ID, Constants.END_DATE);
+            Map<String, Object> propertyMap = new HashMap<String, Object>();
+            propertyMap.put(Constants.COURSE_ID, courseIdList);
+            List<Map<String, Object>> courseBatchDetailsList = cassandraOperation.getRecordsByProperties(
+                    Constants.KEYSPACE_SUNBIRD_COURSES, Constants.TABLE_COURSE_BATCH, propertyMap, fileds);
+            for (Map<String, Object> courseBatchDetail : courseBatchDetailsList) {
+                // Process batch details
+                Date endDate = courseBatchDetail.containsKey(Constants.END_DATE)
+                        ? (Date) courseBatchDetail.get(Constants.END_DATE)
+                        : null;
+                Date todayDate = new Date();
+                if (todayDate.after(endDate)) {
+                    continue;
+                }
+                String courseId = (String) courseBatchDetail.get(Constants.COURSE_ID_KEY);
+                String batchId = (String) courseBatchDetail.get(Constants.BATCH_ID_KEY);
+                Map<String, Object> respCourseBatch = (Map<String, Object>) respCourseDetails.get(courseId);
+                Map<String, Object> respBatchDetailsMap = null;
+                if (ObjectUtils.isEmpty(respCourseBatch)) {
+                    respCourseBatch = new HashMap<String, Object>();
+                    respCourseBatch.put(Constants.COURSE_ID, courseId);
+                    respBatchDetailsMap = new HashMap<String, Object>();
+                } else {
+                    respBatchDetailsMap = (Map<String, Object>) respCourseBatch.get(Constants.BATCH_DETAILS_KEY);
+                }
+
+                Map<String, Object> respBatchDetail = new HashMap<String, Object>();
+                // Batch is active. Get the batch enrolment details.
+                List<WfStatusEntity> wfEntries = wfStatusRepo.findByServiceNameAndApplicationId(
+                        Constants.BLENDED_PROGRAM_SERVICE_NAME, batchId);
+                Map<String, Long> statusCount = wfEntries.stream()
+                        .map(WfStatusEntity::getCurrentStatus)
+                        .collect(Collectors.groupingBy(status -> status, Collectors.counting()));
+
+                long newRequestCount = 0;
+                long learnerCount = 0;
+                long rejectedCount = 0;
+                for (Map.Entry<String, Long> entry : statusCount.entrySet()) {
+                    switch (entry.getKey()) {
+                        case Constants.SEND_FOR_PC_APPROVAL:
+                            newRequestCount = entry.getValue();
+                            break;
+                        case Constants.REJECTED:
+                            rejectedCount = entry.getValue();
+                            break;
+                        case Constants.APPROVED:
+                            learnerCount = entry.getValue();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                respBatchDetail.put(Constants.NEW_REQUEST_COUNT, newRequestCount);
+                respBatchDetail.put(Constants.LEARNER_COUNT, learnerCount);
+                respBatchDetail.put(Constants.REJECTED_COUNT, rejectedCount);
+
+                respCourseBatch.put(Constants.TOTAL_LEARNER_COUNT,
+                        ((long) respCourseBatch.getOrDefault(Constants.TOTAL_LEARNER_COUNT, 0l)) + learnerCount);
+                respCourseBatch.put(Constants.TOTAL_NEW_REQUEST_COUNT,
+                        ((long) respCourseBatch.getOrDefault(Constants.TOTAL_NEW_REQUEST_COUNT, 0l)) + newRequestCount);
+                respCourseBatch.put(Constants.TOTAL_REJECTED_COUNT,
+                        ((long) respCourseBatch.getOrDefault(Constants.TOTAL_REJECTED_COUNT, 0l)) + rejectedCount);
+                respBatchDetailsMap.put(batchId, respBatchDetail);
+                respCourseBatch.put(Constants.BATCH_DETAILS_KEY, respBatchDetailsMap);
+                respCourseDetails.put(courseId, respCourseBatch);
+            }
+            response.setResponseCode(HttpStatus.OK);
+            response.getResult().put(Constants.COUNT, respCourseDetails.size());
+            response.getResult().put(Constants.CONTENT, respCourseDetails.values());
+        } catch (Exception e) {
+            String errMsg = String.format("Failed to get the stats for course. Exception: ", e.getMessage());
+            response.put(Constants.ERROR_MESSAGE, errMsg);
+            response.put(Constants.STATUS, HttpStatus.INTERNAL_SERVER_ERROR);
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error(errMsg, e);
+        }
+        return response;
+    }
+
+    private String validateRequest(Map<String, Object> request) {
+        String errMsg = "";
+        Map<String, Object> requestBody = (Map<String, Object>) request.get(Constants.REQUEST);
+        if (ObjectUtils.isEmpty(requestBody)) {
+            errMsg = "Invalid Request";
+            return errMsg;
+        }
+
+        if (ObjectUtils.isEmpty(((List<String>) requestBody.get(Constants.COURSE_ID_LIST)))) {
+            errMsg = "Invalid Request. CourseIdList is empty.";
+        }
+        return errMsg;
+    }
 }

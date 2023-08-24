@@ -1,16 +1,23 @@
 package org.sunbird.workflow.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.BPWorkFlowService;
-import org.sunbird.workflow.service.DomainWhiteListWorkFlowService;
 
 @RestController
 @RequestMapping("/v1/blendedprogram/workflow")
@@ -42,7 +49,6 @@ public class BPWorkFlowController {
 
     @PostMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> blendedProgramWfSearch(@RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
-        System.out.println("In controller");
         //Department is not eligible filter for the Blended Program Search, marking it as null.
         if(searchCriteria !=null) searchCriteria.setDeptName(null);
         Response response = bPWorkFlowService.blendedProgramSearch(rootOrg, org, searchCriteria);
@@ -51,7 +57,6 @@ public class BPWorkFlowController {
 
     @PostMapping(path = "/user/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> userWfSearch(@RequestHeader(Constants.X_AUTH_USER_ID) String userId, @RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
-        System.out.println("In controller");
         Response response = bPWorkFlowService.blendedProgramUserSearch(rootOrg, org, userId, searchCriteria);
         return new ResponseEntity<>(response, (HttpStatus) response.get(Constants.STATUS));
     }
@@ -68,5 +73,11 @@ public class BPWorkFlowController {
                                                      @PathVariable("wfId") String wfId) {
         Response response = bPWorkFlowService.readBPWFApplication(wfId, true);
         return new ResponseEntity<>(response, (HttpStatus) response.get(Constants.STATUS));
+    }
+
+    @PostMapping(path = "/stats")
+    public ResponseEntity<Response> getBatchStats(@RequestBody Map<String, Object> request) {
+        Response response = bPWorkFlowService.readStats(request);
+        return new ResponseEntity<Response>(response, response.getResponseCode());
     }
 }

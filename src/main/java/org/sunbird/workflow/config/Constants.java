@@ -167,7 +167,7 @@ public class Constants {
 	public static final String KEYSPACE_SUNBIRD_COURSES = "sunbird_courses";
 	public static final String TABLE_COURSE_BATCH = "course_batch";
 	public static final String TABLE_ENROLMENT_BATCH_LOOKUP = "enrollment_batch_lookup";
-	public static final String BATCH_ATTRIBUTES = "batchattributes";
+	public static final String BATCH_ATTRIBUTES = "batch_attributes";
 	public static final String CURRENT_BATCH_SIZE = "currentBatchSize";
 	public static final String BATCH_ID = "batchId";
 	public static final String COURSE_ID = "courseId";
@@ -192,4 +192,18 @@ public class Constants {
 	public static final String MISSING_APPLICATION_IDS_ERROR_MESSAGE = "Application Ids are missing in the request";
 	public static final String ADDITIONAL_PROPERTIES = "additionalProperties";
 	public static final String TAG = "tag";
+	public static final String BP_ENROLL_STATE = "ENROLL_STATE";
+	public static final String BP_UPDATE_STATE = "UPDATE_STATE";
+	public static final String COURSE_ID_LIST = "courseIdList";
+	public static final String END_DATE = "end_date";
+	public static final String BATCH_ID_KEY = "batchid";
+	public static final String COURSE_ID_KEY = "courseid";
+	public static final String BATCH_DETAILS_KEY = "batchDetails";
+	public static final String NEW_REQUEST_COUNT = "newRequestCount";
+	public static final String LEARNER_COUNT = "learnerCount";
+	public static final String REJECTED_COUNT = "rejectedCount";
+	public static final String TOTAL_NEW_REQUEST_COUNT = "totalNewRequestCount";
+	public static final String TOTAL_LEARNER_COUNT = "totalLearnerCount";
+	public static final String TOTAL_REJECTED_COUNT = "totalRejectedCount";
+	public static final String COUNT = "count";
 }

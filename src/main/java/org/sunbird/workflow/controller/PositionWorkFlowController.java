@@ -40,7 +40,6 @@ public class PositionWorkFlowController {
 
     @PostMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> positionWfSearch(@RequestHeader String rootOrg, @RequestHeader String org, @RequestBody SearchCriteria searchCriteria) {
-        System.out.println("In controller");
         Response response = signUpWorkFlowService.positionSearch(rootOrg, org, searchCriteria);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
