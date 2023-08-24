@@ -125,11 +125,11 @@ public class Configuration {
     @Value("${bp.email.template}")
     private String bpAprroveAndRejectEmailTemplate;
 
-    @Value("${bp.batch.state.full.exclude}")
-    private String bpBatchStateFullExclude;
+    @Value("${bp.batch.full.validation.exclude.states}")
+    private String bpBatchFullValidationExcludeStates;
 
-    @Value("${bp.batch.buffer.count}")
-    private Integer bpBatchBufferCount;
+    @Value("${bp.batch.enrol.limit.buffer.size}")
+    private Integer bpBatchEnrolLimitBufferSize;
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -448,19 +448,19 @@ public class Configuration {
         this.bpAprroveAndRejectEmailTemplate = bpAprroveAndRejectEmailTemplate;
     }
 
-    public List<String> getBpBatchStateFullExclude() {
-        return Arrays.asList(bpBatchStateFullExclude.split(",", -1));
+    public List<String> getBpBatchFullValidationExcludeStates() {
+        return Arrays.asList(bpBatchFullValidationExcludeStates.split(",", -1));
     }
 
-    public void setBpBatchStateFullExclude(String bpBatchStateFullExclude) {
-        this.bpBatchStateFullExclude = bpBatchStateFullExclude;
+    public void setBpBatchFullValidationExcludeStates(String bpBatchFullValidationExcludeStates) {
+        this.bpBatchFullValidationExcludeStates = bpBatchFullValidationExcludeStates;
     }
 
-    public Integer getBpBatchBufferCount() {
-        return bpBatchBufferCount;
+    public Integer getBpBatchEnrolLimitBufferSize() {
+        return bpBatchEnrolLimitBufferSize;
     }
 
-    public void setBpBatchBufferCount(Integer bpBatchBufferCount) {
-        this.bpBatchBufferCount = bpBatchBufferCount;
+    public void setBpBatchEnrolLimitBufferSize(Integer bpBatchEnrolLimitBufferSize) {
+        this.bpBatchEnrolLimitBufferSize = bpBatchEnrolLimitBufferSize;
     }
 }

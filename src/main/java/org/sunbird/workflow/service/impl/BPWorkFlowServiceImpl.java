@@ -176,7 +176,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
 
         Date enrollmentEndDate = (Date) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
         if(currentBatchSize != 0 && Constants.BP_ENROLL_STATE.equals(bpState)) {
-            currentBatchSize = (int)Math.round(currentBatchSize + ((configuration.getBpBatchBufferCount()/100)*currentBatchSize));
+            currentBatchSize = (int)Math.round(currentBatchSize + ((configuration.getBpBatchEnrolLimitBufferSize()/100)*currentBatchSize));
         }
         boolean enrolAccess = (totalUserEnrolCount < currentBatchSize) && (enrollmentEndDate.after(new Date()));
         return enrolAccess;
@@ -204,7 +204,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     }
 
     private boolean validateBatchUserRequestAccess(WfRequest wfRequest) {
-        if(configuration.getBpBatchStateFullExclude().contains(wfRequest.getAction())) {
+        if(configuration.getBpBatchFullValidationExcludeStates().contains(wfRequest.getAction())) {
             return true;
         }
         Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(), wfRequest.getCourseId());
