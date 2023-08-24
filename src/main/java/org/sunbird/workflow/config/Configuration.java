@@ -125,6 +125,12 @@ public class Configuration {
     @Value("${bp.email.template}")
     private String bpAprroveAndRejectEmailTemplate;
 
+    @Value("${bp.batch.state.full.exclude}")
+    private String bpBatchStateFullExclude;
+
+    @Value("${bp.batch.buffer.count}")
+    private Integer bpBatchBufferCount;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -440,5 +446,21 @@ public class Configuration {
 
     public void setBpAprroveAndRejectEmailTemplate(String bpAprroveAndRejectEmailTemplate) {
         this.bpAprroveAndRejectEmailTemplate = bpAprroveAndRejectEmailTemplate;
+    }
+
+    public List<String> getBpBatchStateFullExclude() {
+        return Arrays.asList(bpBatchStateFullExclude.split(",", -1));
+    }
+
+    public void setBpBatchStateFullExclude(String bpBatchStateFullExclude) {
+        this.bpBatchStateFullExclude = bpBatchStateFullExclude;
+    }
+
+    public Integer getBpBatchBufferCount() {
+        return bpBatchBufferCount;
+    }
+
+    public void setBpBatchBufferCount(Integer bpBatchBufferCount) {
+        this.bpBatchBufferCount = bpBatchBufferCount;
     }
 }
