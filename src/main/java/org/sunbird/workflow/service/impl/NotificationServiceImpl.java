@@ -74,8 +74,8 @@ public class NotificationServiceImpl {
 	private static final String MAIL_SUBJECT = "Your request is #state";
 	private static final String MDO_MAIL_SUBJECT = "Request for approval";
 
-	private static final String MAIL_BODY = "Your request to update #fieldKey to #toValue is #state, due to #comment";
-	private static final String BP_MAIL_BODY = "Your request for batch enrollment is  #state.";
+	private static final String MAIL_BODY = "Your request to update #fieldKey to #toValue is #state.";
+	private static final String BP_MAIL_BODY = "Your request for batch enrollment is #state.";
 
 	/**
 	 * Send notification to the user based on state of application
@@ -97,7 +97,9 @@ public class NotificationServiceImpl {
 			logger.info("Enter's in the notification block");
             Set<String> usersId = new HashSet<>();
             usersId.add(wfRequest.getActorUserId());
-			usersId.add(wfStatusEntity.getApplicationId());
+			if (!Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
+				usersId.add(wfStatusEntity.getApplicationId());
+			}
 			HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(usersId);
 			Map<String, Object> recipientInfo;
 			if (Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
@@ -122,6 +124,12 @@ public class NotificationServiceImpl {
 					params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus())
 							.replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey()).replace(COMMENT_TAG, (String) toValue.entrySet().iterator().next().getValue()).replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
 				}
+			}
+			if (StringUtils.isNotBlank(wfRequest.getComment())) {
+				String body = (String) params.get("body");
+				body = body.substring(0, body.length() - 1);
+				body = body + ", due to <b>" + wfRequest.getComment() + "</b>.";
+				params.put("body", body);
 			}
 			params.put("orgImageUrl", null);
 			template.setParams(params);
