@@ -192,6 +192,7 @@ public class Constants {
 	public static final String MISSING_APPLICATION_IDS_ERROR_MESSAGE = "Application Ids are missing in the request";
 	public static final String ADDITIONAL_PROPERTIES = "additionalProperties";
 	public static final String TAG = "tag";
+
 	public static final String BP_ENROLL_STATE = "ENROLL_STATE";
 	public static final String BP_UPDATE_STATE = "UPDATE_STATE";
 	public static final String COURSE_ID_LIST = "courseIdList";
@@ -206,4 +207,11 @@ public class Constants {
 	public static final String TOTAL_LEARNER_COUNT = "totalLearnerCount";
 	public static final String TOTAL_REJECTED_COUNT = "totalRejectedCount";
 	public static final String COUNT = "count";
+
+	public static final String USER_ENROLMENTS="user_enrolments";
+	public static final String START_DATE="start_date";
+	public static final String END_DATE="end_date";
+	public static final String ENROLLMENT_TYPE= "enrollmenttype";
+	public static final String INVITE_ONLY="invite-only";
+
 }

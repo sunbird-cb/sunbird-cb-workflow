@@ -406,16 +406,23 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
             return response;
         }
-        List<WfStatusEntity> enrollmentStatus = wfStatusRepo.findByServiceNameAndUserIdAndApplicationId(wfRequest.getServiceName(), wfRequest.getUserId(), wfRequest.getApplicationId());
         Response response;
-        if (!enrollmentStatus.isEmpty()) {
-            response = new Response();
-            response.put(Constants.MESSAGE, "Not allowed to enroll the user to the Blended Program");
-            response.put(Constants.STATUS, HttpStatus.OK);
+        if (!scheduleConflictCheck(wfRequest)) {
+            List<WfStatusEntity> enrollmentStatus = wfStatusRepo.findByServiceNameAndUserIdAndApplicationId(wfRequest.getServiceName(), wfRequest.getUserId(), wfRequest.getApplicationId());
+
+            if (!enrollmentStatus.isEmpty()) {
+                response = new Response();
+                response.put(Constants.MESSAGE, "Not allowed to enroll the user to the Blended Program");
+                response.put(Constants.STATUS, HttpStatus.OK);
+            } else {
+                response = saveAdminEnrollUserIntoWfStatus(rootOrg, org, wfRequest);
+                producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
+                producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
+            }
         } else {
-            response = saveAdminEnrollUserIntoWfStatus(rootOrg, org, wfRequest);
-            producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
-            producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
+            response = new Response();
+            response.put(Constants.MESSAGE, "Not allowed to enroll the user to the Blended Program since there is a schedule conflict");
+            response.put(Constants.STATUS, HttpStatus.OK);
         }
         return response;
     }
@@ -494,4 +501,145 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     }
 
 
+    /**
+     * Main method is responsible for checking the schedule conflicts wrt enrollment of user into blended program.
+     *
+     * @param wfRequest - WorkFlow request which needs to be processed.
+     * @return - return the response of success/failure after processing the request.
+     */
+    public boolean scheduleConflictCheck(WfRequest wfRequest) {
+        final Date[] wfBatchStartDate = new Date[1];
+        final Date[] wfBatchEndDate = new Date[1];
+        List<Map<String, Object>> userEnrollmentBatchDetailsList = getUserEnrolmentDetails(wfRequest);
+        List<Map<String, Object>> courseBatchWfRequestList = getCourseBatchDetailWfRequest(wfRequest);
+        List<Map<String, Object>> enrolledCourseBatchList = getCourseBatchDetails(userEnrollmentBatchDetailsList);
+        courseBatchWfRequestList.stream().flatMap(courseBatchWfRequest -> courseBatchWfRequest.entrySet().stream()).forEach(entry -> {
+            if (entry.getKey().equals(Constants.START_DATE)) {
+                Date startDate = (Date) entry.getValue();
+                if (startDate != null) {
+                    wfBatchStartDate[0] = startDate;
+                }
+            }
+            if (entry.getKey().equals(Constants.END_DATE)) {
+                Date endDate = (Date) entry.getValue();
+                if (endDate != null) {
+                    wfBatchEndDate[0] = endDate;
+                }
+            }
+        });
+        return enrollmentDateValidations(enrolledCourseBatchList, wfBatchStartDate, wfBatchEndDate);
+    }
+
+    /**
+     * This method is responsible  for checking the date conflicts of the blended program
+     * received from wfRequest with the blended programs the user is already enrolled into.
+     *
+     * @param enrolledCourseBatchList - contains details of the enrolled courses for the user.
+     * @param startDate               - startDate for the course received from the wfRequest.
+     * @param endDate-                endDate for the course received from the wfRequest.
+     * @return - return a boolean value 'true' is there is conflict of the dates.
+     */
+    public boolean enrollmentDateValidations(List<Map<String, Object>> enrolledCourseBatchList, Date[] startDate, Date[] endDate) {
+        final boolean[] flag = {false};
+        enrolledCourseBatchList.forEach(enrolledCourseBatch -> enrolledCourseBatch.forEach((key, value) -> {
+            Date startDateValue = (Date) enrolledCourseBatch.get(Constants.START_DATE);
+            Date endDateValue = (Date) enrolledCourseBatch.get(Constants.END_DATE);
+            if (startDateValue != null && isWithinRange(startDateValue, startDate[0], endDate[0])) {
+                logger.info("The user is not allowed to enroll for the course since there is a conflict"+startDateValue+startDate[0]+endDate[0]);
+                flag[0] = true;
+            } else {
+                flag[0] = false;
+            }
+
+            if (endDateValue != null && isWithinRange(endDateValue, startDate[0], endDate[0])) {
+                logger.info("The user is not allowed to enroll for the course since there is a conflict"+endDateValue+startDate[0]+endDate[0]);
+                flag[0] = true;
+            } else {
+                flag[0] = false;
+            }
+        }));
+        return flag[0];
+    }
+
+    /**
+     * This method returns the list of courses the user is enrolled into.
+     *
+     * @param wfRequest - WorkFlow request which contains the parameters.
+     * @return - return a list of the user_enrolment details based on the userid passed.
+     */
+    public List<Map<String, Object>> getUserEnrolmentDetails(WfRequest wfRequest) {
+        Map<String, Object> propertyMap = new HashMap<>();
+        propertyMap.put(Constants.USER_ID, wfRequest.getUserId());
+        return cassandraOperation.getRecordsByProperties(
+                Constants.KEYSPACE_SUNBIRD_COURSES,
+                Constants.USER_ENROLMENTS,
+                propertyMap,
+                Arrays.asList(Constants.BATCH_ID, Constants.USER_ID, Constants.COURSE_ID)
+        );
+    }
+
+    /**
+     * This method returns the course_batch details for the blended program received from the wfRequest.
+     *
+     * @param wfRequest -  WorkFlow request which contains the parameters.
+     * @return - return a list of the course_batch details based on the courseId and batchId passed.
+     */
+    public List<Map<String, Object>> getCourseBatchDetailWfRequest(WfRequest wfRequest) {
+        Map<String, Object> propertyMap = new HashMap<>();
+        propertyMap.put(Constants.COURSE_ID, wfRequest.getCourseId());
+        propertyMap.put(Constants.BATCH_ID, wfRequest.getApplicationId());
+        return cassandraOperation.getRecordsByProperties(
+                Constants.KEYSPACE_SUNBIRD_COURSES,
+                Constants.TABLE_COURSE_BATCH,
+                propertyMap,
+                Arrays.asList(Constants.BATCH_ID, Constants.COURSE_ID, Constants.START_DATE, Constants.END_DATE)
+        );
+    }
+
+    /**
+     * This method returns the course_batch details for the blended program based on the user_enrolment details.
+     *
+     * @param userEnrollmentBatchDetailsList - To get the course batch details we need the user_enrolment table details specifically - courseId and batchId
+     * @return - return a list of the course_batch details based on the courseId and batchId passed.
+     */
+    public List<Map<String, Object>> getCourseBatchDetails(List<Map<String, Object>> userEnrollmentBatchDetailsList) {
+        List<String> coursesList = new ArrayList<>();
+        List<String> batchidsList = new ArrayList<>();
+        userEnrollmentBatchDetailsList.forEach(userEnrollmentBatchDetail ->
+                userEnrollmentBatchDetail.entrySet().stream()
+                        .filter(entry -> entry.getKey().equalsIgnoreCase(Constants.COURSE_ID) ||
+                                entry.getKey().equalsIgnoreCase(Constants.BATCH_ID))
+                        .forEach(entry -> {
+                            if (entry.getKey().equalsIgnoreCase(Constants.COURSE_ID)) {
+                                coursesList.add(entry.getValue().toString());
+                            }
+                            if (entry.getKey().equalsIgnoreCase(Constants.BATCH_ID)) {
+                                batchidsList.add(entry.getValue().toString());
+                            }
+                        })
+        );
+
+        Map<String, Object> propertyMap = new HashMap<>();
+        propertyMap.put(Constants.COURSE_ID, coursesList);
+        propertyMap.put(Constants.BATCH_ID, batchidsList);
+        propertyMap.put(Constants.ENROLLMENT_TYPE, Constants.INVITE_ONLY);
+        return cassandraOperation.getRecordsByProperties(
+                Constants.KEYSPACE_SUNBIRD_COURSES,
+                Constants.TABLE_COURSE_BATCH,
+                propertyMap,
+                Arrays.asList(Constants.BATCH_ID, Constants.COURSE_ID, Constants.START_DATE, Constants.END_DATE)
+        );
+    }
+
+    /**
+     * This method is responsible to check the date in a specific range.
+     *
+     * @param date        - The needs to be checked whether it is in the range.
+     * @param startDate   -The startDate wrt to the Blended program to be enrolled in.
+     * @param endDate-The endDate wrt to the Blended program to be enrolled in.
+     * @return - Boolean value if the date is in the range of the Blended program enrollment.
+     */
+    public static boolean isWithinRange(Date date, Date startDate, Date endDate) {
+        return date.compareTo(startDate) >= 0 && date.compareTo(endDate) <= 0;
+    }
 }
