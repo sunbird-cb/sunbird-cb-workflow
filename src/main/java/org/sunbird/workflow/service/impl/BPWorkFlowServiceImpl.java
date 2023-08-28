@@ -540,25 +540,26 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
      * @return - return a boolean value 'true' is there is conflict of the dates.
      */
     public boolean enrollmentDateValidations(List<Map<String, Object>> enrolledCourseBatchList, Date[] startDate, Date[] endDate) {
-        final boolean[] flag = {false};
+        final boolean[] startDateFlag = {false};
+        final boolean[] endDateFlag = {false};
         enrolledCourseBatchList.forEach(enrolledCourseBatch -> enrolledCourseBatch.forEach((key, value) -> {
             Date startDateValue = (Date) enrolledCourseBatch.get(Constants.START_DATE);
             Date endDateValue = (Date) enrolledCourseBatch.get(Constants.END_DATE);
             if (startDateValue != null && isWithinRange(startDateValue, startDate[0], endDate[0])) {
-                logger.info("The user is not allowed to enroll for the course since there is a conflict"+startDateValue+startDate[0]+endDate[0]);
-                flag[0] = true;
+                logger.info("The user is not allowed to enroll for the course since there is a conflict" + startDateValue + startDate[0] + endDate[0]);
+                startDateFlag[0] = true;
             } else {
-                flag[0] = false;
+                startDateFlag[0] = false;
             }
 
             if (endDateValue != null && isWithinRange(endDateValue, startDate[0], endDate[0])) {
-                logger.info("The user is not allowed to enroll for the course since there is a conflict"+endDateValue+startDate[0]+endDate[0]);
-                flag[0] = true;
+                logger.info("The user is not allowed to enroll for the course since there is a conflict" + endDateValue + startDate[0] + endDate[0]);
+                endDateFlag[0] = true;
             } else {
-                flag[0] = false;
+                endDateFlag[0] = false;
             }
         }));
-        return flag[0];
+        return startDateFlag[0] || endDateFlag[0];
     }
 
     /**
