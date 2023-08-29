@@ -457,6 +457,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         }
         applicationStatus.setDeptName(wfRequest.getDeptName());
         applicationStatus.setComment(wfRequest.getComment());
+        wfRequest.setWfId(wfId);
         wfStatusRepo.save(applicationStatus);
 
         Response response = new Response();
