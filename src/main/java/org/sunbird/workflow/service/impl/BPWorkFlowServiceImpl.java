@@ -466,6 +466,24 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         data.put(Constants.WF_IDS_CONSTANT, wfId);
         response.put(Constants.MESSAGE, Constants.STATUS_CHANGE_MESSAGE + Constants.APPROVED_STATE);
         response.put(Constants.DATA, data);
+        
+               response.put(Constants.STATUS, HttpStatus.OK);
+        return response;
+    }
+
+    @Override
+    public Response removeBPWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
+        Response response = new Response();
+        Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(), wfRequest.getCourseId());
+        int totalUserEnrolCount = getTotalUserEnrolCount(wfRequest);
+        boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalUserEnrolCount);
+        List<WfStatusEntity> approvedLearners = wfStatusRepo.findByApplicationIdAndUserIdAndCurrentStatus(wfRequest.getApplicationId(), wfRequest.getUserId(), wfRequest.getState());
+        if (enrolAccess && approvedLearners.size() > 1) {
+            response.put(Constants.ERROR_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR);
+        } else if (approvedLearners.size() == 1)
+            wfRequest.setWfId(approvedLearners.get(0).getWfId());
+        response = workflowService.workflowTransition(rootOrg, org, wfRequest);
+
         response.put(Constants.STATUS, HttpStatus.OK);
         return response;
     }
@@ -644,4 +662,5 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     public static boolean isWithinRange(Date date, Date startDate, Date endDate) {
         return date.compareTo(startDate) >= 0 && date.compareTo(endDate) <= 0;
     }
+
 }

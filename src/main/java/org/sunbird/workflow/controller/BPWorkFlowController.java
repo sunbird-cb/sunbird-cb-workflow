@@ -102,5 +102,12 @@ public class BPWorkFlowController {
         }
         return new ResponseEntity<>(responses,HttpStatus.OK);
 
+
+    @PostMapping("/remove")
+    public ResponseEntity<Response> blendedProgramWfRemove(@RequestHeader String rootOrg, @RequestHeader String org,
+                                                           @RequestBody WfRequest wfRequest) {
+        Response response = bPWorkFlowService.removeBPWorkFlow(rootOrg, org, wfRequest);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 }

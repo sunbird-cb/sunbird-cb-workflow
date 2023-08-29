@@ -22,6 +22,7 @@ public interface BPWorkFlowService {
 
     public Response readBPWFApplication(String wfId, boolean isPc);
 
+
     /**
 
      * This method is responsible for processing the wfRequest based on the state of the wfRequest
@@ -43,5 +44,8 @@ public interface BPWorkFlowService {
      * @return - Return the response of success/failure after processing the request.
      */
     Response adminEnrolBPWorkFlow(String rootOrg, String org, WfRequest wfRequest);
+
+    public Response removeBPWorkFlow(String rootOrg, String org, WfRequest wfRequest);
+
 
 }
