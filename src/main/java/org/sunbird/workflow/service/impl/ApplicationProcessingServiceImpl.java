@@ -50,13 +50,8 @@ public class ApplicationProcessingServiceImpl {
 				userRegService.processMessage(wfRequest);
 				break;
 			case Constants.BLENDED_PROGRAM_SERVICE_NAME:
-
-				if (Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfRequest.getState())) {
-					bpWorkFlowService.updateEnrolmentDetails(wfRequest);
-				}
-				if (Constants.APPROVED.equalsIgnoreCase(wfRequest.getState())) {
-					bpWorkFlowService.updateEnrolmentDetails(wfRequest);
-				}
+			
+                                bpWorkFlowService.processWFRequest(wfRequest);
 
 				break;
 			default:
