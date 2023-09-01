@@ -109,6 +109,7 @@ public class Configuration {
 
     @Value("${notification.email.body}")
     private String mailBody;
+
     @Value("${lms.system.settings.wfUserRegistrationService.path}")
     private String userRegistrationServiceConfigPath;
 
