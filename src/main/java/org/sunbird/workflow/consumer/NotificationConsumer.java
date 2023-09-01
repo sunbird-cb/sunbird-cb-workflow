@@ -53,6 +53,5 @@ public class NotificationConsumer {
 		} catch (Exception ex) {
 			logger.error("Error while deserialization the object value", ex);
 		}
-
 	}
 }
