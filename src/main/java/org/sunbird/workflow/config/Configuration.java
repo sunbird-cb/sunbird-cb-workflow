@@ -127,6 +127,9 @@ public class Configuration {
     @Value("${bp.email.template}")
     private String bpAprroveAndRejectEmailTemplate;
 
+    @Value("${course.admin.unenrol}")
+    private String adminUnEnrolEndPoint;
+
     public Integer getDefaultLimit() {
         return defaultLimit;
     }
@@ -448,5 +451,13 @@ public class Configuration {
 
     public void setBpAprroveAndRejectEmailTemplate(String bpAprroveAndRejectEmailTemplate) {
         this.bpAprroveAndRejectEmailTemplate = bpAprroveAndRejectEmailTemplate;
+    }
+
+    public String getAdminUnEnrolEndPoint() {
+        return adminUnEnrolEndPoint;
+    }
+
+    public void setAdminUnEnrolEndPoint(String adminUnEnrolEndPoint) {
+        this.adminUnEnrolEndPoint = adminUnEnrolEndPoint;
     }
 }
