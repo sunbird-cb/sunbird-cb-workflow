@@ -1,13 +1,23 @@
 package org.sunbird.workflow.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
+import org.sunbird.workflow.exception.InvalidDataInputException;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
+import org.sunbird.workflow.models.SunbirdApiRequest;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.OrganisationWorkFlowService;
 import org.sunbird.workflow.service.Workflowservice;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowService {
@@ -15,9 +25,41 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
     @Autowired
     private Workflowservice workflowService;
 
+    @Autowired
+    private Configuration configuration;
+
+    @Autowired
+    private RequestServiceImpl requestServiceImpl;
+
+    private Logger logger = LoggerFactory.getLogger(OrganisationWorkFlowServiceImpl.class);
+
+    /**
+     * Service method to handle the creation of Users.
+     *
+     * @param rootOrg   - Root Organization Name ex: "igot"
+     * @param org       - Organization name ex: "dopt"
+     * @param wfRequest - WorkFlow request which needs to be processed.
+     * @return - Return the response of success/failure after processing the request.
+     */
     @Override
     public Response createOrgWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
-        Response response = workflowService.workflowTransition(rootOrg, org, wfRequest);
+        Response response;
+        wfRequest.getUpdateFieldValues().forEach(updateFieldValuesMap -> updateFieldValuesMap.forEach((updateFieldValuesKey, updateFieldValuesValue) -> {
+            if (updateFieldValuesKey.equalsIgnoreCase(Constants.EMAIL) && isUserDetailExists(Constants.EMAIL, updateFieldValuesValue.toString())) {
+                throw new InvalidDataInputException(Constants.EMAIL_EXIST_ERROR);
+            } else if (updateFieldValuesKey.equalsIgnoreCase(Constants.PHONE) && isUserDetailExists(Constants.PHONE, updateFieldValuesValue.toString())) {
+                throw new InvalidDataInputException(Constants.PHONE_NUMBER_EXIST_ERROR);
+            } else if (updateFieldValuesKey.equalsIgnoreCase(Constants.TO_VALUE)) {
+                Map<String, Object> toValueMap = (Map<String, Object>) updateFieldValuesValue;
+                toValueMap.forEach((toValueKey, toValueValue) -> {
+                    if (toValueKey.equalsIgnoreCase(Constants.ORGANISATION_SERVICE_NAME) && isUserDetailExists(Constants.ORGANIZATION_NAME, toValueValue.toString())) {
+                        throw new InvalidDataInputException(Constants.ORGANIZATION_EXIST_ERROR);
+                    }
+                });
+            }
+        }));
+        response = workflowService.workflowTransition(rootOrg, org, wfRequest);
+        response.put(Constants.STATUS, HttpStatus.OK);
         return response;
     }
 
@@ -37,5 +79,39 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
     public Response orgSearch(String rootOrg, String org, SearchCriteria criteria) {
         Response response = workflowService.applicationsSearch(rootOrg, org, criteria, Constants.ORG_SEARCH_ENABLED);
         return response;
+    }
+
+    /**
+     * This method is responsible to check if the data with respect to the users already exists or not.
+     *
+     * @param key   - key is the parameter which is received in the wfRequest.
+     * @param value - value corresponding to the parameter received in the wfRequest.
+     * @return - Returns a boolean value true if the data already exists else false.
+     */
+    public boolean isUserDetailExists(String key, String value) {
+        Map<String, Object> reqMap = new HashMap<>();
+        SunbirdApiRequest requestObj = new SunbirdApiRequest();
+        reqMap.put(Constants.FILTERS, Collections.singletonMap(key, value));
+        requestObj.setRequest(reqMap);
+        HashMap<String, String> headersValue = new HashMap<>();
+        headersValue.put(Constants.CONTENT_TYPE, "application/json");
+        headersValue.put(Constants.AUTHORIZATION, configuration.getSbApiKey());
+        try {
+            StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
+            builder.append(configuration.getLmsUserSearchEndPoint());
+            Map<String, Object> response = (Map<String, Object>) requestServiceImpl
+                    .fetchResultUsingPost(builder, requestObj, Map.class, headersValue);
+            if (response != null && "OK".equalsIgnoreCase((String) response.get("responseCode"))) {
+                Map<String, Object> map = (Map<String, Object>) response.get("result");
+                if (map.get("response") != null) {
+                    Map<String, Object> responseObj = (Map<String, Object>) map.get("response");
+                    int count = (int) responseObj.get(Constants.COUNT);
+                    return count != 0;
+                }
+            }
+        } catch (Exception e) {
+            logger.info("There is a error occured while searching for the user details : " + e);
+        }
+        return true;
     }
 }
