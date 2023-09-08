@@ -7,10 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
-import org.sunbird.workflow.exception.InvalidDataInputException;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
-import org.sunbird.workflow.models.SunbirdApiRequest;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.OrganisationWorkFlowService;
 import org.sunbird.workflow.service.Workflowservice;
@@ -43,24 +41,33 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
      */
     @Override
     public Response createOrgWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
-        Response response;
+        Response response = new Response();
         wfRequest.getUpdateFieldValues().forEach(updateFieldValuesMap -> updateFieldValuesMap.forEach((updateFieldValuesKey, updateFieldValuesValue) -> {
-            if (updateFieldValuesKey.equalsIgnoreCase(Constants.EMAIL) && isUserDetailExists(Constants.EMAIL, updateFieldValuesValue.toString())) {
-                throw new InvalidDataInputException(Constants.EMAIL_EXIST_ERROR);
-            } else if (updateFieldValuesKey.equalsIgnoreCase(Constants.PHONE) && isUserDetailExists(Constants.PHONE, updateFieldValuesValue.toString())) {
-                throw new InvalidDataInputException(Constants.PHONE_NUMBER_EXIST_ERROR);
-            } else if (updateFieldValuesKey.equalsIgnoreCase(Constants.TO_VALUE)) {
+            if (Constants.EMAIL.equalsIgnoreCase(updateFieldValuesKey) && isUserDetailExists(Constants.EMAIL, updateFieldValuesValue.toString())) {
+                response.put(Constants.ERROR_MESSAGE, Constants.EMAIL_EXIST_ERROR);
+                response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
+            } else if (Constants.PHONE.equalsIgnoreCase(updateFieldValuesKey) && isUserDetailExists(Constants.PHONE, updateFieldValuesValue.toString())) {
+                response.put(Constants.ERROR_MESSAGE, Constants.PHONE_NUMBER_EXIST_ERROR);
+                response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
+            } else if (Constants.TO_VALUE.equalsIgnoreCase(updateFieldValuesKey)) {
                 Map<String, Object> toValueMap = (Map<String, Object>) updateFieldValuesValue;
                 toValueMap.forEach((toValueKey, toValueValue) -> {
-                    if (toValueKey.equalsIgnoreCase(Constants.ORGANISATION_SERVICE_NAME) && isUserDetailExists(Constants.ORGANIZATION_NAME, toValueValue.toString())) {
-                        throw new InvalidDataInputException(Constants.ORGANIZATION_EXIST_ERROR);
+                    if (Constants.ORGANISATION_SERVICE_NAME.equalsIgnoreCase(toValueKey) && isOrgDetailExists(Constants.ORGANIZATION_NAME, toValueValue.toString())) {
+                        response.put(Constants.ERROR_MESSAGE, Constants.ORGANIZATION_EXIST_ERROR);
+                        response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
                     }
                 });
             }
         }));
-        response = workflowService.workflowTransition(rootOrg, org, wfRequest);
-        response.put(Constants.STATUS, HttpStatus.OK);
-        return response;
+        if (!HttpStatus.BAD_REQUEST.equals(response.get(Constants.STATUS))) {
+            Response finalResponse;
+            finalResponse = workflowService.workflowTransition(rootOrg, org, wfRequest);
+            finalResponse.put(Constants.STATUS, HttpStatus.OK);
+            return finalResponse;
+        } else {
+            return response;
+        }
+
     }
 
     @Override
@@ -90,27 +97,54 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
      */
     public boolean isUserDetailExists(String key, String value) {
         Map<String, Object> reqMap = new HashMap<>();
-        SunbirdApiRequest requestObj = new SunbirdApiRequest();
         reqMap.put(Constants.FILTERS, Collections.singletonMap(key, value));
-        requestObj.setRequest(reqMap);
+        Map<String, Object> requestObj = new HashMap<>();
+        requestObj.put(Constants.REQUEST, reqMap);
         HashMap<String, String> headersValue = new HashMap<>();
-        headersValue.put(Constants.CONTENT_TYPE, "application/json");
+        headersValue.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
         headersValue.put(Constants.AUTHORIZATION, configuration.getSbApiKey());
         try {
             StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
             builder.append(configuration.getLmsUserSearchEndPoint());
             Map<String, Object> response = (Map<String, Object>) requestServiceImpl
                     .fetchResultUsingPost(builder, requestObj, Map.class, headersValue);
-            if (response != null && "OK".equalsIgnoreCase((String) response.get("responseCode"))) {
-                Map<String, Object> map = (Map<String, Object>) response.get("result");
-                if (map.get("response") != null) {
-                    Map<String, Object> responseObj = (Map<String, Object>) map.get("response");
+            if (response != null && HttpStatus.OK.equals(response.get(Constants.RESPONSE_CODE))) {
+                Map<String, Object> map = (Map<String, Object>) response.get(Constants.RESULT);
+                if (map.get(Constants.RESPONSE) != null) {
+                    Map<String, Object> responseObj = (Map<String, Object>) map.get(Constants.RESPONSE);
                     int count = (int) responseObj.get(Constants.COUNT);
                     return count != 0;
                 }
             }
         } catch (Exception e) {
             logger.info("There is a error occured while searching for the user details : " + e);
+        }
+        return true;
+    }
+
+    public boolean isOrgDetailExists(String key, String value) {
+        Map<String, Object> reqMap = new HashMap<>();
+        reqMap.put(Constants.FILTERS, Collections.singletonMap(key, value));
+        Map<String, Object> requestObj = new HashMap<>();
+        requestObj.put(Constants.REQUEST, reqMap);
+        HashMap<String, String> headersValue = new HashMap<>();
+        headersValue.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+        headersValue.put(Constants.AUTHORIZATION, configuration.getSbApiKey());
+        try {
+            StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
+            builder.append(configuration.getLmsOrgSearchEndPoint());
+            Map<String, Object> response = (Map<String, Object>) requestServiceImpl
+                    .fetchResultUsingPost(builder, requestObj, Map.class, headersValue);
+            if (response != null && HttpStatus.OK.equals(response.get(Constants.RESPONSE_CODE))) {
+                Map<String, Object> map = (Map<String, Object>) response.get(Constants.RESULT);
+                if (map.get(Constants.RESPONSE) != null) {
+                    Map<String, Object> responseObj = (Map<String, Object>) map.get(Constants.RESPONSE);
+                    int count = (int) responseObj.get(Constants.COUNT);
+                    return count != 0;
+                }
+            }
+        } catch (Exception e) {
+            logger.info("There is a error occured while searching for the Org details : " + e);
         }
         return true;
     }

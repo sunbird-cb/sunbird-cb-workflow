@@ -39,6 +39,9 @@ public class Configuration {
     @Value("${lms.user.search}")
     private String lmsUserSearchEndPoint;
 
+    @Value("${lms.org.search.path}")
+    private String lmsOrgSearchEndPoint;
+
     @Value("${lms.assign.role}")
     private String lmsAssignRoleEndPoint;
 
@@ -473,5 +476,13 @@ public class Configuration {
 
     public void setSbApiKey(String sbApiKey) {
         this.sbApiKey = sbApiKey;
+    }
+
+    public String getLmsOrgSearchEndPoint() {
+        return lmsOrgSearchEndPoint;
+    }
+
+    public void setLmsOrgSearchEndPoint(String lmsOrgSearchEndPoint) {
+        this.lmsOrgSearchEndPoint = lmsOrgSearchEndPoint;
     }
 }
