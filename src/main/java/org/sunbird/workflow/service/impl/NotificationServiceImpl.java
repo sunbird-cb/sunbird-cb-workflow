@@ -74,7 +74,7 @@ public class NotificationServiceImpl {
 	private static final String MAIL_SUBJECT = "Your request is #state";
 	private static final String MDO_MAIL_SUBJECT = "Request for approval";
 
-	private static final String MAIL_BODY = "Your request to update #fieldKey to #toValue is #state, due to #comment.";
+	private static final String MAIL_BODY = "Your request to update #fieldKey to #toValue is #state ";
 	private static final String BP_MAIL_BODY = "Your request for batch enrollment is #state.";
 
 	/**
@@ -122,7 +122,7 @@ public class NotificationServiceImpl {
 				} else {
 					HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
 					params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus())
-							.replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey()).replace(COMMENT_TAG, wfStatusEntity.getComment()).replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
+							.replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey()).replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
 				}
 			}
 			if (StringUtils.isNotBlank(wfRequest.getComment())) {
@@ -181,7 +181,13 @@ public class NotificationServiceImpl {
 				if (updatedFieldValue.isPresent()) {
 					HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
 					params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus())
-							.replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey()).replace(COMMENT_TAG, wfStatusEntity.getComment()).replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
+							.replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey()).replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
+				}
+				if (StringUtils.isNotBlank(wfRequest.getComment())) {
+					String body = (String) params.get("body");
+					body = body.substring(0, body.length() - 1);
+					body = body + ", due to <b>" + wfRequest.getComment() + "</b>.";
+					params.put("body", body);
 				}
 				params.put("orgImageUrl", null);
 				template.setParams(params);
