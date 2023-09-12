@@ -134,8 +134,7 @@ public class Configuration {
     @Value("${bp.batch.enrol.limit.buffer.size}")
     private Integer bpBatchEnrolLimitBufferSize;
 
-    @Value("${sb.api.key}")
-    private String sbApiKey;
+
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -470,13 +469,6 @@ public class Configuration {
         this.bpBatchEnrolLimitBufferSize = bpBatchEnrolLimitBufferSize;
     }
 
-    public String getSbApiKey() {
-        return sbApiKey;
-    }
-
-    public void setSbApiKey(String sbApiKey) {
-        this.sbApiKey = sbApiKey;
-    }
 
     public String getLmsOrgSearchEndPoint() {
         return lmsOrgSearchEndPoint;

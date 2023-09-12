@@ -43,16 +43,16 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
     public Response createOrgWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
         Response response = new Response();
         wfRequest.getUpdateFieldValues().forEach(updateFieldValuesMap -> updateFieldValuesMap.forEach((updateFieldValuesKey, updateFieldValuesValue) -> {
-            if (Constants.EMAIL.equalsIgnoreCase(updateFieldValuesKey) && isUserDetailExists(Constants.EMAIL, updateFieldValuesValue.toString())) {
+            if (Constants.EMAIL.equalsIgnoreCase(updateFieldValuesKey) && isUserDetailExists(Constants.EMAIL, (String)updateFieldValuesValue)) {
                 response.put(Constants.ERROR_MESSAGE, Constants.EMAIL_EXIST_ERROR);
                 response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
-            } else if (Constants.PHONE.equalsIgnoreCase(updateFieldValuesKey) && isUserDetailExists(Constants.PHONE, updateFieldValuesValue.toString())) {
+            } else if (Constants.PHONE.equalsIgnoreCase(updateFieldValuesKey) && isUserDetailExists(Constants.PHONE, (String)updateFieldValuesValue)) {
                 response.put(Constants.ERROR_MESSAGE, Constants.PHONE_NUMBER_EXIST_ERROR);
                 response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
             } else if (Constants.TO_VALUE.equalsIgnoreCase(updateFieldValuesKey)) {
                 Map<String, Object> toValueMap = (Map<String, Object>) updateFieldValuesValue;
                 toValueMap.forEach((toValueKey, toValueValue) -> {
-                    if (Constants.ORGANISATION_SERVICE_NAME.equalsIgnoreCase(toValueKey) && isOrgDetailExists(Constants.ORGANIZATION_NAME, toValueValue.toString())) {
+                    if (Constants.ORGANISATION_SERVICE_NAME.equalsIgnoreCase(toValueKey) && isOrgDetailExists(Constants.ORGANIZATION_NAME, (String)toValueValue)) {
                         response.put(Constants.ERROR_MESSAGE, Constants.ORGANIZATION_EXIST_ERROR);
                         response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
                     }
@@ -102,13 +102,12 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
         requestObj.put(Constants.REQUEST, reqMap);
         HashMap<String, String> headersValue = new HashMap<>();
         headersValue.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
-        headersValue.put(Constants.AUTHORIZATION, configuration.getSbApiKey());
         try {
             StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
             builder.append(configuration.getLmsUserSearchEndPoint());
             Map<String, Object> response = (Map<String, Object>) requestServiceImpl
                     .fetchResultUsingPost(builder, requestObj, Map.class, headersValue);
-            if (response != null && HttpStatus.OK.equals(response.get(Constants.RESPONSE_CODE))) {
+            if (response != null && Constants.OK.equalsIgnoreCase((String)response.get(Constants.RESPONSE_CODE))) {
                 Map<String, Object> map = (Map<String, Object>) response.get(Constants.RESULT);
                 if (map.get(Constants.RESPONSE) != null) {
                     Map<String, Object> responseObj = (Map<String, Object>) map.get(Constants.RESPONSE);
@@ -129,13 +128,12 @@ public class OrganisationWorkFlowServiceImpl implements OrganisationWorkFlowServ
         requestObj.put(Constants.REQUEST, reqMap);
         HashMap<String, String> headersValue = new HashMap<>();
         headersValue.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
-        headersValue.put(Constants.AUTHORIZATION, configuration.getSbApiKey());
         try {
             StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
             builder.append(configuration.getLmsOrgSearchEndPoint());
             Map<String, Object> response = (Map<String, Object>) requestServiceImpl
                     .fetchResultUsingPost(builder, requestObj, Map.class, headersValue);
-            if (response != null && HttpStatus.OK.equals(response.get(Constants.RESPONSE_CODE))) {
+            if (response != null && Constants.OK.equalsIgnoreCase((String)response.get(Constants.RESPONSE_CODE))) {
                 Map<String, Object> map = (Map<String, Object>) response.get(Constants.RESULT);
                 if (map.get(Constants.RESPONSE) != null) {
                     Map<String, Object> responseObj = (Map<String, Object>) map.get(Constants.RESPONSE);
