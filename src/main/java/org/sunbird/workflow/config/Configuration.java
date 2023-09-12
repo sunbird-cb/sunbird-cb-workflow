@@ -39,6 +39,9 @@ public class Configuration {
     @Value("${lms.user.search}")
     private String lmsUserSearchEndPoint;
 
+    @Value("${lms.org.search.path}")
+    private String lmsOrgSearchEndPoint;
+
     @Value("${lms.assign.role}")
     private String lmsAssignRoleEndPoint;
 
@@ -130,6 +133,8 @@ public class Configuration {
 
     @Value("${bp.batch.enrol.limit.buffer.size}")
     private Integer bpBatchEnrolLimitBufferSize;
+
+
 
     public Integer getDefaultLimit() {
         return defaultLimit;
@@ -462,5 +467,14 @@ public class Configuration {
 
     public void setBpBatchEnrolLimitBufferSize(Integer bpBatchEnrolLimitBufferSize) {
         this.bpBatchEnrolLimitBufferSize = bpBatchEnrolLimitBufferSize;
+    }
+
+
+    public String getLmsOrgSearchEndPoint() {
+        return lmsOrgSearchEndPoint;
+    }
+
+    public void setLmsOrgSearchEndPoint(String lmsOrgSearchEndPoint) {
+        this.lmsOrgSearchEndPoint = lmsOrgSearchEndPoint;
     }
 }
