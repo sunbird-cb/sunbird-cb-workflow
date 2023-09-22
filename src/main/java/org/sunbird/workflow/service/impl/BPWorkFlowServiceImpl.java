@@ -213,7 +213,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         }
         Date enrollmentEndDate = (Date) courseBatchDetails.get(Constants.ENROLMENT_END_DATE);
         if (currentBatchSize != 0 && Constants.BP_ENROLL_STATE.equals(bpState)) {
-            currentBatchSize = (int) Math.round(currentBatchSize
+            currentBatchSize = (int) (currentBatchSize
                     + (((double) configuration.getBpBatchEnrolLimitBufferSize() / 100) * currentBatchSize));
         } else {
             totalUserEnrolCount = totalApprovedUserCount;
