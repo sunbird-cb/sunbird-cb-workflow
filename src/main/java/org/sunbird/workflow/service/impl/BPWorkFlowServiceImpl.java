@@ -78,7 +78,11 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         validateWfRequestMultilevelEnrol(wfRequest);
         Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(),
                 wfRequest.getCourseId());
-        int totalUserEnrolCount = getTotalUserEnrolCountForBatch(wfRequest.getApplicationId());
+        String serviceName = contentReadService.getServiceNameDetails(wfRequest.getCourseId());
+        if (serviceName == null || serviceName.isEmpty()) {
+            serviceName = Constants.BLENDED_PROGRAM_SERVICE_NAME;
+        }
+        int totalUserEnrolCount = getTotalUserEnrolCountForBatch(serviceName, wfRequest.getApplicationId());
         int totalApprovedUserCount = getTotalApprovedUserCount(wfRequest);
         boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalApprovedUserCount, totalUserEnrolCount,
                 Constants.BP_ENROLL_STATE);
@@ -393,9 +397,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         return errMsg;
     }
 
-    private int getTotalUserEnrolCountForBatch(String applicationId) {
+    private int getTotalUserEnrolCountForBatch(String serviceName, String applicationId) {
         List<WfStatusEntity> wfEntries = wfStatusRepo
-                .findByServiceNameAndApplicationId(Constants.BLENDED_PROGRAM_SERVICE_NAME, applicationId);
+                .findByServiceNameAndApplicationId(serviceName, applicationId);
         wfEntries = wfEntries.stream().filter(wfEntry -> !configuration.getBpBatchFullValidationExcludeStates()
                 .contains(wfEntry.getCurrentStatus()))
                 .collect(Collectors.toList());
@@ -414,7 +418,11 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     public Response adminEnrolBPWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
         Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(),
                 wfRequest.getCourseId());
-        int totalUserEnrolCount = getTotalUserEnrolCountForBatch(wfRequest.getApplicationId());
+        String serviceName = contentReadService.getServiceNameDetails(wfRequest.getCourseId());
+        if (serviceName == null || serviceName.isEmpty()) {
+            serviceName = Constants.BLENDED_PROGRAM_SERVICE_NAME;
+        }
+        int totalUserEnrolCount = getTotalUserEnrolCountForBatch(serviceName, wfRequest.getApplicationId());
         int totalApprovedUserCount = getTotalApprovedUserCount(wfRequest);
         boolean enrolAccess = validateBatchEnrolment(courseBatchDetails, totalApprovedUserCount, totalUserEnrolCount,
                 Constants.BP_ENROLL_STATE);
