@@ -114,7 +114,7 @@ public class NotificationServiceImpl {
 			} else {
 				recipientInfo = (Map<String, Object>)usersObj.get(wfStatusEntity.getApplicationId());
 			}
-			Map<String, Object> senderInfo = (Map<String, Object>)usersObj.get(wfRequest.getActorUserId());
+			Map<String, Object> senderInfo = (Map<String, Object>)usersObj.get(wfRequest.getUserId());
 			Map<String, Object> params = new HashMap<>();
 			NotificationRequest request = new NotificationRequest();
 			request.setDeliveryType("message");
