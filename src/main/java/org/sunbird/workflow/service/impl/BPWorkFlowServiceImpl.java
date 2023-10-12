@@ -234,15 +234,18 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         }
         return Collections.emptyMap();
     }
-
     private int getTotalApprovedUserCount(WfRequest wfRequest) {
         Map<String, Object> propertyMap = new HashMap<>();
         propertyMap.put(Constants.BATCH_ID, wfRequest.getApplicationId());
-        int totalCount = cassandraOperation.getCountByProperties(Constants.KEYSPACE_SUNBIRD_COURSES,
-                Constants.TABLE_ENROLMENT_BATCH_LOOKUP, propertyMap);
-        return totalCount;
+        List<Map<String, Object>>  list =  cassandraOperation.getRecordsByProperties(Constants.KEYSPACE_SUNBIRD_COURSES,
+                Constants.TABLE_ENROLMENT_BATCH_LOOKUP, propertyMap,Arrays.asList(Constants.BATCH_ID, Constants.USER_ID,Constants.ACTIVE));
+           // Stream to filter and collect only non-null "endDate" maps
+        return list.stream()
+                .filter(item -> {
+                    return item != null && item.containsKey("active") && (boolean) item.get("active") == true;
+                })
+                .collect(Collectors.toList()).size();
     }
-
     private boolean validateBatchEnrolment(Map<String, Object> courseBatchDetails, int totalApprovedUserCount,
             int totalUserEnrolCount, String bpState) {
         if (MapUtils.isEmpty(courseBatchDetails)) {
@@ -724,13 +727,20 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         Map<String, Object> propertyMap = new HashMap<>();
         propertyMap.put(Constants.COURSE_ID, coursesList);
         propertyMap.put(Constants.BATCH_ID, batchidsList);
-        propertyMap.put(Constants.ENROLLMENT_TYPE, Constants.INVITE_ONLY);
-        return cassandraOperation.getRecordsByProperties(
+        //propertyMap.put(Constants.ENROLLMENT_TYPE, Constants.INVITE_ONLY);
+        List<Map<String, Object>> list= cassandraOperation.getRecordsByProperties(
                 Constants.KEYSPACE_SUNBIRD_COURSES,
                 Constants.TABLE_COURSE_BATCH,
                 propertyMap,
                 Arrays.asList(Constants.BATCH_ID, Constants.COURSE_ID, Constants.START_DATE, Constants.END_DATE)
         );
+
+        // Stream to filter and collect only non-null "endDate" maps
+        return list.stream()
+                .filter(item -> {
+                    return item != null && item.containsKey("end_date") && item.get("end_date") != null;
+                })
+                .collect(Collectors.toList());
     }
 
     /**
