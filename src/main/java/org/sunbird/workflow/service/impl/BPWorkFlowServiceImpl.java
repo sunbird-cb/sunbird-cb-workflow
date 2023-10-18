@@ -675,13 +675,13 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     public List<Map<String, Object>> getUserEnrolmentDetails(WfRequest wfRequest) {
         Map<String, Object> propertyMap = new HashMap<>();
         propertyMap.put(Constants.USER_ID, wfRequest.getUserId());
-        propertyMap.put(Constants.ACTIVE, Boolean.TRUE);
-        return cassandraOperation.getRecordsByProperties(
+        List<Map<String, Object>> allEnrollmentDetails = cassandraOperation.getRecordsByProperties(
                 Constants.KEYSPACE_SUNBIRD_COURSES,
                 Constants.USER_ENROLMENTS,
                 propertyMap,
-                Arrays.asList(Constants.BATCH_ID, Constants.USER_ID, Constants.COURSE_ID)
+                Arrays.asList(Constants.BATCH_ID, Constants.USER_ID, Constants.COURSE_ID, Constants.ACTIVE)
         );
+        return allEnrollmentDetails.stream().filter( e -> (boolean)e.get(Constants.ACTIVE)).collect(Collectors.toList());
     }
 
     /**
