@@ -55,16 +55,16 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
 
     @Override
     public Response domainSearch(String rootOrg, String org, SearchCriteria criteria) {
-        Response response = applicationSearchOnApplicationIdGroup(rootOrg, criteria);
+        Response response = applicationSearchOnApplicationIdGroup(criteria);
         return response;
     }
 
-    public Response applicationSearchOnApplicationIdGroup(String rootOrg, SearchCriteria criteria) {
+    public Response applicationSearchOnApplicationIdGroup(SearchCriteria criteria) {
         Pageable pageable = getPageReqForApplicationSearch(criteria);
         List<String> applicationIds = criteria.getApplicationIds();
         Map<String, List<WfStatusEntity>> infos = null;
         if (CollectionUtils.isEmpty(applicationIds)) {
-            applicationIds = wfStatusRepo.getListOfDistinctApplicationUsingDept(rootOrg, criteria.getServiceName(),
+            applicationIds = wfStatusRepo.getListOfDistinctApplicationUsingDept(criteria.getServiceName(),
                     criteria.getApplicationStatus(), criteria.getDeptName(), pageable);
         }
         List<WfStatusEntity> wfStatusEntities = null;
