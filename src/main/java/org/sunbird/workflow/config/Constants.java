@@ -239,4 +239,8 @@ public class Constants {
 
 	public static final String TRUE="True";
 	public static final String ACTIVE = "active";
+	public static final String DESCRIPTION = "description";
+	public static final String COURSE_NAME = "courseName";
+	public static final String BATCH_NAME = "batchName";
+	public static final String BATCH_START_DATE = "batchStartDate";
 }

@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 @Service
 public class NotificationServiceImpl {
 
-	public static final String EMAILTEMPLATE = "emailtemplate";
 	Logger logger = LogManager.getLogger(ApplicationProcessingConsumer.class);
 
 	@Autowired
@@ -71,11 +70,29 @@ public class NotificationServiceImpl {
 
 	private static final String TO_VALUE_CONST = "toValue";
 
+	public static final String EMAILTEMPLATE = "emailtemplate";
+
+	private static final String COURSE_NAME_TAG = "#course_name";
+
+	private static final String BATCH_NAME_TAG = "#batch_name";
+
+	private static final String Role_TAG = "#role";
+
+	private static final String ACT_TAG = "#action";
+
+	private static final String BATCH_START_DATE_TAG = "#batch_start_date";
+
 	private static final String MAIL_SUBJECT = "Your request is #state";
+
 	private static final String MDO_MAIL_SUBJECT = "Request for approval";
 
+	private static final String ENROLMENT_ACTION_SUBJECT = "Enrollment #action";
+
 	private static final String MAIL_BODY = "Your request to update #fieldKey to #toValue is #state ";
+
 	private static final String BP_MAIL_BODY = "Your request for batch enrollment is #state.";
+
+	private static final String BP_MDO_PC_SUBJECT_LINE = "Enrollment Request Forwarded to #role";
 
 	/**
 	 * Send notification to the user based on state of application
@@ -97,19 +114,18 @@ public class NotificationServiceImpl {
 			logger.info("Enter's in the notification block");
             Set<String> usersId = new HashSet<>();
             usersId.add(wfRequest.getUserId());
-			switch (wfRequest.getServiceName()) {
-				case Constants.BLENDED_PROGRAM_SERVICE_NAME:
-				case Constants.ONE_STEP_MDO_APPROVAL:
-				case Constants.ONE_STEP_PC_APPROVAL:
-				case Constants.TWO_STEP_MDO_AND_PC_APPROVAL:
-				case Constants.TWO_STEP_PC_AND_MDO_APPROVAL:
-					break;
-				default:
-					usersId.add(wfStatusEntity.getApplicationId());
+			Set<String> blendedProgrammeServiceNames = new HashSet<>();
+			blendedProgrammeServiceNames.addAll(Arrays.asList(Constants.BLENDED_PROGRAM_SERVICE_NAME,
+					Constants.ONE_STEP_MDO_APPROVAL,
+					Constants.ONE_STEP_PC_APPROVAL,
+					Constants.TWO_STEP_MDO_AND_PC_APPROVAL,
+					Constants.TWO_STEP_PC_AND_MDO_APPROVAL));
+			if(!blendedProgrammeServiceNames.contains(wfRequest.getServiceName())){
+				usersId.add(wfStatusEntity.getApplicationId());
 			}
 			HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(usersId);
 			Map<String, Object> recipientInfo;
-			if (Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
+			if (blendedProgrammeServiceNames.contains(wfRequest.getServiceName())) {
 				recipientInfo = (Map<String, Object>)usersObj.get(wfRequest.getUserId());
 			} else {
 				recipientInfo = (Map<String, Object>)usersObj.get(wfStatusEntity.getApplicationId());
@@ -123,14 +139,54 @@ public class NotificationServiceImpl {
 			Template template = new Template();
 			template.setId(EMAILTEMPLATE);
 			Optional<HashMap<String, Object>> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst();
+			String subjectLine = "";
 			if (updatedFieldValue.isPresent()) {
-				if (Constants.BLENDED_PROGRAM_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
-					params.put("body", BP_MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()));
-				} else {
+				if (blendedProgrammeServiceNames.contains(wfRequest.getServiceName())) {
+					switch (wfStatusEntity.getCurrentStatus()){
+						case Constants.SEND_FOR_PC_APPROVAL:
+							subjectLine = BP_MDO_PC_SUBJECT_LINE.replace(Role_TAG,Constants.PROGRAM_COORDINATOR.replace("_"," "));
+							params.put("body",configuration.getLearnerForwardedMailBody()
+									.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
+									.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
+									.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString())
+									.replace(Role_TAG,Constants.PROGRAM_COORDINATOR.replace("_"," ")));
+							break;
+						case Constants.SEND_FOR_MDO_APPROVAL:
+							subjectLine = BP_MDO_PC_SUBJECT_LINE.replace(Role_TAG,Constants.MDO_ADMIN.split("_")[0]);
+							params.put("body",configuration.getApprovedMailBody()
+									.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
+									.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
+									.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString())
+									.replace(Role_TAG,Constants.MDO_ADMIN.split("_")[0]));
+							break;
+						case Constants.APPROVED:
+							subjectLine = ENROLMENT_ACTION_SUBJECT.replace(ACT_TAG, wfStatusEntity.getCurrentStatus());
+							params.put("body", configuration.getApprovedMailBody()
+									.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
+									.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
+									.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString()));
+							break;
+						case Constants.REJECTED:
+						case Constants.REMOVED:
+							subjectLine = ENROLMENT_ACTION_SUBJECT.replace(ACT_TAG, wfStatusEntity.getCurrentStatus());
+							params.put("body",configuration.getRejectedOrRemovedMailBody()
+									.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
+									.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
+									.replace(ACT_TAG,wfStatusEntity.getCurrentStatus())
+									.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString()));
+							break;
+						default:
+							subjectLine = MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus());
+							params.put("body", BP_MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()));
+							break;
+					}
+				}
+				 else {
 					HashMap<String, Object> toValue = (HashMap<String, Object>) updatedFieldValue.get().get(TO_VALUE_CONST);
 					params.put("body", MAIL_BODY.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus())
 							.replace(FIELD_KEY_TAG, toValue.entrySet().iterator().next().getKey()).replace(TO_VALUE_TAG, (String) toValue.entrySet().iterator().next().getValue()));
-				}
+					subjectLine = MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus());
+				 }
 			}
 			if (StringUtils.isNotBlank(wfRequest.getComment())) {
 				String body = (String) params.get("body");
@@ -141,7 +197,7 @@ public class NotificationServiceImpl {
 			params.put("orgImageUrl", null);
 			template.setParams(params);
 			Config config = new Config();
-			config.setSubject(MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus()));
+			config.setSubject(subjectLine);
 			config.setSender((String)senderInfo.get("email"));
 			Map<String, Object> req = new HashMap<>();
 			request.setTemplate(template);

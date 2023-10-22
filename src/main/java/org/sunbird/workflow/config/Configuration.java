@@ -164,6 +164,15 @@ public class Configuration {
     @Value("${blended.program.batch.in.progress.message}")
     private String batchInProgressMessage;
 
+    @Value("${bp.mail.body.forwarded.to}")
+    private String learnerForwardedMailBody;
+
+    @Value("${bp.mail.body.rejected.or.remove}")
+    private String rejectedOrRemovedMailBody;
+
+    @Value("${bp.mail.body.approve=}")
+    private String approvedMailBody;
+
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
     }
@@ -597,4 +606,27 @@ public class Configuration {
         this.batchInProgressMessage = batchInProgressMessage;
     }
 
+    public String getLearnerForwardedMailBody() {
+        return learnerForwardedMailBody;
+    }
+
+    public void setLearnerForwardedMailBody(String learnerForwardedMailBody) {
+        this.learnerForwardedMailBody = learnerForwardedMailBody;
+    }
+
+    public String getRejectedOrRemovedMailBody() {
+        return rejectedOrRemovedMailBody;
+    }
+
+    public void setRejectedOrRemovedMailBody(String rejectedOrRemovedMailBody) {
+        this.rejectedOrRemovedMailBody = rejectedOrRemovedMailBody;
+    }
+
+    public String getApprovedMailBody() {
+        return approvedMailBody;
+    }
+
+    public void setApprovedMailBody(String approvedMailBody) {
+        this.approvedMailBody = approvedMailBody;
+    }
 }
