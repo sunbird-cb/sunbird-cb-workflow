@@ -170,7 +170,7 @@ public class Configuration {
     @Value("${bp.mail.body.rejected.or.remove}")
     private String rejectedOrRemovedMailBody;
 
-    @Value("${bp.mail.body.approve=}")
+    @Value("${bp.mail.body.approve}")
     private String approvedMailBody;
 
     public String getModificationRecordAllowActions() {
