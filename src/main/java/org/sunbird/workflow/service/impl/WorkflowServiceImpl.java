@@ -22,9 +22,11 @@ import org.sunbird.workflow.exception.BadRequestException;
 import org.sunbird.workflow.exception.InvalidDataInputException;
 import org.sunbird.workflow.models.*;
 import org.sunbird.workflow.postgres.entity.WfAuditEntity;
+import org.sunbird.workflow.postgres.entity.WfDomainLookup;
 import org.sunbird.workflow.postgres.entity.WfStatusCountDTO;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfAuditRepo;
+import org.sunbird.workflow.postgres.repo.WfDomainLookupRepo;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.producer.Producer;
 import org.sunbird.workflow.service.UserProfileWfService;
@@ -60,6 +62,9 @@ public class WorkflowServiceImpl implements Workflowservice {
 
 	@Autowired
 	private Producer producer;
+
+	@Autowired
+	private WfDomainLookupRepo wfDomainLookupRepo;
 
 	Logger log = LogManager.getLogger(WorkflowServiceImpl.class);
 
@@ -150,6 +155,15 @@ public class WorkflowServiceImpl implements Workflowservice {
 			applicationStatus.setComment(wfRequest.getComment());
 			applicationStatus.setServiceName(serviceName);
 			addModificationEntry(applicationStatus,userId,wfRequest.getAction(),role);
+			if (Constants.DOMAIN_SERVICE_NAME.equalsIgnoreCase(wfRequest.getServiceName())) {
+				WfDomainLookup wfDomainLookup = new WfDomainLookup();
+				wfDomainLookup.setWfId(applicationStatus.getWfId());
+				HashMap<String, Object> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst().get();
+				HashMap<String, String> toValue = (HashMap<String, String>) updatedFieldValue.get("toValue");
+				String domainValue =  toValue.get("domain").isEmpty() ? "" : toValue.get("domain");
+				wfDomainLookup.setDomainName(domainValue);
+				wfDomainLookupRepo.save(wfDomainLookup);
+			}
 			wfStatusRepo.save(applicationStatus);
 			producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
 			producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
