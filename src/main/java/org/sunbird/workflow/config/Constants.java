@@ -243,5 +243,5 @@ public class Constants {
 	public static final String CONTEXT_TYPE = "contextType";
 	public static final String CONTEXT_NAME = "contextName";
 	public static final String USER_REGISTRATION_PRE_APPROVED_DOMAIN = "userRegistrationPreApprovedDomain";
-	public static final String DOMAIN_NAME_REQUEST_ALREADY_ERROR_MSG = "Already A Request is raised for Domain";
+	public static final String DOMAIN_NAME_REQUEST_ALREADY_ERROR_MSG = "Already a request is raised for domain";
 }
