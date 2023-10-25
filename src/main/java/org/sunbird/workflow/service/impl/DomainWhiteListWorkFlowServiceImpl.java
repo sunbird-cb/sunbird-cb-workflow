@@ -58,8 +58,8 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
         String domainValue =  toValue.get("domain").isEmpty() ? "" : toValue.get("domain");
         List<WfDomainLookup> domainLookup = wfDomainLookupRepo.findByDomainName(domainValue);
         if(CollectionUtils.isNotEmpty(domainLookup)) {
-            response.put(Constants.ERROR_MESSAGE, Constants.DOMAIN_NAME_REQUEST_ALREADY_ERROR_MSG + ": " + domainValue);
-            response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
+            response.put(Constants.MESSAGE, Constants.DOMAIN_NAME_REQUEST_ALREADY_ERROR_MSG + ": " + domainValue);
+            response.put(Constants.STATUS, HttpStatus.ACCEPTED);
             return response;
         }
         response = workflowService.workflowTransition(rootOrg, org, wfRequest);
