@@ -173,6 +173,18 @@ public class Configuration {
     @Value("${bp.mail.body.approve}")
     private String approvedMailBody;
 
+    @Value("${notify.email.template}")
+    private String notificationEmailTemplate;
+
+    @Value("${bp.approval.request.mail.body}")
+    private String approvalRequetMailBody;
+
+    @Value("${bp.request.forwarded.mail.body}")
+    private String requestForwardedMailBody;
+
+    @Value("${bp.nomination.request.mail.body}")
+    private String nominationRequestMailBody;
+
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
     }
@@ -628,5 +640,37 @@ public class Configuration {
 
     public void setApprovedMailBody(String approvedMailBody) {
         this.approvedMailBody = approvedMailBody;
+    }
+
+    public String getNotificationEmailTemplate() {
+        return notificationEmailTemplate;
+    }
+
+    public void setNotificationEmailTemplate(String notificationEmailTemplate) {
+        this.notificationEmailTemplate = notificationEmailTemplate;
+    }
+
+    public String getApprovalRequetMailBody() {
+        return approvalRequetMailBody;
+    }
+
+    public void setApprovalRequetMailBody(String approvalRequetMailBody) {
+        this.approvalRequetMailBody = approvalRequetMailBody;
+    }
+
+    public String getRequestForwardedMailBody() {
+        return requestForwardedMailBody;
+    }
+
+    public void setRequestForwardedMailBody(String requestForwardedMailBody) {
+        this.requestForwardedMailBody = requestForwardedMailBody;
+    }
+
+    public String getNominationRequestMailBody() {
+        return nominationRequestMailBody;
+    }
+
+    public void setNominationRequestMailBody(String nominationRequestMailBody) {
+        this.nominationRequestMailBody = nominationRequestMailBody;
     }
 }

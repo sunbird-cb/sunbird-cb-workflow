@@ -243,4 +243,9 @@ public class Constants {
 	public static final String COURSE_NAME = "courseName";
 	public static final String BATCH_NAME = "batchName";
 	public static final String BATCH_START_DATE = "batchStartDate";
+	public static final String FROM_EMAIL = "fromEmail";
+	public static final String DEV_HIERARCHY_STORE = "dev_hierarchy_store";
+	public static final String CONTENT_HIERARCHY = "content_hierarchy";
+	public static final String IDENTIFIER = "identifier";
+	public static final String HIERARCHY = "hierarchy";
 }
