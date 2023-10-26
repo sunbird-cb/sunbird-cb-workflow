@@ -1,5 +1,7 @@
 package org.sunbird.workflow.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +17,10 @@ import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.postgres.entity.WfDomainLookup;
+import org.sunbird.workflow.postgres.entity.WfDomainUserInfo;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfDomainLookupRepo;
+import org.sunbird.workflow.postgres.repo.WfDomainUserInfoRepo;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.service.DomainWhiteListWorkFlowService;
 import org.sunbird.workflow.service.UserProfileWfService;
@@ -47,6 +51,12 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
     @Autowired
     private WfDomainLookupRepo wfDomainLookupRepo;
 
+    @Autowired
+    private WfDomainUserInfoRepo wfDomainUserInfoRepo;
+
+    @Autowired
+    private ObjectMapper mapper;
+
     @Override
     public Response createDomainWorkFlow(String rootOrg, String org, WfRequest wfRequest) {
         Response response = new Response();
@@ -54,20 +64,36 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
             HashMap<String, Object> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst().get();
             HashMap<String, String> toValue = (HashMap<String, String>) updatedFieldValue.get("toValue");
             String domainValue = toValue.get("domain").isEmpty() ? "" : toValue.get("domain");
-            List<WfDomainLookup> domainLookup = wfDomainLookupRepo.findByDomainName(domainValue);
-            if (CollectionUtils.isNotEmpty(domainLookup)) {
-                response.put(Constants.MESSAGE, Constants.DOMAIN_NAME_REQUEST_EXIST_MSG + ": " + domainValue);
-                response.put(Constants.STATUS, HttpStatus.ACCEPTED);
-                return response;
-            }
-            response = workflowService.workflowTransition(rootOrg, org, wfRequest);
-            if (HttpStatus.OK.compareTo((HttpStatus) response.getResult().get(Constants.STATUS)) == 0) {
-                WfDomainLookup wfDomainLookup = new WfDomainLookup();
-                Map<String, Object> dataObject = (Map<String, Object>) response.getResult().getOrDefault(Constants.DATA, new HashMap());
-                List<String> wfIdList = (List<String>) dataObject.getOrDefault(Constants.WF_IDS_CONSTANT, new ArrayList());
-                wfDomainLookup.setWfId(wfIdList.get(0));
-                wfDomainLookup.setDomainName(domainValue);
-                wfDomainLookupRepo.save(wfDomainLookup);
+            String firstName = (String) updatedFieldValue.get("firstName");
+            String email = (String) updatedFieldValue.get(Constants.EMAIL);
+            String phone = (String) updatedFieldValue.get("mobile");
+            String description = (String) updatedFieldValue.get("description");
+            List<WfDomainUserInfo> userInfo = wfDomainUserInfoRepo.findByDomainNameAndEmailAndMobile(domainValue, email, phone);
+            if (CollectionUtils.isEmpty(userInfo)) {
+                List<WfDomainLookup> domainLookup = wfDomainLookupRepo.findByDomainName(domainValue);
+                addWfDomainUserInfo(email, domainValue, phone, description, firstName);
+                List<WfDomainUserInfo> userDomainInfo = wfDomainUserInfoRepo.findByDomainName(domainValue);
+                if (CollectionUtils.isNotEmpty(domainLookup)) {
+                    WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(domainLookup.get(0).getWfId());
+                    updateWfStatusEntity(wfStatusEntity, userDomainInfo.size());
+                    response.put(Constants.MESSAGE, Constants.DOMAIN_NAME_REQUEST_EXIST_MSG + ": " + domainValue);
+                    response.put(Constants.STATUS, HttpStatus.ACCEPTED);
+                    return response;
+                }
+                response = workflowService.workflowTransition(rootOrg, org, wfRequest);
+                if (HttpStatus.OK.compareTo((HttpStatus) response.getResult().get(Constants.STATUS)) == 0) {
+                    WfDomainLookup wfDomainLookup = new WfDomainLookup();
+                    Map<String, Object> dataObject = (Map<String, Object>) response.getResult().getOrDefault(Constants.DATA, new HashMap());
+                    List<String> wfIdList = (List<String>) dataObject.getOrDefault(Constants.WF_IDS_CONSTANT, new ArrayList());
+                    wfDomainLookup.setWfId(wfIdList.get(0));
+                    wfDomainLookup.setDomainName(domainValue);
+                    wfDomainLookupRepo.save(wfDomainLookup);
+                    WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(wfIdList.get(0));
+                    updateWfStatusEntity(wfStatusEntity, userDomainInfo.size());
+                }
+            } else {
+                response.put(Constants.ERROR_MESSAGE, Constants.ALREADY_RAISED_DOMAIN_REQUEST + ": " + domainValue);
+                response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
             String errMsg = String.format("Failed to get the stats for course. Exception: ", e.getMessage());
@@ -177,5 +203,23 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
         List<Map<String, Object>> listOfDomains = cassandraOperation.getRecordsByProperties(
                 Constants.KEYSPACE_SUNBIRD, Constants.TABLE_MASTER_DATA, propertyMap, Arrays.asList(Constants.CONTEXT_TYPE, Constants.CONTEXT_NAME));
         return CollectionUtils.isNotEmpty(listOfDomains);
+    }
+
+    private void addWfDomainUserInfo(String email, String domain, String mobile, String description, String firstName) {
+        WfDomainUserInfo wfDomainUserInfo = new WfDomainUserInfo();
+        wfDomainUserInfo.setDomainName(domain);
+        wfDomainUserInfo.setDescription(description);
+        wfDomainUserInfo.setEmail(email);
+        wfDomainUserInfo.setFirstName(firstName);
+        wfDomainUserInfo.setMobile(mobile);
+        wfDomainUserInfoRepo.save(wfDomainUserInfo);
+    }
+
+    private void updateWfStatusEntity(WfStatusEntity wfStatusEntity, int updatedCountValueForDomainRequest) throws JsonProcessingException {
+        Map<String, Integer> additionalFieldInfo = new HashMap<>();
+        additionalFieldInfo.put("noOfRequest", updatedCountValueForDomainRequest);
+        wfStatusEntity.setAdditionalProperties(mapper.writeValueAsString(additionalFieldInfo));
+        wfStatusEntity.setLastUpdatedOn(new Date());
+        wfStatusRepo.save(wfStatusEntity);
     }
 }

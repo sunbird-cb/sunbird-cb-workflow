@@ -55,6 +55,9 @@ public class WfStatusEntity {
 	@Column(name = "modification_history")
 	private String modificationHistory;
 
+	@Column(name = "additional_properties")
+	private String additionalProperties;
+
 	public String getModificationHistory() {
 		return modificationHistory;
 	}
@@ -173,5 +176,13 @@ public class WfStatusEntity {
 
 	public void setDeptName(String deptName) {
 		this.deptName = deptName;
+	}
+
+	public String getAdditionalProperties() {
+		return additionalProperties;
+	}
+
+	public void setAdditionalProperties(String additionalProperties) {
+		this.additionalProperties = additionalProperties;
 	}
 }
