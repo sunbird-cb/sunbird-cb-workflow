@@ -72,10 +72,10 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
             if (CollectionUtils.isEmpty(userInfo)) {
                 List<WfDomainLookup> domainLookup = wfDomainLookupRepo.findByDomainName(domainValue);
                 addWfDomainUserInfo(email, domainValue, phone, description, firstName);
-                List<WfDomainUserInfo> userDomainInfo = wfDomainUserInfoRepo.findByDomainName(domainValue);
+                Long userDomainInfoCount = wfDomainUserInfoRepo.countByDomainName(domainValue);
                 if (CollectionUtils.isNotEmpty(domainLookup)) {
                     WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(domainLookup.get(0).getWfId());
-                    updateWfStatusEntity(wfStatusEntity, userDomainInfo.size());
+                    updateWfStatusEntity(wfStatusEntity, userDomainInfoCount.intValue());
                     response.put(Constants.MESSAGE, Constants.DOMAIN_NAME_REQUEST_EXIST_MSG + ": " + domainValue);
                     response.put(Constants.STATUS, HttpStatus.ACCEPTED);
                     return response;
@@ -89,11 +89,11 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
                     wfDomainLookup.setDomainName(domainValue);
                     wfDomainLookupRepo.save(wfDomainLookup);
                     WfStatusEntity wfStatusEntity = wfStatusRepo.findByWfId(wfIdList.get(0));
-                    updateWfStatusEntity(wfStatusEntity, userDomainInfo.size());
+                    updateWfStatusEntity(wfStatusEntity, 1);
                 }
             } else {
-                response.put(Constants.ERROR_MESSAGE, Constants.ALREADY_RAISED_DOMAIN_REQUEST + ": " + domainValue);
-                response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
+                response.put(Constants.MESSAGE, Constants.DOMAIN_NAME_REQUEST_EXIST_MSG + ": " + domainValue);
+                response.put(Constants.STATUS, HttpStatus.ACCEPTED);
             }
         } catch (Exception e) {
             String errMsg = String.format("Failed to get the stats for course. Exception: ", e.getMessage());
