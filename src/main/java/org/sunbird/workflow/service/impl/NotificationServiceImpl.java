@@ -420,7 +420,7 @@ public class NotificationServiceImpl {
 			template.setId(configuration.getNotificationEmailTemplate());
 			params.put(Constants.NAME, mailNotificationDetails.get("emailTo"));
 			params.put("body", mailNotificationDetails.get("body"));
-			params.put(Constants.ORG_NAME, "Karmyogi Bharat");
+			params.put(Constants.ORG_NAME, Constants.KARMYOGI_BHARAT);
 			params.put(Constants.FROM_EMAIL, configuration.getSenderMail());
 			String constructedEmailTemplate = constructEmailTemplate(configuration.getNotificationEmailTemplate(), params);
 			if (StringUtils.isNotEmpty(constructedEmailTemplate)) {

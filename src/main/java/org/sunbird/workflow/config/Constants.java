@@ -248,4 +248,5 @@ public class Constants {
 	public static final String CONTENT_HIERARCHY = "content_hierarchy";
 	public static final String IDENTIFIER = "identifier";
 	public static final String HIERARCHY = "hierarchy";
+	public static final Object KARMYOGI_BHARAT = "Karmyogi Bharat";
 }
