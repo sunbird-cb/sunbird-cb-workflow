@@ -13,4 +13,6 @@ public interface DomainWhiteListWorkFlowService {
     public Response readDomainWFApplication(String rootOrg, String org, String wfId, String applicationId);
 
     public Response domainSearch(String rootOrg, String org, SearchCriteria criteria);
+
+    public void  processDomainRequest(WfRequest wfRequest);
 }

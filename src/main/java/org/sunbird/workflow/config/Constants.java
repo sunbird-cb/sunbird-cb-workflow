@@ -249,4 +249,10 @@ public class Constants {
 	public static final String IDENTIFIER = "identifier";
 	public static final String HIERARCHY = "hierarchy";
 	public static final Object KARMYOGI_BHARAT = "Karmyogi Bharat";
+	public static final String DOMAIN ="domain";
+	public static final String TABLE_MASTER_DATA = "master_data";
+	public static final String CONTEXT_TYPE = "contextType";
+	public static final String CONTEXT_NAME = "contextName";
+	public static final String USER_REGISTRATION_PRE_APPROVED_DOMAIN = "userRegistrationPreApprovedDomain";
+	public static final String DOMAIN_NAME_REQUEST_EXIST_MSG = "Already a request is raised for domain";
 }

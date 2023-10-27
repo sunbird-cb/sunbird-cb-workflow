@@ -9,4 +9,6 @@ public interface CassandraOperation {
 			Map<String, Object> propertyMap, List<String> fields);
 
 	int getCountByProperties(String keyspaceName, String tableName, Map<String, Object> propertyMap);
+
+	void insertRecord(String keyspaceName, String tableName, Map<String, Object> request);
 }
