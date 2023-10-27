@@ -147,7 +147,7 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 					if (Constants.VERIFIED_KARMAYOGI.equalsIgnoreCase((String) wfRequestParamObj.get(Constants.FIELD_KEY))) {
 						Map<String,Object> toValueMap = (Map<String, Object>) wfRequestParamObj.get(Constants.TO_VALUE);
 						existingProfileDetail.put((String) wfRequestParamObj.get(Constants.FIELD_KEY), (Boolean) toValueMap.get(Constants.VERIFIED_KARMAYOGI));
-					} else if (Constants.PROFILE_DETAILS.equalsIgnoreCase((String) wfRequestParamObj.get(Constants.FIELD_KEY))) {
+					} else if (Constants.PROFESSIONAL_DETAILS.equalsIgnoreCase((String) wfRequestParamObj.get(Constants.FIELD_KEY))) {
 						List<Map<String, Object>> detailsList = new ArrayList<>();
 						Map<String, Object> detailsMap = new HashMap<>();
 						detailsMap = (Map<String, Object>) wfRequestParamObj.get(Constants.TO_VALUE);
