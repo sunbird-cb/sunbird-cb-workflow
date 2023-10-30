@@ -343,15 +343,15 @@ public class NotificationServiceImpl {
 			mailNotificationDetails.put("body", approvalRequestMailBody);
 			if(Constants.INITIATE.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", pcEmailList);
-				mailNotificationDetails.put("emailTo", Constants.PROGRAM_COORDINATOR.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
 			} else if(Constants.INITIATE.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", mdoEmailList);
-				mailNotificationDetails.put("emailTo", Constants.MDO_ADMIN.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 				sendNotificationEmail(mailNotificationDetails);
 			} else if(Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", pcEmailList);
-				mailNotificationDetails.put("emailTo", Constants.PROGRAM_COORDINATOR.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
 
 				subjectLine = requestForwardedSubject.replace(ROLE_TAG,Constants.PROGRAM_COORDINATOR.replace("_", " "));
@@ -359,12 +359,12 @@ public class NotificationServiceImpl {
 				mailNotificationDetails.put("subject", subjectLine);
 				mailNotificationDetails.put("body", body);
 				mailNotificationDetails.put("emailList", mdoEmailList);
-				mailNotificationDetails.put("emailTo", Constants.MDO_ADMIN.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 				sendNotificationEmail(mailNotificationDetails);
 
 			} else if(Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", mdoEmailList);
-				mailNotificationDetails.put("emailTo", Constants.MDO_ADMIN.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 				sendNotificationEmail(mailNotificationDetails);
 
 				subjectLine = requestForwardedSubject.replace(ROLE_TAG,Constants.MDO_ADMIN.split("_")[0]);
@@ -372,13 +372,13 @@ public class NotificationServiceImpl {
 				mailNotificationDetails.put("subject", subjectLine);
 				mailNotificationDetails.put("body", body);
 				mailNotificationDetails.put("emailList", pcEmailList);
-				mailNotificationDetails.put("emailTo", Constants.PROGRAM_COORDINATOR.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
 
 			}
 			if(Constants.INITIATE.equalsIgnoreCase(wfRequest.getState()) && Constants.ADMIN_ENROLL_IS_IN_PROGRESS.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())) {
 				mailNotificationDetails.put("emailList", pcEmailList);
-				mailNotificationDetails.put("emailTo", Constants.PROGRAM_COORDINATOR.replace("_", " "));
+				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
 			}
 			if(Constants.ADMIN_ENROLL_IS_IN_PROGRESS.equalsIgnoreCase(wfRequest.getState())){
@@ -388,7 +388,7 @@ public class NotificationServiceImpl {
 					mailNotificationDetails.put("emailList", mdoEmailList);
 					mailNotificationDetails.put("subject", subjectLine);
 					mailNotificationDetails.put("body", body);
-					mailNotificationDetails.put("emailTo", Constants.MDO_ADMIN.replace("_", " "));
+					mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 					sendNotificationEmail(mailNotificationDetails);
 				} else if (Constants.REJECTED.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())) {
 					subjectLine = enrolmentStateSubject.replace("#state", Constants.APPROVED);
@@ -399,7 +399,7 @@ public class NotificationServiceImpl {
 					mailNotificationDetails.put("emailList", mdoEmailList);
 					mailNotificationDetails.put("subject", subjectLine);
 					mailNotificationDetails.put("body", body);
-					mailNotificationDetails.put("emailTo", Constants.MDO_ADMIN.replace("_", " "));
+					mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 					sendNotificationEmail(mailNotificationDetails);
 				}
 			}

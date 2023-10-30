@@ -255,4 +255,6 @@ public class Constants {
 	public static final String CONTEXT_NAME = "contextName";
 	public static final String USER_REGISTRATION_PRE_APPROVED_DOMAIN = "userRegistrationPreApprovedDomain";
 	public static final String DOMAIN_NAME_REQUEST_EXIST_MSG = "Already a request is raised for domain";
+	public static final String TO_PROGRAMME_COORDINATOR = "Programme Coordinator";
+	public static final String TO_MDO_ADMIN = "MDO Admin";
 }
