@@ -14,6 +14,7 @@ import org.springframework.util.ObjectUtils;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.consumer.ApplicationProcessingConsumer;
+import org.sunbird.workflow.models.WfNotification;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.models.WfStatus;
 import org.sunbird.workflow.models.notification.Config;
@@ -103,11 +104,11 @@ public class NotificationServiceImpl {
 	/**
 	 * Send notification to the user based on state of application
 	 *
-	 * @param wfRequest workflow request
+	 * @param wfNotification workflow request
 	 */
-	public void sendNotification(WfRequest wfRequest) {
-		WfStatusEntity wfStatusEntity = wfStatusRepo.findByApplicationIdAndWfId(wfRequest.getApplicationId(),
-				wfRequest.getWfId());
+	public void sendNotification(WfNotification wfNotification) {
+		WfStatusEntity wfStatusEntity = wfStatusRepo.findByApplicationIdAndWfId(wfNotification.getApplicationId(),
+				wfNotification.getWfId());
 		WfStatus wfStatus = workflowservice.getWorkflowStates(wfStatusEntity.getRootOrg(), wfStatusEntity.getOrg(),
 				wfStatusEntity.getServiceName(), wfStatusEntity.getCurrentStatus());
 		try {
@@ -119,33 +120,33 @@ public class NotificationServiceImpl {
 		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()) {
 			logger.info("Enter's in the notification block");
             Set<String> usersId = new HashSet<>();
-            usersId.add(wfRequest.getUserId());
+            usersId.add(wfNotification.getUserId());
 			Set<String> blendedProgrammeServiceNames = new HashSet<>();
 			blendedProgrammeServiceNames.addAll(Arrays.asList(Constants.BLENDED_PROGRAM_SERVICE_NAME,
 					Constants.ONE_STEP_MDO_APPROVAL,
 					Constants.ONE_STEP_PC_APPROVAL,
 					Constants.TWO_STEP_MDO_AND_PC_APPROVAL,
 					Constants.TWO_STEP_PC_AND_MDO_APPROVAL));
-			if(!blendedProgrammeServiceNames.contains(wfRequest.getServiceName())){
+			if(!blendedProgrammeServiceNames.contains(wfNotification.getServiceName())){
 				usersId.add(wfStatusEntity.getApplicationId());
 			}
 			HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(usersId);
 			Map<String, Object> recipientInfo;
-			if (blendedProgrammeServiceNames.contains(wfRequest.getServiceName())) {
-				recipientInfo = (Map<String, Object>)usersObj.get(wfRequest.getUserId());
+			if (blendedProgrammeServiceNames.contains(wfNotification.getServiceName())) {
+				recipientInfo = (Map<String, Object>)usersObj.get(wfNotification.getUserId());
 			} else {
 				recipientInfo = (Map<String, Object>)usersObj.get(wfStatusEntity.getApplicationId());
 			}
-			Map<String, Object> senderInfo = (Map<String, Object>)usersObj.get(wfRequest.getUserId());
-			Optional<HashMap<String, Object>> updatedFieldValue = wfRequest.getUpdateFieldValues().stream().findFirst();
+			Map<String, Object> senderInfo = (Map<String, Object>)usersObj.get(wfNotification.getUserId());
+			Optional<HashMap<String, Object>> updatedFieldValue = wfNotification.getUpdateFieldValues().stream().findFirst();
 			String subjectLine = "";
 			String body = "";
 			if (updatedFieldValue.isPresent()) {
-				if (blendedProgrammeServiceNames.contains(wfRequest.getServiceName())) {
+				if (blendedProgrammeServiceNames.contains(wfNotification.getServiceName())) {
 					String forwardedMailBody = configuration.getLearnerForwardedMailBody()
-							.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
-							.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
-							.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString());
+							.replace(COURSE_NAME_TAG, wfNotification.getCourseName())
+							.replace(BATCH_NAME_TAG, wfNotification.getBatchName())
+							.replace(BATCH_START_DATE_TAG, wfNotification.getBatchStartDate().toString());
 					switch (wfStatusEntity.getCurrentStatus()){
 						case Constants.SEND_FOR_PC_APPROVAL:
 							subjectLine = BP_MDO_PC_SUBJECT_LINE.replace(Role_TAG,Constants.PROGRAM_COORDINATOR.replace("_"," "));
@@ -158,18 +159,18 @@ public class NotificationServiceImpl {
 						case Constants.APPROVED:
 							subjectLine = ENROLMENT_ACTION_SUBJECT.replace(ACT_TAG, wfStatusEntity.getCurrentStatus());
 							body = configuration.getApprovedMailBody()
-									.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
-									.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
-									.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString());
+									.replace(BATCH_NAME_TAG, wfNotification.getBatchName())
+									.replace(COURSE_NAME_TAG, wfNotification.getCourseName())
+									.replace(BATCH_START_DATE_TAG, wfNotification.getBatchStartDate().toString());
 							break;
 						case Constants.REJECTED:
 						case Constants.REMOVED:
 							subjectLine = ENROLMENT_ACTION_SUBJECT.replace(ACT_TAG, wfStatusEntity.getCurrentStatus());
 							body = configuration.getRejectedOrRemovedMailBody()
-									.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
-									.replace(COURSE_NAME_TAG, wfRequest.getCourseName())
+									.replace(BATCH_NAME_TAG, wfNotification.getBatchName())
+									.replace(COURSE_NAME_TAG, wfNotification.getCourseName())
 									.replace(ACT_TAG,wfStatusEntity.getCurrentStatus())
-									.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString());
+									.replace(BATCH_START_DATE_TAG, wfNotification.getBatchStartDate().toString());
 							break;
 						default:
 							subjectLine = MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus());
@@ -184,8 +185,8 @@ public class NotificationServiceImpl {
 					subjectLine = MAIL_SUBJECT.replace(STATE_NAME_TAG, wfStatusEntity.getCurrentStatus());
 				 }
 			}
-			if (StringUtils.isNotBlank(wfRequest.getComment())) {
-				body = body + ", due to " + wfRequest.getComment() + ".";
+			if (StringUtils.isNotBlank(wfNotification.getComment())) {
+				body = body + ", due to " + wfNotification.getComment() + ".";
 			}
 			Map<String, Object> mailNotificationDetails = new HashMap<>();
 			mailNotificationDetails.put("emailTo", senderInfo.get(Constants.FIRST_NAME));
@@ -306,18 +307,18 @@ public class NotificationServiceImpl {
 		}
 	}
 
-	public void sendNotificationToMdoAdminAndPC(WfRequest wfRequest) {
-		WfStatusEntity wfStatusEntity = wfStatusRepo.findByApplicationIdAndWfId(wfRequest.getApplicationId(),
-				wfRequest.getWfId());
+	public void sendNotificationToMdoAdminAndPC(WfNotification wfNotification) {
+		WfStatusEntity wfStatusEntity = wfStatusRepo.findByApplicationIdAndWfId(wfNotification.getApplicationId(),
+				wfNotification.getWfId());
 		WfStatus wfStatus = workflowservice.getWorkflowStates(wfStatusEntity.getRootOrg(), wfStatusEntity.getOrg(),
 				wfStatusEntity.getServiceName(), wfStatusEntity.getCurrentStatus());
 		if (!ObjectUtils.isEmpty(wfStatus.getNotificationEnable()) && wfStatus.getNotificationEnable()
 				&& !Arrays.asList(Constants.REJECTED, Constants.APPROVED).contains(wfStatus.getState())) {
 			logger.info("Enter in the sendNotificationToMdoAdminAndPC block");
 			List<String> emailToSend = new ArrayList<>();
-			List<String> pcEmailList = userProfileWfService.getMdoAdminAndPCDetails(wfRequest.getRootOrgId(), Collections.singletonList(Constants.PROGRAM_COORDINATOR));
-			List<String> mdoEmailList = userProfileWfService.getMdoAdminAndPCDetails(wfRequest.getRootOrgId(), Collections.singletonList(Constants.MDO_ADMIN));
-			HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(Collections.singleton(wfRequest.getUserId()));
+			List<String> pcEmailList = userProfileWfService.getMdoAdminAndPCDetails(wfNotification.getRootOrgId(), Collections.singletonList(Constants.PROGRAM_COORDINATOR));
+			List<String> mdoEmailList = userProfileWfService.getMdoAdminAndPCDetails(wfNotification.getRootOrgId(), Collections.singletonList(Constants.MDO_ADMIN));
+			HashMap<String, Object> usersObj = userProfileWfService.getUsersResult(Collections.singleton(wfNotification.getUserId()));
 			Map<String, Object> recipientInfo = (Map<String, Object>) usersObj.get(wfStatusEntity.getUserId());
 			String userName = (String) recipientInfo.get(Constants.FIRST_NAME);
 			Map<String, Object> mailNotificationDetails = new HashMap<>();
@@ -326,30 +327,30 @@ public class NotificationServiceImpl {
 			String enrolmentStateSubject = "Enrolment #state";
 			String approvalRequestSubject = "Enrollment Approval Request";
 			String requestForwardedSubject = "Enrollment Request Forwarded to #role";
-			String date = wfRequest.getBatchStartDate().toString();
+			String date = wfNotification.getBatchStartDate().toString();
 			String nominationRequestMailBody = configuration.getNominationRequestMailBody().replace(USERNAMAE_TAG, userName)
-							.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
-							.replace(BLENDED_PROGRAME_NAME_TAG, wfRequest.getCourseName());
-			nominationRequestMailBody = nominationRequestMailBody.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString());
+							.replace(BATCH_NAME_TAG, wfNotification.getBatchName())
+							.replace(BLENDED_PROGRAME_NAME_TAG, wfNotification.getCourseName());
+			nominationRequestMailBody = nominationRequestMailBody.replace(BATCH_START_DATE_TAG, wfNotification.getBatchStartDate().toString());
 			String approvalRequestMailBody = configuration.getApprovalRequetMailBody().replace(USERNAMAE_TAG, userName)
-							.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
-							.replace(BLENDED_PROGRAME_NAME_TAG, wfRequest.getCourseName());
+							.replace(BATCH_NAME_TAG, wfNotification.getBatchName())
+							.replace(BLENDED_PROGRAME_NAME_TAG, wfNotification.getCourseName());
 			approvalRequestMailBody = approvalRequestMailBody.replace(BATCH_START_DATE_TAG, date);
 			String requestForwardedMailBody = configuration.getRequestForwardedMailBody().replace(USERNAMAE_TAG, userName)
-							.replace(BATCH_NAME_TAG, wfRequest.getBatchName())
-							.replace(BLENDED_PROGRAME_NAME_TAG, wfRequest.getCourseName())
-							.replace(BATCH_START_DATE_TAG, wfRequest.getBatchStartDate().toString());
+							.replace(BATCH_NAME_TAG, wfNotification.getBatchName())
+							.replace(BLENDED_PROGRAME_NAME_TAG, wfNotification.getCourseName())
+							.replace(BATCH_START_DATE_TAG, wfNotification.getBatchStartDate().toString());
 			mailNotificationDetails.put("subject", approvalRequestSubject);
 			mailNotificationDetails.put("body", approvalRequestMailBody);
-			if(Constants.INITIATE.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
+			if(Constants.INITIATE.equalsIgnoreCase(wfNotification.getState()) && Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", pcEmailList);
 				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
-			} else if(Constants.INITIATE.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
+			} else if(Constants.INITIATE.equalsIgnoreCase(wfNotification.getState()) && Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", mdoEmailList);
 				mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 				sendNotificationEmail(mailNotificationDetails);
-			} else if(Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
+			} else if(Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfNotification.getState()) && Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", pcEmailList);
 				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
@@ -362,7 +363,7 @@ public class NotificationServiceImpl {
 				mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 				sendNotificationEmail(mailNotificationDetails);
 
-			} else if(Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfRequest.getState()) && Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
+			} else if(Constants.SEND_FOR_PC_APPROVAL.equalsIgnoreCase(wfNotification.getState()) && Constants.SEND_FOR_MDO_APPROVAL.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())){
 				mailNotificationDetails.put("emailList", mdoEmailList);
 				mailNotificationDetails.put("emailTo", Constants.TO_MDO_ADMIN);
 				sendNotificationEmail(mailNotificationDetails);
@@ -376,12 +377,12 @@ public class NotificationServiceImpl {
 				sendNotificationEmail(mailNotificationDetails);
 
 			}
-			if(Constants.INITIATE.equalsIgnoreCase(wfRequest.getState()) && Constants.ADMIN_ENROLL_IS_IN_PROGRESS.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())) {
+			if(Constants.INITIATE.equalsIgnoreCase(wfNotification.getState()) && Constants.ADMIN_ENROLL_IS_IN_PROGRESS.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())) {
 				mailNotificationDetails.put("emailList", pcEmailList);
 				mailNotificationDetails.put("emailTo", Constants.TO_PROGRAMME_COORDINATOR);
 				sendNotificationEmail(mailNotificationDetails);
 			}
-			if(Constants.ADMIN_ENROLL_IS_IN_PROGRESS.equalsIgnoreCase(wfRequest.getState())){
+			if(Constants.ADMIN_ENROLL_IS_IN_PROGRESS.equalsIgnoreCase(wfNotification.getState())){
 				if (Constants.APPROVED.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())) {
 					subjectLine = enrolmentStateSubject.replace("#state", Constants.APPROVED);
 					body = nominationRequestMailBody.replace("#state", Constants.APPROVED);
@@ -393,8 +394,8 @@ public class NotificationServiceImpl {
 				} else if (Constants.REJECTED.equalsIgnoreCase(wfStatusEntity.getCurrentStatus())) {
 					subjectLine = enrolmentStateSubject.replace("#state", Constants.APPROVED);
 					body = nominationRequestMailBody.replace("#state", Constants.APPROVED);
-					if (StringUtils.isNotBlank(wfRequest.getComment())) {
-						body = body + ", due to <b>" + wfRequest.getComment() + "</b>.";
+					if (StringUtils.isNotBlank(wfNotification.getComment())) {
+						body = body + ", due to <b>" + wfNotification.getComment() + "</b>.";
 					}
 					mailNotificationDetails.put("emailList", mdoEmailList);
 					mailNotificationDetails.put("subject", subjectLine);

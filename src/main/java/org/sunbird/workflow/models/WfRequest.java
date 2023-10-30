@@ -30,12 +30,6 @@ public class WfRequest {
 
 	private String courseId;
 
-	private String courseName;
-
-	private String batchName;
-
-	private Date batchStartDate;
-
 	public String getState() {
 		return state;
 	}
@@ -130,30 +124,6 @@ public class WfRequest {
 
 	public void setCourseId(String courseId) {
 		this.courseId = courseId;
-	}
-
-	public String getCourseName() {
-		return courseName;
-	}
-
-	public void setCourseName(String courseName) {
-		this.courseName = courseName;
-	}
-
-	public String getBatchName() {
-		return batchName;
-	}
-
-	public void setBatchName(String batchName) {
-		this.batchName = batchName;
-	}
-
-	public Date getBatchStartDate() {
-		return batchStartDate;
-	}
-
-	public void setBatchStartDate(Date batchStartDate) {
-		this.batchStartDate = batchStartDate;
 	}
 
 }
