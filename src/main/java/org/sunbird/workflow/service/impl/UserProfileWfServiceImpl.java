@@ -106,11 +106,12 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 				failedCase(wfRequest);
 				return;
 			}
-			if (validateJsonAgainstSchema(updateRequest)) {
+			//This field is updated via approval
+			/*if (validateJsonAgainstSchema(updateRequest)) {
 				updateRequest.put(Constants.VERIFIED_KARMAYOGI, true);
 			} else {
 				updateRequest.put(Constants.VERIFIED_KARMAYOGI, false);
-			}
+			}*/
 			Map<String, Object> updateUserApiResp = requestServiceImpl
 					.fetchResultUsingPatch(configuration.getLmsServiceHost() + configuration.getUserProfileUpdateEndPoint(), getUpdateRequest(wfRequest, updateRequest), getHeaders());
 			if (null != updateUserApiResp && !Constants.OK.equals(updateUserApiResp.get(Constants.RESPONSE_CODE))) {
@@ -139,16 +140,23 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 				} else if (updatedProfileElementObj instanceof HashMap) {
 					Map<String, Object> existingProfileElementList = mapper.convertValue(updatedProfileElementObj, Map.class);
 					updatedProfileElement.putAll(existingProfileElementList);
+				} else if (updatedProfileElementObj instanceof Boolean) {
+					Map<String,Object> toValueMap = (Map<String, Object>) wfRequestParamObj.get(Constants.TO_VALUE);
+					existingProfileDetail.put((String) wfRequestParamObj.get(Constants.FIELD_KEY), (Boolean) toValueMap.get(Constants.VERIFIED_KARMAYOGI));
 				} else if (null == updatedProfileElementObj) {
-					List<Map<String, Object>> detailsList = new ArrayList<>();
-					Map<String, Object> detailsMap = new HashMap<>();
-					detailsMap = (Map<String, Object>) wfRequestParamObj.get("toValue");
-					detailsList.add(detailsMap);
-					existingProfileDetail.put((String) wfRequestParamObj.get("fieldKey"), detailsList);
-				}
-				else {
-					logger.error("profile element to be updated is neither arraylist nor hashmap");
-					return null;
+					if (Constants.VERIFIED_KARMAYOGI.equalsIgnoreCase((String) wfRequestParamObj.get(Constants.FIELD_KEY))) {
+						Map<String,Object> toValueMap = (Map<String, Object>) wfRequestParamObj.get(Constants.TO_VALUE);
+						existingProfileDetail.put((String) wfRequestParamObj.get(Constants.FIELD_KEY), (Boolean) toValueMap.get(Constants.VERIFIED_KARMAYOGI));
+					} else if (Constants.PROFESSIONAL_DETAILS.equalsIgnoreCase((String) wfRequestParamObj.get(Constants.FIELD_KEY))) {
+						List<Map<String, Object>> detailsList = new ArrayList<>();
+						Map<String, Object> detailsMap = new HashMap<>();
+						detailsMap = (Map<String, Object>) wfRequestParamObj.get(Constants.TO_VALUE);
+						detailsList.add(detailsMap);
+						existingProfileDetail.put((String) wfRequestParamObj.get(Constants.FIELD_KEY), detailsList);
+					} else {
+						logger.error("profile element to be updated is neither arraylist nor hashmap");
+						return null;
+					}
 				}
 				Map<String, Object> objectMap = (Map<String, Object>) wfRequestParamObj.get(Constants.TO_VALUE);
 				for (Map.Entry entry : objectMap.entrySet())

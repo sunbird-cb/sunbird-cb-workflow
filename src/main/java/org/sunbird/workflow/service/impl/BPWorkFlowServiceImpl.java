@@ -11,12 +11,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,16 +101,23 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
             return response;
         }
+        WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
+        wfNotification.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
+        wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
         Response response = saveEnrollUserIntoWfStatus(rootOrg, org, wfRequest);
         wfRequest.setServiceName(Constants.BLENDED_PROGRAM_SERVICE_NAME);
-        producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
+        producer.push(configuration.getWorkflowApplicationTopic(), wfNotification);
         return response;
     }
 
     @Override
     public Response updateBPWorkFlow(String rootOrg, String org, WfRequest wfRequest,String userId,String role) {
         Response response = new Response();
-        String validationError = validateBatchUserRequestAccess(wfRequest);
+        Map<String, Object> batchDetailsMap = new HashMap<>();
+        WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
+        String validationError = validateBatchUserRequestAccess(wfRequest, batchDetailsMap);
+        wfNotification.setBatchName((String) batchDetailsMap.get(Constants.BATCH_NAME));
+        wfNotification.setBatchStartDate((Date) batchDetailsMap.get(Constants.BATCH_START_DATE));
         if (Constants.BATCH_START_DATE_ERROR.equals(validationError)) {
             response.put(Constants.ERROR_MESSAGE, configuration.getBatchInProgressMessage());
             response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
@@ -200,7 +210,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 Constants.KEYSPACE_SUNBIRD_COURSES,
                 Constants.TABLE_COURSE_BATCH,
                 propertyMap,
-                Arrays.asList(Constants.BATCH_ATTRIBUTES, Constants.ENROLMENT_END_DATE, Constants.START_DATE));
+                Arrays.asList(Constants.BATCH_ATTRIBUTES, Constants.ENROLMENT_END_DATE, Constants.START_DATE, Constants.NAME, Constants.DESCRIPTION));
         if (CollectionUtils.isNotEmpty(batchAttributesDetails)) {
             Map<String, Object> courseBatch = (Map<String, Object>) batchAttributesDetails.get(0);
             if (courseBatch.containsKey(Constants.BATCH_ATTRIBUTES)) {
@@ -221,10 +231,15 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                     Date batchStartDate = courseBatch.containsKey(Constants.START_DATE)
                             ? (Date) courseBatch.get(Constants.START_DATE)
                             : null;
+                    String batchName = batchAttributes != null
+                            && courseBatch.containsKey(Constants.NAME)
+                            ? (String) courseBatch.get(Constants.NAME)
+                            : "";
                     Map<String, Object> result = new HashMap<>();
                     result.put(Constants.CURRENT_BATCH_SIZE, currentBatchSize);
                     result.put(Constants.ENROLMENT_END_DATE, enrollmentEndDate);
                     result.put(Constants.START_DATE, batchStartDate);
+                    result.put(Constants.BATCH_NAME, batchName);
                     return result;
                 } catch (Exception e) {
                     logger.error(String.format("Failed to retrieve course batch details. CourseId: %s, BatchId: %s",
@@ -322,12 +337,15 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
     }
 
 
-    private String validateBatchUserRequestAccess(WfRequest wfRequest) {
+    private String validateBatchUserRequestAccess(WfRequest wfRequest, Map<String, Object> batchDetailsMap) {
+        Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(),
+                wfRequest.getCourseId());
+        batchDetailsMap.put(Constants.BATCH_START_DATE, courseBatchDetails.get(Constants.START_DATE));
+        batchDetailsMap.put(Constants.COURSE_NAME, courseBatchDetails.get(Constants.COURSE_NAME));
+        batchDetailsMap.put(Constants.BATCH_NAME, courseBatchDetails.get(Constants.BATCH_NAME));
         boolean nonEnrolmentState = configuration.getBpBatchFullValidationExcludeStates().contains(wfRequest.getAction());
         if(nonEnrolmentState)
             return "";
-        Map<String, Object> courseBatchDetails = getCurrentBatchAttributes(wfRequest.getApplicationId(),
-                wfRequest.getCourseId());
         boolean batchStartDateValid = validateBatchStartDate(courseBatchDetails);
         if(!batchStartDateValid)
             return Constants.BATCH_START_DATE_ERROR;
@@ -497,6 +515,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 response.put(Constants.MESSAGE, "Not allowed to enroll the user to the Blended Program");
                 response.put(Constants.STATUS, HttpStatus.OK);
             } else {
+                WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
+                wfNotification.setBatchName((String) courseBatchDetails.get(Constants.NAME));
+                wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.BATCH_START_DATE));
                 response = saveAdminEnrollUserIntoWfStatus(rootOrg, org, wfRequest);
                // producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
                 wfRequest.setAction(Constants.INITIATE);
@@ -567,7 +588,10 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             response.put(Constants.ERROR_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR);
         } else if (approvedLearners.size() == 1)
             wfRequest.setWfId(approvedLearners.get(0).getWfId());
-        response = workflowService.workflowTransition(rootOrg, org, wfRequest,userId,role);
+        WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
+        wfNotification.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
+        wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.BATCH_START_DATE));
+        response = workflowService.workflowTransition(rootOrg, org, wfNotification, userId,role);
 
         response.put(Constants.STATUS, HttpStatus.OK);
         return response;
@@ -996,7 +1020,25 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         } catch (IOException e) {
             throw new ApplicationException(Constants.WORKFLOW_PARSING_ERROR_MESSAGE, e);
         }
-
-
     }
+
+    private WfNotification getWorkFlowNotificationRequest(WfRequest wfRequest) {
+        WfNotification wfNotification = new WfNotification();
+        wfNotification.setState(wfRequest.getState());
+        wfNotification.setAction(wfRequest.getAction());
+        wfNotification.setDeptName(wfRequest.getDeptName());
+        wfNotification.setComment(wfRequest.getComment());
+        wfNotification.setWfId(wfRequest.getWfId());
+        wfNotification.setServiceName(wfRequest.getServiceName());
+        wfNotification.setActorUserId(wfNotification.getActorUserId());
+        wfNotification.setCourseId(wfRequest.getCourseId());
+        wfNotification.setUpdateFieldValues(wfRequest.getUpdateFieldValues());
+        wfNotification.setRootOrgId(wfRequest.getRootOrgId());
+        wfNotification.setUserId(wfRequest.getUserId());
+        wfNotification.setApplicationId(wfRequest.getApplicationId());
+
+        return wfNotification;
+    }
+
+
 }

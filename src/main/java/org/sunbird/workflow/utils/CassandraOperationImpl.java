@@ -89,4 +89,21 @@ public class CassandraOperationImpl implements CassandraOperation {
 		}
 		return selectQuery;
 	}
+
+	public void insertRecord(String keyspaceName, String tableName, Map<String, Object> request) {
+		String query = CassandraUtil.getPreparedStatement(keyspaceName, tableName, request);
+		try {
+			PreparedStatement statement = connectionManager.getSession(keyspaceName).prepare(query);
+			BoundStatement boundStatement = new BoundStatement(statement);
+			Iterator<Object> iterator = request.values().iterator();
+			Object[] array = new Object[request.keySet().size()];
+			int i = 0;
+			while (iterator.hasNext()) {
+				array[i++] = iterator.next();
+			}
+			connectionManager.getSession(keyspaceName).execute(boundStatement.bind(array));
+		} catch (Exception e) {
+			String.format("Exception occurred while inserting record to %s %s", tableName, e.getMessage());
+		}
+	}
 }

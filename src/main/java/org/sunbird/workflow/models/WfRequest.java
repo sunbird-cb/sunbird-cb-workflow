@@ -1,5 +1,6 @@
 package org.sunbird.workflow.models;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class WfRequest {
 	private String deptName;
 
 	private String rootOrgId;
+
 	private String courseId;
 
 	public String getState() {
@@ -123,4 +125,5 @@ public class WfRequest {
 	public void setCourseId(String courseId) {
 		this.courseId = courseId;
 	}
+
 }
