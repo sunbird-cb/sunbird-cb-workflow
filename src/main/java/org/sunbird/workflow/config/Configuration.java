@@ -164,6 +164,9 @@ public class Configuration {
     @Value("${blended.program.batch.in.progress.message}")
     private String batchInProgressMessage;
 
+    @Value("${domain.validation.regex}")
+    private String domainValidationRegex;
+
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
     }
@@ -597,4 +600,11 @@ public class Configuration {
         this.batchInProgressMessage = batchInProgressMessage;
     }
 
+    public String getDomainValidationRegex() {
+        return domainValidationRegex;
+    }
+
+    public void setDomainValidationRegex(String domainValidationRegex) {
+        this.domainValidationRegex = domainValidationRegex;
+    }
 }
