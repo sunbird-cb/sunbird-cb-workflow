@@ -70,10 +70,7 @@ public class DomainWhiteListWorkFlowServiceImpl implements DomainWhiteListWorkFl
                 response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
                 return response;
             }
-            domainValue = domainValue.replace("@", "");
-            toValue.put("domain", domainValue);
-            updatedFieldValue.put("toValue", toValue);
-            wfRequest.setUpdateFieldValues(Arrays.asList(updatedFieldValue));
+
             if (isApprovedDomains(domainValue)) {
                 response.put(Constants.MESSAGE, Constants.DOMAIN_NAME_APPROVED_ERROR_MSG);
                 response.put(Constants.STATUS, HttpStatus.OK);
