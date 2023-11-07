@@ -185,6 +185,9 @@ public class Configuration {
     @Value("${bp.nomination.request.mail.body}")
     private String nominationRequestMailBody;
 
+    @Value("${domain.validation.regex}")
+    private String domainValidationRegex;
+
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
     }
@@ -672,5 +675,12 @@ public class Configuration {
 
     public void setNominationRequestMailBody(String nominationRequestMailBody) {
         this.nominationRequestMailBody = nominationRequestMailBody;
+    }
+    public String getDomainValidationRegex() {
+        return domainValidationRegex;
+    }
+
+    public void setDomainValidationRegex(String domainValidationRegex) {
+        this.domainValidationRegex = domainValidationRegex;
     }
 }

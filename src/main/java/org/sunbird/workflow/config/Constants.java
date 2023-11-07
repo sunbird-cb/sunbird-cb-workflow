@@ -256,4 +256,6 @@ public class Constants {
 	public static final String CONTEXT_NAME = "contextName";
 	public static final String USER_REGISTRATION_PRE_APPROVED_DOMAIN = "userRegistrationPreApprovedDomain";
 	public static final String DOMAIN_NAME_REQUEST_EXIST_MSG = "Already a request is raised for domain";
+	public static final String DOMAIN_NAME_APPROVED_ERROR_MSG = "Domain is already approved";
+	public static final String DOMAIN_NOT_VALID_ERROR_MSG = "Not a valid domain";
 }
