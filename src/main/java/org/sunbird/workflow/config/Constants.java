@@ -258,4 +258,11 @@ public class Constants {
 	public static final String DOMAIN_NAME_REQUEST_EXIST_MSG = "Already a request is raised for domain";
 	public static final String DOMAIN_NAME_APPROVED_ERROR_MSG = "Domain is already approved";
 	public static final String DOMAIN_NOT_VALID_ERROR_MSG = "Not a valid domain";
+	public static final String MSG_CODE = "msgCode";
+	public static final String DOMAIN_REQUEST_ALREADY_RAISED = "DOMAIN_REQUEST_ALREADY_RAISED";
+	public static final String DOMAIN_APPROVED = "DOMAIN_APPROVED";
+	public static final String DOMAIN_REQUEST_REJECTED = "DOMAIN_REQUEST_REJECTED";
+	public static final String DOMAIN_REQUEST_REJECTED_MSG = "Domain request is rejected by admin";
+	public static final String DOMAIN_REQUEST_ALREADY_PRESENT = "DOMAIN_REQUEST_ALREADY_PRESENT";
+	public static final String DOMAIN_REQUEST_CREATED = "DOMAIN_REQUEST_CREATED";
 }
