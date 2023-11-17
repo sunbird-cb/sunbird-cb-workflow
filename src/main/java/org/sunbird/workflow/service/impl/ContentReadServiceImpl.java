@@ -8,6 +8,7 @@ import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.service.ContentReadService;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +34,7 @@ public class ContentReadServiceImpl implements ContentReadService {
     public String getServiceNameDetails(String courseId) {
         try {
             StringBuilder builder = new StringBuilder(configuration.getContentServiceHost());
-            builder.append(configuration.getContentReadSearchEndPoint());
+            builder.append(configuration.getContentReadEndPoint());
             builder.append(courseId);
             builder.append("?" + Constants.FIELDS + "=");
             builder.append(Constants.MULTILEVEL_BP_ENROLL_FIELDS);
@@ -43,6 +44,29 @@ public class ContentReadServiceImpl implements ContentReadService {
                 if (map.get(Constants.CONTENT) != null) {
                     Map<String, Object> responseObj = (Map<String, Object>) map.get(Constants.CONTENT);
                     return (String) responseObj.get("wfApprovalType");
+                }
+            }
+        } catch (Exception e) {
+            logger.info("There is a error occured while searching for the Org details : " + e);
+        }
+        return null;
+    }
+
+    public String getRootOrgId(String courseId) {
+        try {
+            StringBuilder builder = new StringBuilder(configuration.getContentServiceHost());
+            builder.append(configuration.getContentReadEndPoint());
+            builder.append(courseId);
+            builder.append("?" + Constants.FIELDS + "=");
+            builder.append(Constants.CREATED_FOR);
+            Map<String, Object> response = (Map<String, Object>) requestServiceImpl.fetchResultUsingGet(builder);
+            if (response != null && Constants.OK.equalsIgnoreCase((String) response.get(Constants.RESPONSE_CODE))) {
+                Map<String, Object> map = (Map<String, Object>) response.get(Constants.RESULT);
+                if (map.get(Constants.CONTENT) != null) {
+                    Map<String, Object> responseObj = (Map<String, Object>) map.get(Constants.CONTENT);
+
+                    List<String> id= (List<String>)responseObj.get("createdFor");
+                    return id.get(0);
                 }
             }
         } catch (Exception e) {

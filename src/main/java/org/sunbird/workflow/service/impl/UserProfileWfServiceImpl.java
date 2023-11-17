@@ -252,6 +252,7 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 								record.put(Constants.UUID, content.get(Constants.USER_ID));
 								record.put(Constants.FIRST_NAME, personalDetails.get(Constants.FIRSTNAME));
 								record.put(Constants.EMAIL, personalDetails.get(Constants.PRIMARY_EMAIL));
+								record.put(Constants.ROOT_ORG_ID,content.get(Constants.ROOT_ORG_ID));
 							}
 							Map<String, Object> additionalProperties = (Map<String, Object>) profileDetails.get(Constants.ADDITIONAL_PROPERTIES);
 							if (!CollectionUtils.isEmpty(additionalProperties)) {
