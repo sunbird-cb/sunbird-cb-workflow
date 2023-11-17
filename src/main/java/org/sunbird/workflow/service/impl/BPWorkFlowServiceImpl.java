@@ -514,6 +514,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             } else {
                 wfRequest.setAction(Constants.INITIATE);
                 WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
+                wfNotification.setNominatedByMdo(true);
                 wfNotification.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
                 wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
                 response = saveAdminEnrollUserIntoWfStatus(rootOrg, org, wfNotification);
@@ -533,32 +534,33 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
      *
      * @param rootOrg   - Root Organization Name ex: "igot"
      * @param org       - Organization name ex: "dopt"
-     * @param wfRequest - WorkFlow request which needs to be processed.
+     * @param wfNotification - WorkFlow request which needs to be processed.
      * @return - Return the response of success/failure after processing the request.
      */
-    private Response saveAdminEnrollUserIntoWfStatus(String rootOrg, String org, WfRequest wfRequest) {
-        validateWfRequest(wfRequest);
+    private Response saveAdminEnrollUserIntoWfStatus(String rootOrg, String org, WfNotification wfNotification) {
+        validateWfRequest(wfNotification);
         WfStatusEntity applicationStatus = new WfStatusEntity();
         String wfId = UUID.randomUUID().toString();
         applicationStatus.setWfId(wfId);
-        applicationStatus.setApplicationId(wfRequest.getApplicationId());
-        applicationStatus.setUserId(wfRequest.getUserId());
+        applicationStatus.setApplicationId(wfNotification.getApplicationId());
+        applicationStatus.setUserId(wfNotification.getUserId());
         applicationStatus.setInWorkflow(true);
-        applicationStatus.setServiceName(wfRequest.getServiceName());
-        applicationStatus.setActorUUID(wfRequest.getActorUserId());
+        applicationStatus.setServiceName(wfNotification.getServiceName());
+        applicationStatus.setActorUUID(wfNotification.getActorUserId());
         applicationStatus.setCreatedOn(new Date());
         applicationStatus.setCurrentStatus(Constants.ADMIN_ENROLL_IS_IN_PROGRESS);
         applicationStatus.setLastUpdatedOn(new Date());
         applicationStatus.setOrg(org);
         applicationStatus.setRootOrg(rootOrg);
+        applicationStatus.setAdditionalProperties("isNominatedByMdo:"+wfNotification.isNominatedByMdo());
         try {
-            applicationStatus.setUpdateFieldValues(mapper.writeValueAsString(wfRequest.getUpdateFieldValues()));
+            applicationStatus.setUpdateFieldValues(mapper.writeValueAsString(wfNotification.getUpdateFieldValues()));
         } catch (JsonProcessingException e) {
             logger.error(String.valueOf(e));
         }
-        applicationStatus.setDeptName(wfRequest.getDeptName());
-        applicationStatus.setComment(wfRequest.getComment());
-        wfRequest.setWfId(wfId);
+        applicationStatus.setDeptName(wfNotification.getDeptName());
+        applicationStatus.setComment(wfNotification.getComment());
+        wfNotification.setWfId(wfId);
         wfStatusRepo.save(applicationStatus);
 
         Response response = new Response();
