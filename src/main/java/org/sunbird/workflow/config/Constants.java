@@ -214,6 +214,7 @@ public class Constants {
 	public static final String REMOVED = "REMOVED";
 
 	public static final String MULTILEVEL_BP_ENROLL_FIELDS="primaryCategory,wfApprovalType";
+	public static final String CREATED_FOR= "createdFor";
 	public static final String BATCH_IS_FULL="BATCH_IS_FULL";
 	public static final String ENROLL_IS_IN_PROGRESS="ENROLL_IS_IN_PROGRESS";
 	public static final String ONE_STEP_MDO_APPROVAL="oneStepMDOApproval";

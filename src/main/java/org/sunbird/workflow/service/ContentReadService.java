@@ -10,4 +10,5 @@ public interface ContentReadService {
      * @return - serviceName which is used to fetch the wf enroll configuration json.
      */
     public String getServiceNameDetails(String courseId);
+    public String getRootOrgId(String courseId);
 }

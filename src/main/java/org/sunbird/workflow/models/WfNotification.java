@@ -9,6 +9,11 @@ public class WfNotification extends WfRequest{
     private String batchName;
 
     private Date batchStartDate;
+    private boolean isNominatedByMdo;
+
+    public boolean isNominatedByMdo() { return isNominatedByMdo; }
+
+    public void setNominatedByMdo(boolean nominatedByMdo) { isNominatedByMdo = nominatedByMdo; }
 
     public String getCourseName() {
         return courseName;
