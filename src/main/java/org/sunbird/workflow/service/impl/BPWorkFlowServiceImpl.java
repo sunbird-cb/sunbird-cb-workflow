@@ -702,7 +702,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 propertyMap,
                 Arrays.asList(Constants.BATCH_ID, Constants.USER_ID, Constants.COURSE_ID, Constants.ACTIVE)
         );
-        return allEnrollmentDetails.stream().filter( e -> (boolean)e.get(Constants.ACTIVE)).collect(Collectors.toList());
+        return allEnrollmentDetails.stream()
+                .filter(e -> e != null && e.get(Constants.ACTIVE) != null && (boolean) e.get(Constants.ACTIVE))
+                .collect(Collectors.toList());
     }
 
     /**
