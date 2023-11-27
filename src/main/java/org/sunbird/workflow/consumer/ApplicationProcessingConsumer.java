@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.stereotype.Service;
-import org.sunbird.workflow.models.WfNotification;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.impl.ApplicationProcessingServiceImpl;
 import org.sunbird.workflow.service.impl.WorkflowAuditProcessingServiceImpl;
@@ -34,7 +33,7 @@ public class ApplicationProcessingConsumer {
         WfRequest wfRequest = null;
         try {
             String message = String.valueOf(data.value());
-            wfRequest = mapper.readValue(message, WfNotification.class);
+            wfRequest = mapper.readValue(message, WfRequest.class);
             logger.info("Recevied data in user profile consumer : {}", mapper.writeValueAsString(wfRequest));
         } catch (Exception ex) {
             logger.error("Error while deserialization the object value", ex);

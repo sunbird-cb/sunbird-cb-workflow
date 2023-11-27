@@ -99,11 +99,10 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             return response;
         }
         wfRequest.setServiceName(Constants.BLENDED_PROGRAM_SERVICE_NAME);
-        WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
-        wfNotification.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
-        wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
-        Response response = saveEnrollUserIntoWfStatus(rootOrg, org, wfNotification);
-        producer.push(configuration.getWorkflowApplicationTopic(), wfNotification);
+        wfRequest.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
+        wfRequest.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
+        Response response = saveEnrollUserIntoWfStatus(rootOrg, org, wfRequest);
+        producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
         return response;
     }
 
@@ -112,10 +111,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         logger.info("Workflow request Body received: " + wfRequest);
         Response response = new Response();
         Map<String, Object> batchDetailsMap = new HashMap<>();
-        WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
         String validationError = validateBatchUserRequestAccess(wfRequest, batchDetailsMap);
-        wfNotification.setBatchName((String) batchDetailsMap.get(Constants.BATCH_NAME));
-        wfNotification.setBatchStartDate((Date) batchDetailsMap.get(Constants.START_DATE));
+        wfRequest.setBatchName((String) batchDetailsMap.get(Constants.BATCH_NAME));
+        wfRequest.setBatchStartDate((Date) batchDetailsMap.get(Constants.START_DATE));
         if (Constants.BATCH_START_DATE_ERROR.equals(validationError)) {
             response.put(Constants.ERROR_MESSAGE, configuration.getBatchInProgressMessage());
             response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
@@ -126,15 +124,15 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
             return response;
         }
-        if (scheduleConflictCheck(wfNotification)) {
-            wfNotification.setAction(Constants.REJECT);
-            wfNotification.setComment(configuration.getConflictRejectReason());
-            workflowService.workflowTransition(rootOrg, org, wfNotification);
+        if (scheduleConflictCheck(wfRequest)) {
+            wfRequest.setAction(Constants.REJECT);
+            wfRequest.setComment(configuration.getConflictRejectReason());
+            workflowService.workflowTransition(rootOrg, org, wfRequest);
             response.put(Constants.ERROR_MESSAGE, configuration.getConflictRejectReason());
             response.put(Constants.STATUS, HttpStatus.BAD_REQUEST);
             return response;
         }
-        return workflowService.workflowTransition(rootOrg, org, wfNotification, userId,role);
+        return workflowService.workflowTransition(rootOrg, org, wfRequest, userId,role);
     }
 
     @Override
@@ -513,12 +511,12 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
                 response.put(Constants.STATUS, HttpStatus.OK);
             } else {
                 wfRequest.setAction(Constants.INITIATE);
-                WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
-                wfNotification.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
-                wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
-                response = saveAdminEnrollUserIntoWfStatus(rootOrg, org, wfNotification);
+                wfRequest.setNominatedByMdo(true);
+                wfRequest.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
+                wfRequest.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
+                response = saveAdminEnrollUserIntoWfStatus(rootOrg, org, wfRequest);
                // producer.push(configuration.getWorkFlowNotificationTopic(), wfRequest);
-                producer.push(configuration.getWorkflowApplicationTopic(), wfNotification);
+                producer.push(configuration.getWorkflowApplicationTopic(), wfRequest);
             }
         } else {
             response = new Response();
@@ -551,6 +549,7 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         applicationStatus.setLastUpdatedOn(new Date());
         applicationStatus.setOrg(org);
         applicationStatus.setRootOrg(rootOrg);
+        applicationStatus.setAdditionalProperties("isNominatedByMdo:"+wfRequest.isNominatedByMdo());
         try {
             applicationStatus.setUpdateFieldValues(mapper.writeValueAsString(wfRequest.getUpdateFieldValues()));
         } catch (JsonProcessingException e) {
@@ -585,10 +584,9 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
             response.put(Constants.ERROR_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR);
         } else if (approvedLearners.size() == 1)
             wfRequest.setWfId(approvedLearners.get(0).getWfId());
-        WfNotification wfNotification = getWorkFlowNotificationRequest(wfRequest);
-        wfNotification.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
-        wfNotification.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
-        response = workflowService.workflowTransition(rootOrg, org, wfNotification, userId,role);
+        wfRequest.setBatchName((String) courseBatchDetails.get(Constants.BATCH_NAME));
+        wfRequest.setBatchStartDate((Date) courseBatchDetails.get(Constants.START_DATE));
+        response = workflowService.workflowTransition(rootOrg, org, wfRequest, userId,role);
         response.put(Constants.STATUS, HttpStatus.OK);
 
         return response;
@@ -1021,22 +1019,4 @@ public class BPWorkFlowServiceImpl implements BPWorkFlowService {
         }
     }
 
-
-    private WfNotification getWorkFlowNotificationRequest(WfRequest wfRequest) {
-        WfNotification wfNotification = new WfNotification();
-        wfNotification.setState(wfRequest.getState());
-        wfNotification.setAction(wfRequest.getAction());
-        wfNotification.setDeptName(wfRequest.getDeptName());
-        wfNotification.setComment(wfRequest.getComment());
-        wfNotification.setWfId(wfRequest.getWfId());
-        wfNotification.setServiceName(wfRequest.getServiceName());
-        wfNotification.setActorUserId(wfRequest.getActorUserId());
-        wfNotification.setCourseId(wfRequest.getCourseId());
-        wfNotification.setUpdateFieldValues(wfRequest.getUpdateFieldValues());
-        wfNotification.setRootOrgId(wfRequest.getRootOrgId());
-        wfNotification.setUserId(wfRequest.getUserId());
-        wfNotification.setApplicationId(wfRequest.getApplicationId());
-
-        return wfNotification;
-    }
 }

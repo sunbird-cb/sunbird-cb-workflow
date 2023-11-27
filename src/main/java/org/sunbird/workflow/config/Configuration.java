@@ -143,8 +143,8 @@ public class Configuration {
     @Value("${content.service.host}")
     private String contentServiceHost;
 
-    @Value("${content.read.search}")
-    private String contentReadSearchEndPoint;
+    @Value("${content.read}")
+    private String contentReadEndPoint;
 
     @Value("${ms.system.settings.multilevelBPEnroll.path}")
     private String multilevelBPEnrolEndPoint;
@@ -587,12 +587,12 @@ public class Configuration {
         this.contentServiceHost = contentServiceHost;
     }
 
-    public String getContentReadSearchEndPoint() {
-        return contentReadSearchEndPoint;
+    public String getContentReadEndPoint() {
+        return contentReadEndPoint;
     }
 
-    public void setContentReadSearchEndPoint(String contentReadSearchEndPoint) {
-        this.contentReadSearchEndPoint = contentReadSearchEndPoint;
+    public void setContentReadSearchEndPoint(String contentReadEndPoint) {
+        this.contentReadEndPoint = contentReadEndPoint;
     }
 
     public String getMultilevelBPEnrolEndPoint() {
