@@ -186,7 +186,7 @@ public class Configuration {
     private String nominationRequestMailBody;
 
     @Value("${domain.validation.regex}")
-    private String domainValidationRegex; //dev.hierarchy.keystore.keyspace
+    private String domainValidationRegex;
 
     @Value("${env.hierarchy.keystore.keyspace}")
     private String envHierarchyKeystoreKeyspaceName;
