@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.impl.NotificationServiceImpl;
@@ -32,6 +33,9 @@ public class NotificationConsumer {
 
 	@Autowired
 	private CassandraOperation cassandraOperation;
+
+	@Autowired
+	private Configuration configuration;
 
 	@KafkaListener(groupId = "workflowNotificationTopic-consumer", topics = "${kafka.topics.workflow.notification}")
 	public void processMessage(ConsumerRecord<String, String> data) {
@@ -76,7 +80,7 @@ public class NotificationConsumer {
 		Map<String, Object> propertiesMap = new HashMap<>();
 		Map<String, Object> courseDetails = new HashMap<>();
 		propertiesMap.put(Constants.IDENTIFIER, courseId);
-		List<Map<String, Object>> coursesDataList = cassandraOperation.getRecordsByProperties(Constants.DEV_HIERARCHY_STORE,
+		List<Map<String, Object>> coursesDataList = cassandraOperation.getRecordsByProperties(configuration.getEnvHierarchyKeystoreKeyspaceName(),
 				Constants.CONTENT_HIERARCHY,
 				propertiesMap,
 				Arrays.asList(Constants.IDENTIFIER, Constants.HIERARCHY));

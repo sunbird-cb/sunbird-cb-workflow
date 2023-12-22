@@ -186,7 +186,10 @@ public class Configuration {
     private String nominationRequestMailBody;
 
     @Value("${domain.validation.regex}")
-    private String domainValidationRegex;
+    private String domainValidationRegex; //dev.hierarchy.keystore.keyspace
+
+    @Value("${env.hierarchy.keystore.keyspace}")
+    private String envHierarchyKeystoreKeyspaceName;
 
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
@@ -682,5 +685,13 @@ public class Configuration {
 
     public void setDomainValidationRegex(String domainValidationRegex) {
         this.domainValidationRegex = domainValidationRegex;
+    }
+
+    public String getEnvHierarchyKeystoreKeyspaceName() {
+        return envHierarchyKeystoreKeyspaceName;
+    }
+
+    public void setEnvHierarchyKeystoreKeyspaceName(String envHierarchyKeystoreKeyspaceName) {
+        this.envHierarchyKeystoreKeyspaceName = envHierarchyKeystoreKeyspaceName;
     }
 }
