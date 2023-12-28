@@ -204,6 +204,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			case Constants.DOMAIN_SERVICE_NAME:
 				wfApplicationSearchResponse = applicationSearchOnApplicationIdGroup(rootOrg, searchCriteria, isSearchEnabled);
 				response = getResponse(rootOrg, wfApplicationSearchResponse);
+				response.put(Constants.COUNT,wfApplicationSearchResponse.get(Constants.COUNT));
 				break;
 			case Constants.BLENDED_PROGRAM_SERVICE_NAME: {
 				if (searchCriteria.getApplicationStatus() != null) {
@@ -567,13 +568,15 @@ public class WorkflowServiceImpl implements Workflowservice {
 		Integer offset = configuration.getDefaultOffset();
 		if (criteria.getLimit() == null && criteria.getOffset() == null)
 			limit = configuration.getMaxLimit();
-		if (criteria.getLimit() != null && criteria.getLimit() <= configuration.getDefaultLimit())
-			limit = criteria.getLimit();
-		if (criteria.getLimit() != null && criteria.getLimit() > configuration.getDefaultLimit())
+		if (criteria.getLimit() == null && criteria.getOffset() != null)
 			limit = configuration.getDefaultLimit();
+		if (criteria.getLimit() != null && criteria.getLimit() <= configuration.getMaxLimit())
+			limit = criteria.getLimit();
+		if (criteria.getLimit() != null && criteria.getLimit() > configuration.getMaxLimit())
+			limit = configuration.getMaxLimit();
 		if (criteria.getOffset() != null)
 			offset = criteria.getOffset();
-		pageable = PageRequest.of(offset, limit + offset);
+		pageable = PageRequest.of(offset, limit);
 		return pageable;
 	}
 
@@ -655,9 +658,12 @@ public class WorkflowServiceImpl implements Workflowservice {
 		Pageable pageable = getPageReqForApplicationSearch(criteria);
 		List<String> applicationIds = criteria.getApplicationIds();
 		Map<String, List<WfStatusEntity>> infos = null;
+		long totalRequestCount = 0;
 		if (CollectionUtils.isEmpty(applicationIds)) {
-			applicationIds = wfStatusRepo.getListOfDistinctApplicationUsingDept(rootOrg, criteria.getServiceName(),
+			Page<String> applicationIdsPage = wfStatusRepo.getListOfDistinctApplicationUsingDept(criteria.getServiceName(),
 					criteria.getApplicationStatus(), criteria.getDeptName(), pageable);
+			applicationIds = applicationIdsPage.getContent();
+			totalRequestCount = applicationIdsPage.getTotalElements();
 		}
 		List<WfStatusEntity> wfStatusEntities = null;
 		if (!StringUtils.isEmpty(criteria.getDeptName())) {
@@ -700,6 +706,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 		response.put(Constants.DATA, infos);
 		response.put(Constants.STATUS, HttpStatus.OK);
+		response.put(Constants.COUNT,totalRequestCount);
 		return response;
 	}
 
