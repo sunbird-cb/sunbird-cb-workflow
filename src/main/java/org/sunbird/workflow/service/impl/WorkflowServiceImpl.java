@@ -564,18 +564,20 @@ public class WorkflowServiceImpl implements Workflowservice {
 		if (criteria.isEmpty()) {
 			throw new BadRequestException(Constants.SEARCH_CRITERIA_VALIDATION);
 		}
-		Integer limit = configuration.getDefaultLimit();
-		Integer offset = configuration.getDefaultOffset();
-		if (criteria.getLimit() == null && criteria.getOffset() == null)
-			limit = configuration.getMaxLimit();
-		if (criteria.getLimit() == null && criteria.getOffset() != null)
+
+		Integer limit = criteria.getLimit();
+		Integer offset = criteria.getOffset();
+		if (limit == null) {
 			limit = configuration.getDefaultLimit();
-		if (criteria.getLimit() != null && criteria.getLimit() <= configuration.getMaxLimit())
-			limit = criteria.getLimit();
-		if (criteria.getLimit() != null && criteria.getLimit() > configuration.getMaxLimit())
+		} else {
+			if (limit > configuration.getMaxLimit()) {
+				limit = configuration.getMaxLimit();
+			}
+		}
+		if (offset == null) {
+			offset = configuration.getDefaultOffset();
 			limit = configuration.getMaxLimit();
-		if (criteria.getOffset() != null)
-			offset = criteria.getOffset();
+		}
 		pageable = PageRequest.of(offset, limit);
 		return pageable;
 	}
