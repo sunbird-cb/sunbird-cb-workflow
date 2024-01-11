@@ -11,6 +11,8 @@ import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.Workflowservice;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/v1/workflow")
 public class WorkFlowController {
@@ -85,6 +87,12 @@ public class WorkFlowController {
 	public ResponseEntity<Response> getUserWFApplicationFields(@RequestHeader String rootOrg, @RequestHeader String org,
 			@RequestHeader String wid, @RequestBody SearchCriteria searchCriteria) {
 		Response response = workflowService.getUserWFApplicationFields(rootOrg, org, wid, searchCriteria);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@PostMapping(path = "/update/pendingRequestsToNewMDO", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> updatePendingRequestsToNewMDO(@RequestBody Map<String, Object> request){
+		Response response = workflowService.updatePendingRequestsToNewMDO(request);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

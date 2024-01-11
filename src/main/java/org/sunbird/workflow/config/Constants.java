@@ -266,4 +266,5 @@ public class Constants {
 	public static final String DOMAIN_REQUEST_REJECTED_MSG = "Domain request is rejected by admin";
 	public static final String DOMAIN_REQUEST_ALREADY_PRESENT = "DOMAIN_REQUEST_ALREADY_PRESENT";
 	public static final String DOMAIN_REQUEST_CREATED = "DOMAIN_REQUEST_CREATED";
+	public static final String SEND_FOR_APPROVAL = "SEND_FOR_APPROVAL";
 }

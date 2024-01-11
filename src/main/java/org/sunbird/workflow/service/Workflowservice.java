@@ -2,6 +2,8 @@ package org.sunbird.workflow.service;
 
 import org.sunbird.workflow.models.*;
 
+import java.util.Map;
+
 public interface Workflowservice {
 
     public Response workflowTransition(String rootOrg, String org, WfRequest wfRequest);
@@ -33,5 +35,7 @@ public interface Workflowservice {
     public Response statusCountOnApplicationId(SearchCriteria criteria);
 
     public Response appsPCSearchV2(String rootOrg, String org, SearchCriteriaV2 criteria);
+
+    public Response updatePendingRequestsToNewMDO(Map<String, Object> request);
 
     }
