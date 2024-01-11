@@ -856,4 +856,40 @@ public class WorkflowServiceImpl implements Workflowservice {
 		return response;
 	}
 
+	public Response updatePendingRequestsToNewMDO(Map<String, Object> request) {
+		Response response = new Response();
+		try {
+			Map<String, Object> requestBody = (Map<String, Object>) request.get(Constants.REQUEST);
+			String userId = (String) requestBody.get(Constants.USER_ID);
+			String newDeptName = (String) requestBody.get(Constants.DEPARTMENT_NAME);
+			String serviceName = Constants.PROFILE_SERVICE_NAME;
+			String currentStatus = Constants.SEND_FOR_APPROVAL;
+			if(requestBody.containsKey(Constants.FORCE_MIGRATION) && requestBody.get(Constants.FORCE_MIGRATION).equals(true)){
+				List<WfStatusEntity> wfStatusEntities = wfStatusRepo.getPendingRequests(userId,serviceName,currentStatus);
+				for(WfStatusEntity wfStatusEntity: wfStatusEntities){
+					List<Map<String,Object>> updatedFieldValues = mapper.readValue(wfStatusEntity.getUpdateFieldValues(), new TypeReference<List<Map<String,Object>>>() {
+					});
+					Map<String,Object> toValue = (Map<String, Object>) updatedFieldValues.get(0).get(Constants.TO_VALUE);
+					if (toValue.containsKey(Constants.NAME)){
+						wfStatusEntity.setCurrentStatus(Constants.REJECTED);
+						wfStatusEntity.setInWorkflow(false);
+						wfStatusRepo.save(wfStatusEntity);
+					}
+				}
+			}
+			Integer numOfUpdatedRecords = wfStatusRepo.updatePendingRequestsToNewMDO(userId, serviceName, currentStatus, newDeptName);
+			log.info(String.format("The number of records updated for user: %s is %d", userId, numOfUpdatedRecords));
+			response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+			response.put(Constants.STATUS, HttpStatus.OK);
+		} catch (Exception e) {
+			String errMsg = String.format("Exception occurred while updating pending approval requests. Exception: %s ", e.getMessage());
+			response.put(Constants.ERROR_MESSAGE, errMsg);
+			response.put(Constants.STATUS, HttpStatus.INTERNAL_SERVER_ERROR);
+			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			log.error(errMsg);
+			return response;
+		}
+		return response;
+	}
+
 }

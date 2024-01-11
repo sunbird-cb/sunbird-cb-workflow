@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
@@ -316,14 +317,20 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 				updatedDeptName = (String) toValueList.get(Constants.NAME);
 			}
 		}
-		if (Constants.PROFESSIONAL_DETAILS.equals(fieldKeyValue)) {
-			if (null != updatedDeptName) {
-				wfRequest.setDeptName(updatedDeptName);
-				Map<String, Object> response = (Map<String, Object>) migrateUser(wfRequest);
-				if (null != response && !Constants.OK.equals(response.get(Constants.RESPONSE_CODE))) {
-					logger.error("Migrate user failed" + ((Map<String, Object>) response.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
-					failedCase(wfRequest);
-				}
+		if (Constants.PROFESSIONAL_DETAILS.equals(fieldKeyValue) && !StringUtils.isEmpty(updatedDeptName)) {
+			wfRequest.setDeptName(updatedDeptName);
+			Map<String, Object> response = (Map<String, Object>) migrateUser(wfRequest);
+			if (null != response && !Constants.OK.equals(response.get(Constants.RESPONSE_CODE))) {
+				logger.error("Migrate user failed" + ((Map<String, Object>) response.get(Constants.PARAMS)).get(Constants.ERROR_MESSAGE));
+				failedCase(wfRequest);
+				return null;
+			} else {
+				Map<String, Object> request = new HashMap<>();
+				Map<String, Object> requestBody = new HashMap<>();
+				requestBody.put(Constants.USER_ID, wfRequest.getApplicationId());
+				requestBody.put(Constants.DEPARTMENT_NAME, updatedDeptName);
+				request.put(Constants.REQUEST, requestBody);
+				workflowService.updatePendingRequestsToNewMDO(request);
 			}
 		}
 		return updatedDeptName;
