@@ -29,6 +29,8 @@ import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.producer.Producer;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.Workflowservice;
+import org.sunbird.workflow.utils.AccessTokenValidator;
+import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
 
 import java.io.IOException;
@@ -60,6 +62,12 @@ public class WorkflowServiceImpl implements Workflowservice {
 
 	@Autowired
 	private Producer producer;
+
+	@Autowired
+	private CassandraOperation cassandraOperation;
+
+	@Autowired
+	AccessTokenValidator accessTokenValidator;
 
 	Logger log = LogManager.getLogger(WorkflowServiceImpl.class);
 
@@ -887,6 +895,55 @@ public class WorkflowServiceImpl implements Workflowservice {
 			response.put(Constants.STATUS, HttpStatus.INTERNAL_SERVER_ERROR);
 			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			log.error(errMsg);
+			return response;
+		}
+		return response;
+	}
+
+	public Response getBulkUpdateStatus(String userAuthToken) {
+		Response response = new Response();
+		try {
+			String userId = accessTokenValidator.fetchUserIdFromAccessToken(userAuthToken);
+			if (StringUtils.isEmpty(userId)) {
+				response.setResponseCode(HttpStatus.BAD_REQUEST);
+				response.put(Constants.ERROR_MESSAGE, "Invalid UserId in the request");
+				return response;
+			}
+			Map<String, Object> propertyMap = new HashMap<>();
+			propertyMap.put(Constants.USER_ID, userId);
+			List<Map<String, Object>> userDetails = cassandraOperation.getRecordsByProperties(
+					Constants.KEYSPACE_SUNBIRD, Constants.USER_TABLE, propertyMap, Arrays.asList(Constants.ROOT_ORG_ID));
+			String rootOrgId = null;
+			if (!userDetails.isEmpty()) {
+				rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);
+			} else {
+				log.error("Record not found in :" + Constants.USER_TABLE + Constants.DB_TABLE_NAME);
+				throw new ApplicationException("Record doesn't exist");
+			}
+			propertyMap.clear();
+			propertyMap.put(Constants.ROOT_ORG_ID, rootOrgId);
+			List<Map<String, Object>> bulkUploadDetails = cassandraOperation.getRecordsByProperties(
+					Constants.KEYSPACE_SUNBIRD,
+					Constants.USER_BULK_UPLOAD,
+					propertyMap,
+					new ArrayList<>());
+			List<Map<String, Object>> fileDetailsResponse = new ArrayList<>();
+			if (!CollectionUtils.isEmpty(bulkUploadDetails)) {
+				for (Map<String, Object> uploadedFileDetails : bulkUploadDetails) {
+					if ("Bulk Upload By MDO Admin".equalsIgnoreCase((String) uploadedFileDetails.get(Constants.COMMENT))) {
+						fileDetailsResponse.add(uploadedFileDetails);
+					}
+				}
+				response.put(Constants.RESPONSE, fileDetailsResponse);
+			} else {
+				log.error("Record not found in : " + Constants.USER_BULK_UPLOAD + Constants.DB_TABLE_NAME);
+				throw new ApplicationException("Record doesn't exist");
+			}
+		} catch (Exception e) {
+			log.error("An Exception Occurred", e);
+			response.put(Constants.ERROR_MESSAGE, e.getMessage());
+			response.put(Constants.STATUS, HttpStatus.INTERNAL_SERVER_ERROR);
+			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			return response;
 		}
 		return response;
