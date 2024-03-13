@@ -40,7 +40,7 @@ public interface Workflowservice {
 
     public Response updatePendingRequestsToNewMDO(Map<String, Object> request);
 
-    public Response workflowBulkUpdateTransition(String rootOrg, String org, MultipartFile file) throws IOException;
+    public Response workflowBulkUpdateTransition(String userAuthToken, MultipartFile file);
 
     public Response getBulkUpdateStatus(String userAuthToken);
 

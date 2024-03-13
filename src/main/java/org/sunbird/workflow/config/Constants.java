@@ -297,5 +297,6 @@ public class Constants {
 	public static final String USER_TABLE = "user";
 	public static final String USER_ROOT_ORG_ID = "rootorgid";
 	public static final String DB_TABLE_NAME = "table";
+	public static final String BULK_UPLOAD_COMMENT = "Bulk Upload By MDO Admin";
 
 }

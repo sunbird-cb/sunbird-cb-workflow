@@ -99,9 +99,9 @@ public class WorkFlowController {
 	}
 
 	@PostMapping("/admin/bulkupdate/transition")
-	public ResponseEntity<Response> wfBulkUpdateTransition(@RequestHeader String rootOrg, @RequestHeader String org,
-														   @RequestParam("file")MultipartFile file) throws IOException {
-		Response response = workflowService.workflowBulkUpdateTransition(rootOrg, org, file);
+	public ResponseEntity<Response> wfBulkUpdateTransition(@RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken,
+														   @RequestParam("file")MultipartFile file) {
+		Response response = workflowService.workflowBulkUpdateTransition(userAuthToken, file);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	@GetMapping(path = "/admin/bulkupdate/getstatus", produces = MediaType.APPLICATION_JSON_VALUE)

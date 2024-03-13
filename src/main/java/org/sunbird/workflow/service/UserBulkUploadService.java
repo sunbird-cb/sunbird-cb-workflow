@@ -71,7 +71,6 @@ public class UserBulkUploadService {
         long startTime = System.currentTimeMillis();
         try {
             HashMap<String, String> inputDataMap = objectMapper.readValue(inputData, new TypeReference<HashMap<String, String>>() {});
-            //List<String> errList = validateReceivedKafkaMessage(inputDataMap);
             this.processBulkUpload(inputDataMap);
             if (null != inputData) {
                 this.updateUserBulkUploadStatus(inputDataMap.get(Constants.ROOT_ORG_ID),
@@ -79,7 +78,7 @@ public class UserBulkUploadService {
                         0,
                         0,
                         0);
-                //storageService.downloadFile(inputDataMap.get(Constants.FILE_NAME));
+                storageService.downloadFile(inputDataMap.get(Constants.FILE_NAME));
                 this.processBulkUpload(inputDataMap);
             } else {
                 logger.error("Error in the Kafka Message Received");
