@@ -42,4 +42,7 @@ public interface Workflowservice {
 
     public Response workflowBulkUpdateTransition(String rootOrg, String org, MultipartFile file) throws IOException;
 
+    public Response getBulkUpdateStatus(String userAuthToken);
+
+
     }

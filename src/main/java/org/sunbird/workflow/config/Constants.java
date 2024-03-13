@@ -285,4 +285,17 @@ public class Constants {
 	public static final String SUCCESS_UPPERCASE = "SUCCESS";
 	public static final String FAILED_UPPERCASE = "FAILED";
 	public static final String EMPTY_FILE_FAILED = "The uploaded file is empty";
+	public static final String X_AUTH_TOKEN = "x-authenticated-user-token";
+	public static final String DOT_SEPARATOR = ".";
+	public static final String SHA_256_WITH_RSA = "SHA256withRSA";
+	public static final String _UNAUTHORIZED = "Unauthorized";
+	public static final String SUB = "sub";
+	public static final String SSO_URL = "sso.url";
+	public static final String SSO_REALM = "sso.realm";
+	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken.publickey.basepath";
+	public static final String USER_BULK_UPLOAD = "user_bulk_upload";
+	public static final String USER_TABLE = "user";
+	public static final String USER_ROOT_ORG_ID = "rootorgid";
+	public static final String DB_TABLE_NAME = "table";
+
 }
