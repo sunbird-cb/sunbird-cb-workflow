@@ -31,13 +31,11 @@ import org.sunbird.workflow.producer.Producer;
 import org.sunbird.workflow.service.StorageService;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.Workflowservice;
+import org.sunbird.workflow.utils.AccessTokenValidator;
 import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
@@ -81,9 +79,6 @@ public class WorkflowServiceImpl implements Workflowservice {
 
 	@Autowired
 	StorageService storageService;
-
-	@Autowired
-	CassandraOperation cassandraOperation;
 
 	@Autowired
 	Producer kafkaProducer;
