@@ -267,4 +267,18 @@ public class Constants {
 	public static final String DOMAIN_REQUEST_ALREADY_PRESENT = "DOMAIN_REQUEST_ALREADY_PRESENT";
 	public static final String DOMAIN_REQUEST_CREATED = "DOMAIN_REQUEST_CREATED";
 	public static final String SEND_FOR_APPROVAL = "SEND_FOR_APPROVAL";
+	public static final String X_AUTH_TOKEN = "x-authenticated-user-token";
+	public static final String DOT_SEPARATOR = ".";
+	public static final String SHA_256_WITH_RSA = "SHA256withRSA";
+	public static final String _UNAUTHORIZED = "Unauthorized";
+	public static final String SUB = "sub";
+	public static final String SSO_URL = "sso.url";
+	public static final String SSO_REALM = "sso.realm";
+	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken.publickey.basepath";
+	public static final String USER_BULK_UPLOAD = "user_bulk_upload";
+	public static final String USER_TABLE = "user";
+	public static final String USER_ROOT_ORG_ID = "rootorgid";
+	public static final String COMMENT = "comment";
+	public static final String DB_TABLE_NAME = "table";
+
 }

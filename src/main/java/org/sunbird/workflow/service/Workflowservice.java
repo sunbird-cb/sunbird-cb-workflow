@@ -38,4 +38,7 @@ public interface Workflowservice {
 
     public Response updatePendingRequestsToNewMDO(Map<String, Object> request);
 
+    public Response getBulkUpdateStatus(String userAuthToken);
+
+
     }
