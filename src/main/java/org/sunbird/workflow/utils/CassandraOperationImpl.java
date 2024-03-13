@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.sunbird.workflow.config.Constants;
+import org.sunbird.workflow.models.Response;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -90,7 +91,8 @@ public class CassandraOperationImpl implements CassandraOperation {
 		return selectQuery;
 	}
 
-	public void insertRecord(String keyspaceName, String tableName, Map<String, Object> request) {
+	public Response insertRecord(String keyspaceName, String tableName, Map<String, Object> request) {
+		Response response = new Response();
 		String query = CassandraUtil.getPreparedStatement(keyspaceName, tableName, request);
 		try {
 			PreparedStatement statement = connectionManager.getSession(keyspaceName).prepare(query);
@@ -102,8 +104,40 @@ public class CassandraOperationImpl implements CassandraOperation {
 				array[i++] = iterator.next();
 			}
 			connectionManager.getSession(keyspaceName).execute(boundStatement.bind(array));
+			response.put("STATUS", "SUCCESS");
 		} catch (Exception e) {
-			String.format("Exception occurred while inserting record to %s %s", tableName, e.getMessage());
+			String errorMessage = String.format("Exception occurred while inserting record to %s %s", tableName, e.getMessage());
+			logger.info(String.format(errorMessage, e));
+			response.put("STATUS", "FAILED");
 		}
+		return response;
+	}
+
+	public Map<String, Object> updateRecord(String keyspaceName, String tableName, Map<String, Object> updateAttributes,
+											Map<String, Object> compositeKey) {
+		Map<String, Object> response = new HashMap<>();
+		Statement updateQuery = null;
+		try {
+			Session session = connectionManager.getSession(keyspaceName);
+			Update update = QueryBuilder.update(keyspaceName, tableName);
+			Update.Assignments assignments = update.with();
+			Update.Where where = update.where();
+			updateAttributes.entrySet().stream().forEach(x -> {
+				assignments.and(QueryBuilder.set(x.getKey(), x.getValue()));
+			});
+			compositeKey.entrySet().stream().forEach(x -> {
+				where.and(QueryBuilder.eq(x.getKey(), x.getValue()));
+			});
+			updateQuery = where;
+			session.execute(updateQuery);
+			response.put(Constants.RESPONSE, Constants.SUCCESS);
+		} catch (Exception e) {
+			String errMsg = String.format("Exception occurred while updating record to %s %s", tableName, e.getMessage());
+			logger.error(errMsg);
+			response.put(Constants.RESPONSE, Constants.FAILED);
+			response.put(Constants.ERROR_MESSAGE, errMsg);
+			throw e;
+		}
+		return response;
 	}
 }

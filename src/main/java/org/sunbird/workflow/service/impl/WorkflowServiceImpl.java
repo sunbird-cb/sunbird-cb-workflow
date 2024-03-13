@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.exception.ApplicationException;
@@ -27,18 +28,25 @@ import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfAuditRepo;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.producer.Producer;
+import org.sunbird.workflow.service.StorageService;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.Workflowservice;
+import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 public class WorkflowServiceImpl implements Workflowservice {
+
 
 	@Autowired
 	private WfStatusRepo wfStatusRepo;
@@ -65,6 +73,15 @@ public class WorkflowServiceImpl implements Workflowservice {
 
 	@Autowired
 	LRUCache<String, List<WfStatusCountDTO>> localCache ;
+
+	@Autowired
+	StorageService storageService;
+
+	@Autowired
+	CassandraOperation cassandraOperation;
+
+	@Autowired
+	Producer kafkaProducer;
 	/**
 	 * Change the status of workflow application
 	 *
@@ -890,6 +907,81 @@ public class WorkflowServiceImpl implements Workflowservice {
 			return response;
 		}
 		return response;
+	}
+
+	public Response workflowBulkUpdateTransition(String rootOrg, String org, MultipartFile mFile) throws IOException {
+		Response response = new Response();
+		Response uploadResponse = storageService.uploadFile(mFile, configuration.getBulkUploadContainerName(), configuration.getCloudContainerName());
+		if (!HttpStatus.OK.equals(uploadResponse.getResponseCode())) {
+			log.info("Failed to upload file to s");
+			response.put(Constants.ERROR_MESSAGE, "Failed to upload file");
+			return response;
+		}
+		String userId = "2887addb-8bcb-4fb1-b3d2-2acf5eed2163";
+		String orgId = "1356789632244675"; //to be fetched from usertoken
+
+		Map<String, Object> uploadedFileDetails = new HashMap<>();
+		uploadedFileDetails.put(Constants.ROOT_ORG_ID, orgId);
+		uploadedFileDetails.put(Constants.IDENTIFIER, UUID.randomUUID().toString());
+		uploadedFileDetails.put(Constants.FILE_NAME, "userbulkupdate.xlsx");
+		uploadedFileDetails.put(Constants.FILE_PATH, "http://missionkarmyogi.gov/testpath/samplefile");
+		uploadedFileDetails.put(Constants.DATE_CREATED_ON, new Timestamp(System.currentTimeMillis()));
+		uploadedFileDetails.put(Constants.STATUS, Constants.INITIATED_CAPITAL);
+		uploadedFileDetails.put(Constants.COMMENT, "Bulk Upload By MDO Admin");
+		uploadedFileDetails.put(Constants.CREATED_BY, userId);
+
+		Response insertionResponse = cassandraOperation.insertRecord(Constants.KEYSPACE_SUNBIRD, "user_bulk_upload", uploadedFileDetails);
+
+		if (!Constants.SUCCESS.equalsIgnoreCase((String)insertionResponse.get("STATUS"))) {
+			response.put(Constants.ERROR_MESSAGE, "Failed to update database with user bulk upload file details.");
+			log.info("Failed to update database with user bulk upload file details.");
+			return response;
+		}
+
+		kafkaProducer.push(configuration.getUserUpdateBulkUploadTopic(), uploadedFileDetails);
+		response.setResponseCode(HttpStatus.OK);
+		response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+		response.put(Constants.RESPONSE, "File Uploaded Successfully");
+		return response;
+	}
+
+	public boolean verifyUserRecordExists(String field, String fieldValue, Map<String, Object> userRecordDetails) {
+
+		HashMap<String, String> headersValue = new HashMap<>();
+		headersValue.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+
+		Map<String, Object> filters = new HashMap<>();
+		filters.put(field, fieldValue);
+
+		Map<String, Object> request = new HashMap<>();
+		request.put("filters", filters);
+		request.put(Constants.FIELDS, Arrays.asList(Constants.USER_ID, Constants.STATUS, Constants.CHANNEL, Constants.ROOT_ORG_ID, Constants.PHONE, Constants.EMAIL));
+
+		Map<String, Object> requestObject = new HashMap<>();
+		requestObject.put("request", request);
+		try {
+			StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
+			builder.append(configuration.getLmsUserSearchEndPoint());
+			Map<String, Object> userSearchResult = (Map<String, Object>) requestServiceImpl
+					.fetchResultUsingPost(builder, requestObject, Map.class, headersValue);
+			if (userSearchResult != null
+					&& "OK".equalsIgnoreCase((String) userSearchResult.get(Constants.RESPONSE_CODE))) {
+				Map<String, Object> map = (Map<String, Object>) userSearchResult.get(Constants.RESULT);
+				Map<String, Object> response = (Map<String, Object>) map.get(Constants.RESPONSE);
+				List<Map<String, Object>> contents = (List<Map<String, Object>>) response.get(Constants.CONTENT);
+				if (!CollectionUtils.isEmpty(contents)) {
+					for (Map<String, Object> content : contents) {
+						userRecordDetails.put(Constants.USER_ID, content.get(Constants.USER_ID));
+						userRecordDetails.put(Constants.DEPARTMENT_NAME, content.get(Constants.CHANNEL));
+					}
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			log.error("Exception while fetching user setails : ",e);
+			throw new ApplicationException("Hub Service ERROR: ", e);
+		}
+		return false;
 	}
 
 }

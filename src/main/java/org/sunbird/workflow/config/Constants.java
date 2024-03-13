@@ -267,4 +267,22 @@ public class Constants {
 	public static final String DOMAIN_REQUEST_ALREADY_PRESENT = "DOMAIN_REQUEST_ALREADY_PRESENT";
 	public static final String DOMAIN_REQUEST_CREATED = "DOMAIN_REQUEST_CREATED";
 	public static final String SEND_FOR_APPROVAL = "SEND_FOR_APPROVAL";
+	public static final String LOCAL_BASE_PATH= "/tmp/";
+	public static final String FILE_NAME = "fileName";
+	public static final String FILE_PATH = "filePath";
+	public static final String DATE_CREATED_ON = "dateCreatedOn";
+	public static final String DATE_UPDATE_ON = "dateUpdatedOn";
+	public static final String INITIATED_CAPITAL = "INITIATED";
+	public static final String COMMENT = "comment";
+	public static final String CREATED_BY = "createdBy";
+	public static final String URL = "url";
+	public static final String STATUS_IN_PROGRESS_UPPERCASE = "IN-PROGRESS";
+	public static final String ROOT_ORG_ID_LOWER = "rootorgid";
+	public static final String TOTAL_RECORDS = "totalRecords";
+	public static final String SUCCESSFUL_RECORDS_COUNT = "successfulRecordsCount";
+	public static final String FAILED_RECORDS_COUNT = "failedRecordsCount";
+	public static final String TABLE_USER_BULK_UPLOAD = "user_bulk_upload";
+	public static final String SUCCESS_UPPERCASE = "SUCCESS";
+	public static final String FAILED_UPPERCASE = "FAILED";
+	public static final String EMPTY_FILE_FAILED = "The uploaded file is empty";
 }

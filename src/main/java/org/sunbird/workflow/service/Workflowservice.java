@@ -1,7 +1,9 @@
 package org.sunbird.workflow.service;
 
+import org.springframework.web.multipart.MultipartFile;
 import org.sunbird.workflow.models.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 public interface Workflowservice {
@@ -37,5 +39,7 @@ public interface Workflowservice {
     public Response appsPCSearchV2(String rootOrg, String org, SearchCriteriaV2 criteria);
 
     public Response updatePendingRequestsToNewMDO(Map<String, Object> request);
+
+    public Response workflowBulkUpdateTransition(String rootOrg, String org, MultipartFile file) throws IOException;
 
     }

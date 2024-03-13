@@ -1,5 +1,7 @@
 package org.sunbird.workflow.utils;
 
+import org.sunbird.workflow.models.Response;
+
 import java.util.List;
 import java.util.Map;
 
@@ -10,5 +12,8 @@ public interface CassandraOperation {
 
 	int getCountByProperties(String keyspaceName, String tableName, Map<String, Object> propertyMap);
 
-	void insertRecord(String keyspaceName, String tableName, Map<String, Object> request);
+	Response insertRecord(String keyspaceName, String tableName, Map<String, Object> request);
+
+	Map<String, Object> updateRecord(String keyspaceName, String tableName, Map<String, Object> updateAttributes,
+									 Map<String, Object> compositeKey);
 }

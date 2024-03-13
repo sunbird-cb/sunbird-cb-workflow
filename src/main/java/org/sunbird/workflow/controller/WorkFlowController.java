@@ -5,12 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.Workflowservice;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -93,6 +95,13 @@ public class WorkFlowController {
 	@PostMapping(path = "/update/pendingRequestsToNewMDO", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> updatePendingRequestsToNewMDO(@RequestBody Map<String, Object> request){
 		Response response = workflowService.updatePendingRequestsToNewMDO(request);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@PostMapping("/admin/bulkupdate/transition")
+	public ResponseEntity<Response> wfBulkUpdateTransition(@RequestHeader String rootOrg, @RequestHeader String org,
+														   @RequestParam("file")MultipartFile file) throws IOException {
+		Response response = workflowService.workflowBulkUpdateTransition(rootOrg, org, file);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }
