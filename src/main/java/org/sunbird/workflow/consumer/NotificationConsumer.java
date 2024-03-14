@@ -43,8 +43,6 @@ public class NotificationConsumer {
 		try {
 			String message = String.valueOf(data.value());
 			wfRequest = mapper.readValue(message, WfRequest.class);
-			Map<String, Object> courseAttributes = getCourseAttributes(wfRequest.getCourseId());
-			wfRequest.setCourseName((String) courseAttributes.get(Constants.COURSE_NAME));
 			logger.info("Recevied data in notification consumer : {}", mapper.writeValueAsString(wfRequest));
 			switch (wfRequest.getServiceName()) {
 				case Constants.PROFILE_SERVICE_NAME:
@@ -61,6 +59,8 @@ public class NotificationConsumer {
 				case Constants.ONE_STEP_PC_APPROVAL:
 				case Constants.TWO_STEP_MDO_AND_PC_APPROVAL:
 				case Constants.TWO_STEP_PC_AND_MDO_APPROVAL:
+					Map<String, Object> courseAttributes = getCourseAttributes(wfRequest.getCourseId());
+					wfRequest.setCourseName((String) courseAttributes.get(Constants.COURSE_NAME));
 					notificationService.sendNotification(wfRequest);
 					notificationService.sendNotificationToMdoAdminAndPC(wfRequest);
 					break;

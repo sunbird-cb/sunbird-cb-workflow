@@ -5,12 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.models.Response;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.WfRequest;
 import org.sunbird.workflow.service.Workflowservice;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -95,9 +97,23 @@ public class WorkFlowController {
 		Response response = workflowService.updatePendingRequestsToNewMDO(request);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+	@PostMapping("/admin/bulkupdate/transition")
+	public ResponseEntity<Response> wfBulkUpdateTransition(@RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken,
+														   @RequestParam("file")MultipartFile file) {
+		Response response = workflowService.workflowBulkUpdateTransition(userAuthToken, file);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 	@GetMapping(path = "/admin/bulkupdate/getstatus", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> getBulkUpdateStatus(@RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken) {
 		Response response = workflowService.getBulkUpdateStatus(userAuthToken);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@GetMapping(path = "/admin/bulkbuplodfile/download/{fileName}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> downloadBulkuplodFile(@PathVariable("fileName") String fileName) {
+		Response response = workflowService.downloadBulkUploadFile(fileName);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

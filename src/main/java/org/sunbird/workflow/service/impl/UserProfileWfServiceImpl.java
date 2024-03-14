@@ -481,4 +481,8 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 		return (String) response.get(Constants.VALUE);
 	}
 
+	public void updateUserProfileForBulkUpload(WfRequest wfRequest) {
+		this.updateProfile(wfRequest);
+	}
+
 }

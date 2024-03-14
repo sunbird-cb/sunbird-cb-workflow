@@ -1,7 +1,9 @@
 package org.sunbird.workflow.service;
 
+import org.springframework.web.multipart.MultipartFile;
 import org.sunbird.workflow.models.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 public interface Workflowservice {
@@ -38,7 +40,9 @@ public interface Workflowservice {
 
     public Response updatePendingRequestsToNewMDO(Map<String, Object> request);
 
+    public Response workflowBulkUpdateTransition(String userAuthToken, MultipartFile file);
+
     public Response getBulkUpdateStatus(String userAuthToken);
 
-
-    }
+    public Response downloadBulkUploadFile(String fileName);
+}

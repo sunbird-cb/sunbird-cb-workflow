@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jclouds.cloudstack.compute.functions.CloudStackSecurityGroupToSecurityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.exception.ApplicationException;
@@ -27,17 +29,22 @@ import org.sunbird.workflow.postgres.entity.WfStatusEntity;
 import org.sunbird.workflow.postgres.repo.WfAuditRepo;
 import org.sunbird.workflow.postgres.repo.WfStatusRepo;
 import org.sunbird.workflow.producer.Producer;
+import org.sunbird.workflow.service.StorageService;
 import org.sunbird.workflow.service.UserProfileWfService;
 import org.sunbird.workflow.service.Workflowservice;
 import org.sunbird.workflow.utils.AccessTokenValidator;
 import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.core.io.InputStreamResource;
 
 @Service
 public class WorkflowServiceImpl implements Workflowservice {
@@ -73,6 +80,12 @@ public class WorkflowServiceImpl implements Workflowservice {
 
 	@Autowired
 	LRUCache<String, List<WfStatusCountDTO>> localCache ;
+
+	@Autowired
+	StorageService storageService;
+
+	@Autowired
+	Producer kafkaProducer;
 	/**
 	 * Change the status of workflow application
 	 *
@@ -945,6 +958,122 @@ public class WorkflowServiceImpl implements Workflowservice {
 			response.put(Constants.STATUS, HttpStatus.INTERNAL_SERVER_ERROR);
 			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			return response;
+		}
+		return response;
+	}
+
+	public Response workflowBulkUpdateTransition(String userAuthToken, MultipartFile mFile) {
+		Response response = new Response();
+		try{
+			Response uploadResponse = storageService.uploadFile(mFile, configuration.getBulkUploadContainerName(), configuration.getCloudContainerName());
+			if (!HttpStatus.OK.equals(uploadResponse.getResponseCode())) {
+				log.info("Failed to upload file to s");
+				response.put(Constants.ERROR_MESSAGE, "Failed to upload file");
+				return response;
+			}
+			String userId = accessTokenValidator.fetchUserIdFromAccessToken(userAuthToken);
+			if (StringUtils.isEmpty(userId)) {
+				response.setResponseCode(HttpStatus.BAD_REQUEST);
+				response.put(Constants.ERROR_MESSAGE, "Invalid UserId in the request");
+				return response;
+			}
+			Map<String, Object> propertyMap = new HashMap<>();
+			propertyMap.put(Constants.USER_ID, userId);
+			List<Map<String, Object>> userDetails = cassandraOperation.getRecordsByProperties(
+					Constants.KEYSPACE_SUNBIRD, Constants.USER_TABLE, propertyMap, Arrays.asList(Constants.ROOT_ORG_ID));
+			String rootOrgId;
+			if (!userDetails.isEmpty()) {
+				rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);
+			} else {
+				log.error("Record not found in :" + Constants.USER_TABLE + Constants.DB_TABLE_NAME);
+				throw new ApplicationException("Record doesn't exist");
+			}
+			Map<String, Object> uploadedFileDetails = new HashMap<>();
+			uploadedFileDetails.put(Constants.ROOT_ORG_ID, rootOrgId);
+			uploadedFileDetails.put(Constants.IDENTIFIER, UUID.randomUUID().toString());
+			uploadedFileDetails.put(Constants.FILE_NAME, uploadResponse.getResult().get(Constants.NAME));
+			uploadedFileDetails.put(Constants.FILE_PATH, uploadResponse.getResult().get(Constants.URL));
+			uploadedFileDetails.put(Constants.DATE_CREATED_ON, new Timestamp(System.currentTimeMillis()));
+			uploadedFileDetails.put(Constants.STATUS, Constants.INITIATED_CAPITAL);
+			uploadedFileDetails.put(Constants.COMMENT, Constants.BULK_UPLOAD_COMMENT);
+			uploadedFileDetails.put(Constants.CREATED_BY, userId);
+
+			Response insertionResponse = cassandraOperation.insertRecord(Constants.KEYSPACE_SUNBIRD, "user_bulk_upload", uploadedFileDetails);
+			if (!Constants.SUCCESS.equalsIgnoreCase((String)insertionResponse.get("STATUS"))) {
+				response.put(Constants.ERROR_MESSAGE, "Failed to update database with user bulk upload file details.");
+				log.info("Failed to update database with user bulk upload file details.");
+				return response;
+			}
+			kafkaProducer.push(configuration.getUserUpdateBulkUploadTopic(), uploadedFileDetails);
+			response.setResponseCode(HttpStatus.OK);
+			response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
+			response.put(Constants.RESPONSE, "File Uploaded Successfully");
+		}catch (IOException e){
+			log.error("An error occurred while uploading the file to cloud", e );
+			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put(Constants.MESSAGE, Constants.FAILED);
+			response.put(Constants.ERROR_MESSAGE, "File Upload Failed");
+		}catch(Exception e){
+			log.error("An Exception occurred", e);
+			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put(Constants.MESSAGE, Constants.FAILED);
+			response.put(Constants.ERROR_MESSAGE, e.getMessage());
+		}
+		return response;
+	}
+
+	public boolean verifyUserRecordExists(String field, String fieldValue, Map<String, Object> userRecordDetails) {
+
+		HashMap<String, String> headersValue = new HashMap<>();
+		headersValue.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+
+		Map<String, Object> filters = new HashMap<>();
+		filters.put(field, fieldValue);
+
+		Map<String, Object> request = new HashMap<>();
+		request.put("filters", filters);
+		request.put(Constants.FIELDS, Arrays.asList(Constants.USER_ID, Constants.STATUS, Constants.CHANNEL, Constants.ROOT_ORG_ID, Constants.PHONE, Constants.EMAIL));
+
+		Map<String, Object> requestObject = new HashMap<>();
+		requestObject.put("request", request);
+		try {
+			StringBuilder builder = new StringBuilder(configuration.getLmsServiceHost());
+			builder.append(configuration.getLmsUserSearchEndPoint());
+			Map<String, Object> userSearchResult = (Map<String, Object>) requestServiceImpl
+					.fetchResultUsingPost(builder, requestObject, Map.class, headersValue);
+			if (userSearchResult != null
+					&& "OK".equalsIgnoreCase((String) userSearchResult.get(Constants.RESPONSE_CODE))) {
+				Map<String, Object> map = (Map<String, Object>) userSearchResult.get(Constants.RESULT);
+				Map<String, Object> response = (Map<String, Object>) map.get(Constants.RESPONSE);
+				List<Map<String, Object>> contents = (List<Map<String, Object>>) response.get(Constants.CONTENT);
+				if (!CollectionUtils.isEmpty(contents)) {
+					for (Map<String, Object> content : contents) {
+						userRecordDetails.put(Constants.USER_ID, content.get(Constants.USER_ID));
+						userRecordDetails.put(Constants.DEPARTMENT_NAME, content.get(Constants.CHANNEL));
+					}
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			log.error("Exception while fetching user setails : ",e);
+			throw new ApplicationException("Hub Service ERROR: ", e);
+		}
+		return false;
+	}
+
+	public Response downloadBulkUploadFile(String fileName){
+		Response response = new Response();
+		try{
+			storageService.downloadFile(fileName);
+			String filePath = Constants.LOCAL_BASE_PATH + fileName;
+			File file = new File(filePath);
+			InputStreamResource fileStream = new InputStreamResource(new FileInputStream(file));
+			response.setResponseCode(HttpStatus.OK);
+			response.put("fileData", fileStream);
+		}catch(Exception e){
+			log.error("An error occured while downloading file", e);
+			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put(Constants.ERROR_MESSAGE, "An error occured while downloading file");
 		}
 		return response;
 	}

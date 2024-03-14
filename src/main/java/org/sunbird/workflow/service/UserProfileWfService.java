@@ -11,4 +11,6 @@ public interface UserProfileWfService {
     public void updateUserProfile(WfRequest wfRequest);
 
     public List<Map<String, Object>> enrichUserData(Map<String, List<WfStatusEntity>> statusEntities, String rootOrg);
+
+    public void updateUserProfileForBulkUpload(WfRequest wfRequest);
 }
