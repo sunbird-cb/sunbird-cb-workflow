@@ -104,9 +104,16 @@ public class WorkFlowController {
 		Response response = workflowService.workflowBulkUpdateTransition(userAuthToken, file);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
 	@GetMapping(path = "/admin/bulkupdate/getstatus", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> getBulkUpdateStatus(@RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken) {
 		Response response = workflowService.getBulkUpdateStatus(userAuthToken);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@GetMapping(path = "/admin/bulkbuplodfile/download/{fileName}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> downloadBulkuplodFile(@PathVariable("fileName") String fileName) {
+		Response response = workflowService.downloadBulkUploadFile(fileName);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

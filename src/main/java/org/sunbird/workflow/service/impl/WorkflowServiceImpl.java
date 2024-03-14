@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jclouds.cloudstack.compute.functions.CloudStackSecurityGroupToSecurityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,12 +36,15 @@ import org.sunbird.workflow.utils.AccessTokenValidator;
 import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.core.io.InputStreamResource;
 
 @Service
 public class WorkflowServiceImpl implements Workflowservice {
@@ -1055,6 +1059,23 @@ public class WorkflowServiceImpl implements Workflowservice {
 			throw new ApplicationException("Hub Service ERROR: ", e);
 		}
 		return false;
+	}
+
+	public Response downloadBulkUploadFile(String fileName){
+		Response response = new Response();
+		try{
+			storageService.downloadFile(fileName);
+			String filePath = Constants.LOCAL_BASE_PATH + fileName;
+			File file = new File(filePath);
+			InputStreamResource fileStream = new InputStreamResource(new FileInputStream(file));
+			response.setResponseCode(HttpStatus.OK);
+			response.put("fileData", fileStream);
+		}catch(Exception e){
+			log.error("An error occured while downloading file", e);
+			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put(Constants.ERROR_MESSAGE, "An error occured while downloading file");
+		}
+		return response;
 	}
 
 }

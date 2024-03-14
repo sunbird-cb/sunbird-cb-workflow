@@ -44,5 +44,5 @@ public interface Workflowservice {
 
     public Response getBulkUpdateStatus(String userAuthToken);
 
-
-    }
+    public Response downloadBulkUploadFile(String fileName);
+}
