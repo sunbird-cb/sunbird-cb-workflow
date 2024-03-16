@@ -947,7 +947,9 @@ public class WorkflowServiceImpl implements Workflowservice {
 						fileDetailsResponse.add(uploadedFileDetails);
 					}
 				}
-				response.put(Constants.RESPONSE, fileDetailsResponse);
+				response.put(Constants.COUNT, fileDetailsResponse.size());
+				response.put(Constants.CONTENT, fileDetailsResponse);
+				response.put(Constants.RESPONSE_CODE, HttpStatus.OK);
 			} else {
 				log.error("Record not found in : " + Constants.USER_BULK_UPLOAD + Constants.DB_TABLE_NAME);
 				throw new ApplicationException("Record doesn't exist");

@@ -98,7 +98,7 @@ public class WorkFlowController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	@PostMapping("/admin/bulkupdate/transition")
+	@PostMapping(path = "/admin/bulkupdate/transition", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> wfBulkUpdateTransition(@RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken,
 														   @RequestParam("file")MultipartFile file) {
 		Response response = workflowService.workflowBulkUpdateTransition(userAuthToken, file);
