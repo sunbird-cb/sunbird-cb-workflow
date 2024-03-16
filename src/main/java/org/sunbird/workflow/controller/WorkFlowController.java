@@ -98,7 +98,7 @@ public class WorkFlowController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	@PostMapping("/admin/bulkupdate/transition")
+	@PostMapping(path = "/admin/bulkupdate/transition", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> wfBulkUpdateTransition(@RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken,
 														   @RequestParam("file")MultipartFile file) {
 		Response response = workflowService.workflowBulkUpdateTransition(userAuthToken, file);
@@ -112,7 +112,8 @@ public class WorkFlowController {
 	}
 
 	@GetMapping(path = "/admin/bulkbuplodfile/download/{fileName}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> downloadBulkuplodFile(@PathVariable("fileName") String fileName) {
+	public ResponseEntity<Response> downloadBulkuplodFile(@PathVariable("fileName") String fileName,
+														  @RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken) {
 		Response response = workflowService.downloadBulkUploadFile(fileName);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
