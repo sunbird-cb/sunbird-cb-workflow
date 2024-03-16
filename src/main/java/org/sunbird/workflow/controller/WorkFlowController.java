@@ -112,8 +112,7 @@ public class WorkFlowController {
 	}
 
 	@GetMapping(path = "/admin/bulkbuplodfile/download/{fileName}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> downloadBulkuplodFile(@PathVariable("fileName") String fileName,
-														  @RequestHeader(Constants.X_AUTH_TOKEN) String userAuthToken) {
+	public ResponseEntity<Response> downloadBulkuplodFile(@PathVariable("fileName") String fileName) {
 		Response response = workflowService.downloadBulkUploadFile(fileName);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
