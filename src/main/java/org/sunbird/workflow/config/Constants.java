@@ -301,5 +301,15 @@ public class Constants {
 	public static final String API_FILE_DOWNLOAD = "api.file.download";
 	public static final String API_USER_BULK_UPDATE = "api.user.bulk.update";
 	public static final String API_USER_BULK_UPDATE_STATUS = "api.user.bulk.update.status";
+	public static final String UPDATE_FAILED = "UPDATE FAILED";
+	public static final String DESIGNATION = "designation";
+	public static final String GROUP = "group";
+	public static final String SERVICE = "service";
+	public static final String CADRE = "cadre";
+	public static final String PAY_TYPE = "payType";
+	public static final String INDUSTRY = "industry";
+	public static final String LOCATION = "location";
+	public static final String ERROR_DETAILS = "Error Details";
+	public static final String DATE_OF_JOINING = "doj";
 
 }

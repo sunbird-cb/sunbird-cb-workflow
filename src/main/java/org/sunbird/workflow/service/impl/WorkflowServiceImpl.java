@@ -953,7 +953,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 				log.error("Record not found in :" + Constants.USER_TABLE + Constants.DB_TABLE_NAME);
 				return response;
 			}
-			String rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);;
+			String rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);
 			propertyMap.clear();
 			propertyMap.put(Constants.ROOT_ORG_ID, rootOrgId);
 			List<Map<String, Object>> bulkUpdateDetails = cassandraOperation.getRecordsByProperties(
