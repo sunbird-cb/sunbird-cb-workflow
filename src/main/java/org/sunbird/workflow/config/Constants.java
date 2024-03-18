@@ -281,7 +281,7 @@ public class Constants {
 	public static final String TOTAL_RECORDS = "totalRecords";
 	public static final String SUCCESSFUL_RECORDS_COUNT = "successfulRecordsCount";
 	public static final String FAILED_RECORDS_COUNT = "failedRecordsCount";
-	public static final String TABLE_USER_BULK_UPLOAD = "user_bulk_upload";
+	public static final String TABLE_USER_BULK_UPDATE = "user_bulk_update";
 	public static final String SUCCESS_UPPERCASE = "SUCCESS";
 	public static final String FAILED_UPPERCASE = "FAILED";
 	public static final String EMPTY_FILE_FAILED = "The uploaded file is empty";
@@ -293,10 +293,13 @@ public class Constants {
 	public static final String SSO_URL = "sso.url";
 	public static final String SSO_REALM = "sso.realm";
 	public static final String ACCESS_TOKEN_PUBLICKEY_BASEPATH = "accesstoken.publickey.basepath";
-	public static final String USER_BULK_UPLOAD = "user_bulk_upload";
 	public static final String USER_TABLE = "user";
 	public static final String USER_ROOT_ORG_ID = "rootorgid";
 	public static final String DB_TABLE_NAME = "table";
-	public static final String BULK_UPLOAD_COMMENT = "Bulk Upload By MDO Admin";
+	public static final String API_VERSION_1 = "1.0";
+	public static final String API_FILE_UPLOAD = "api.file.upload";
+	public static final String API_FILE_DOWNLOAD = "api.file.download";
+	public static final String API_USER_BULK_UPDATE = "api.user.bulk.update";
+	public static final String API_USER_BULK_UPDATE_STATUS = "api.user.bulk.update.status";
 
 }

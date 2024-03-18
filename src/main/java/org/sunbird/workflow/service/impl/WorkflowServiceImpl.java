@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,10 +22,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -34,6 +41,7 @@ import org.sunbird.workflow.exception.ApplicationException;
 import org.sunbird.workflow.exception.BadRequestException;
 import org.sunbird.workflow.exception.InvalidDataInputException;
 import org.sunbird.workflow.models.Response;
+import org.sunbird.workflow.models.SBApiResponse;
 import org.sunbird.workflow.models.SearchCriteria;
 import org.sunbird.workflow.models.SearchCriteriaV2;
 import org.sunbird.workflow.models.WfAction;
@@ -52,6 +60,7 @@ import org.sunbird.workflow.service.Workflowservice;
 import org.sunbird.workflow.utils.AccessTokenValidator;
 import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
+import org.sunbird.workflow.utils.ProjectUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -924,113 +933,102 @@ public class WorkflowServiceImpl implements Workflowservice {
 		return response;
 	}
 
-	public Response getBulkUpdateStatus(String userAuthToken) {
-		Response response = new Response();
+	public SBApiResponse getBulkUpdateStatus(String userAuthToken) {
+		SBApiResponse response = ProjectUtil.createDefaultResponse(Constants.API_USER_BULK_UPDATE_STATUS);
 		try {
 			String userId = accessTokenValidator.fetchUserIdFromAccessToken(userAuthToken);
 			if (StringUtils.isEmpty(userId)) {
+				setErrorData(response, "Invalid User Token");
 				response.setResponseCode(HttpStatus.BAD_REQUEST);
-				response.put(Constants.ERROR_MESSAGE, "Invalid UserId in the request");
+				log.error("Failed to process bulk update. Error: Invalid user token");
 				return response;
 			}
 			Map<String, Object> propertyMap = new HashMap<>();
 			propertyMap.put(Constants.USER_ID, userId);
 			List<Map<String, Object>> userDetails = cassandraOperation.getRecordsByProperties(
 					Constants.KEYSPACE_SUNBIRD, Constants.USER_TABLE, propertyMap, Arrays.asList(Constants.ROOT_ORG_ID));
-			String rootOrgId = null;
-			if (!userDetails.isEmpty()) {
-				rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);
-			} else {
+			
+			if (userDetails.isEmpty()) {
+				setErrorData(response, String.format("Failed to upload file. Error: User not found for Id: %s", userId));
 				log.error("Record not found in :" + Constants.USER_TABLE + Constants.DB_TABLE_NAME);
-				throw new ApplicationException("Record doesn't exist");
+				return response;
 			}
+			String rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);;
 			propertyMap.clear();
 			propertyMap.put(Constants.ROOT_ORG_ID, rootOrgId);
-			List<Map<String, Object>> bulkUploadDetails = cassandraOperation.getRecordsByProperties(
+			List<Map<String, Object>> bulkUpdateDetails = cassandraOperation.getRecordsByProperties(
 					Constants.KEYSPACE_SUNBIRD,
-					Constants.USER_BULK_UPLOAD,
+					Constants.TABLE_USER_BULK_UPDATE,
 					propertyMap,
 					new ArrayList<>());
-			List<Map<String, Object>> fileDetailsResponse = new ArrayList<>();
-			if (!CollectionUtils.isEmpty(bulkUploadDetails)) {
-				for (Map<String, Object> uploadedFileDetails : bulkUploadDetails) {
-					if ("Bulk Upload By MDO Admin".equalsIgnoreCase((String) uploadedFileDetails.get(Constants.COMMENT))) {
-						fileDetailsResponse.add(uploadedFileDetails);
-					}
-				}
-				response.put(Constants.COUNT, fileDetailsResponse.size());
-				response.put(Constants.CONTENT, fileDetailsResponse);
-				response.put(Constants.RESPONSE_CODE, HttpStatus.OK);
-			} else {
-				log.error("Record not found in : " + Constants.USER_BULK_UPLOAD + Constants.DB_TABLE_NAME);
-				throw new ApplicationException("Record doesn't exist");
-			}
+			response.getParams().setStatus(Constants.SUCCESSFUL);
+			response.setResponseCode(HttpStatus.OK);
+			response.getResult().put(Constants.CONTENT, bulkUpdateDetails);
+			response.getResult().put(Constants.COUNT, bulkUpdateDetails != null ? bulkUpdateDetails.size() : 0);
 		} catch (Exception e) {
 			log.error("An Exception Occurred", e);
-			response.put(Constants.ERROR_MESSAGE, e.getMessage());
-			response.put(Constants.STATUS, HttpStatus.INTERNAL_SERVER_ERROR);
-			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			return response;
+			setErrorData(response,
+					String.format("Failed to get records from user_bulk_update table. Error: ", e.getMessage()));
 		}
 		return response;
 	}
 
-	public Response workflowBulkUpdateTransition(String userAuthToken, MultipartFile mFile) {
-		Response response = new Response();
-		try{
-			Response uploadResponse = storageService.uploadFile(mFile, configuration.getUserBulkUpdateFolderName(), configuration.getWorkflowCloudContainerName());
-			if (!HttpStatus.OK.equals(uploadResponse.getResponseCode())) {
-				log.info("Failed to upload file to s");
-				response.put(Constants.ERROR_MESSAGE, "Failed to upload file");
-				return response;
-			}
+	public SBApiResponse workflowBulkUpdateTransition(String userAuthToken, MultipartFile mFile) {
+		SBApiResponse response = ProjectUtil.createDefaultResponse(Constants.API_USER_BULK_UPDATE);
+		try {
 			String userId = accessTokenValidator.fetchUserIdFromAccessToken(userAuthToken);
 			if (StringUtils.isEmpty(userId)) {
+				setErrorData(response, "Invalid User Token");
 				response.setResponseCode(HttpStatus.BAD_REQUEST);
-				response.put(Constants.ERROR_MESSAGE, "Invalid UserId in the request");
+				log.error("Failed to process bulk update. Error: Invalid user token");
 				return response;
 			}
 			Map<String, Object> propertyMap = new HashMap<>();
 			propertyMap.put(Constants.USER_ID, userId);
 			List<Map<String, Object>> userDetails = cassandraOperation.getRecordsByProperties(
 					Constants.KEYSPACE_SUNBIRD, Constants.USER_TABLE, propertyMap, Arrays.asList(Constants.ROOT_ORG_ID));
-			String rootOrgId;
-			if (!userDetails.isEmpty()) {
-				rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);
-			} else {
+			
+			if (userDetails.isEmpty()) {
+				setErrorData(response, String.format("Failed to upload file. Error: User not found for Id: %s", userId));
 				log.error("Record not found in :" + Constants.USER_TABLE + Constants.DB_TABLE_NAME);
-				throw new ApplicationException("Record doesn't exist");
+				return response;
 			}
+
+			String rootOrgId = (String) userDetails.get(0).get(Constants.USER_ROOT_ORG_ID);
+
+			SBApiResponse uploadResponse = storageService.uploadFile(mFile, configuration.getUserBulkUpdateFolderName(), configuration.getWorkflowCloudContainerName());
+			if (!HttpStatus.OK.equals(uploadResponse.getResponseCode())) {
+				setErrorData(response, String.format("Failed to upload file. Error: %s",
+						(String) uploadResponse.getParams().getErrmsg()));
+				log.error("Failed to upload the given file.");
+				return response;
+			}
+
 			Map<String, Object> uploadedFileDetails = new HashMap<>();
 			uploadedFileDetails.put(Constants.ROOT_ORG_ID, rootOrgId);
 			uploadedFileDetails.put(Constants.IDENTIFIER, UUID.randomUUID().toString());
 			uploadedFileDetails.put(Constants.FILE_NAME, uploadResponse.getResult().get(Constants.NAME));
 			uploadedFileDetails.put(Constants.FILE_PATH, uploadResponse.getResult().get(Constants.URL));
+			uploadedFileDetails.put(Constants.CREATED_BY, userId);
 			uploadedFileDetails.put(Constants.DATE_CREATED_ON, new Timestamp(System.currentTimeMillis()));
 			uploadedFileDetails.put(Constants.STATUS, Constants.INITIATED_CAPITAL);
-			uploadedFileDetails.put(Constants.COMMENT, Constants.BULK_UPLOAD_COMMENT);
+			uploadedFileDetails.put(Constants.COMMENT, "");
 			uploadedFileDetails.put(Constants.CREATED_BY, userId);
 
 			Response insertionResponse = cassandraOperation.insertRecord(Constants.KEYSPACE_SUNBIRD, "user_bulk_upload", uploadedFileDetails);
 			if (!Constants.SUCCESS.equalsIgnoreCase((String)insertionResponse.get("STATUS"))) {
-				response.put(Constants.ERROR_MESSAGE, "Failed to update database with user bulk upload file details.");
-				log.info("Failed to update database with user bulk upload file details.");
+				setErrorData(uploadResponse, "Failed to insert the upload file details.");
+				log.error("Failed to update database with user bulk upload file details.");
 				return response;
 			}
 			kafkaProducer.push(configuration.getUserBulkUpdateTopic(), uploadedFileDetails);
+			response.getParams().setStatus(Constants.SUCCESSFUL);
 			response.setResponseCode(HttpStatus.OK);
-			response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
-			response.put(Constants.RESPONSE, "File Uploaded Successfully");
-		}catch (IOException e){
-			log.error("An error occurred while uploading the file to cloud", e );
-			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			response.put(Constants.MESSAGE, Constants.FAILED);
-			response.put(Constants.ERROR_MESSAGE, "File Upload Failed");
-		}catch(Exception e){
-			log.error("An Exception occurred", e);
-			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			response.put(Constants.MESSAGE, Constants.FAILED);
-			response.put(Constants.ERROR_MESSAGE, e.getMessage());
+			response.getResult().putAll(uploadedFileDetails);
+		} catch(Exception e){
+			log.error("Failed to process bulk upload request. Exception: ", e);
+			setErrorData(response,
+					String.format("Failed to process user bulk upload request. Error: ", e.getMessage()));
 		}
 		return response;
 	}
@@ -1074,21 +1072,30 @@ public class WorkflowServiceImpl implements Workflowservice {
 		return false;
 	}
 
-	public Response downloadBulkUploadFile(String fileName){
-		Response response = new Response();
+	public ResponseEntity<InputStreamResource> downloadBulkUploadFile(String fileName){
+		HttpHeaders headers = new HttpHeaders();
 		try{
 			storageService.downloadFile(fileName);
-			String filePath = Constants.LOCAL_BASE_PATH + fileName;
-			File file = new File(filePath);
+			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+			Path filePath = Paths.get(String.format("%s/%s", Constants.LOCAL_BASE_PATH, fileName));
+			String strFilePath = Constants.LOCAL_BASE_PATH + fileName;
+			File file = new File(strFilePath);
 			InputStreamResource fileStream = new InputStreamResource(new FileInputStream(file));
-			response.setResponseCode(HttpStatus.OK);
-			response.put("fileData", fileStream);
+			return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(Files.size(filePath))
+                    .body(fileStream);
 		}catch(Exception e){
 			log.error("An error occured while downloading file", e);
-			response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			response.put(Constants.ERROR_MESSAGE, "An error occured while downloading file");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
-		return response;
+	}
+
+	private void setErrorData(SBApiResponse response, String errMsg) {
+		response.getParams().setStatus(Constants.FAILED);
+		response.getParams().setErrmsg(errMsg);
+		response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }

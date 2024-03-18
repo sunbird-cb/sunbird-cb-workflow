@@ -1,5 +1,13 @@
 package org.sunbird.workflow.service.impl;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,16 +20,11 @@ import org.sunbird.cloud.storage.factory.StorageConfig;
 import org.sunbird.cloud.storage.factory.StorageServiceFactory;
 import org.sunbird.workflow.config.Configuration;
 import org.sunbird.workflow.config.Constants;
-import org.sunbird.workflow.models.Response;
+import org.sunbird.workflow.models.SBApiResponse;
 import org.sunbird.workflow.service.StorageService;
-import scala.Option;
+import org.sunbird.workflow.utils.ProjectUtil;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import scala.Option;
 
 @Service
 public class StorageServiceImpl implements StorageService {
@@ -35,20 +38,19 @@ public class StorageServiceImpl implements StorageService {
     @Autowired
     private Configuration configuration;
 
-//    @Autowired
-//    private AccessTokenValidator accessTokenValidator;
-
     @PostConstruct
     public void init() {
         if (storageService == null) {
             storageService = StorageServiceFactory.getStorageService(new StorageConfig(
                     configuration.getCloudStorageTypeName(), configuration.getCloudStorageKey(),
-                    configuration.getCloudStorageSecret(), Option.apply(configuration.getCloudStorageCephs3Endpoint())));
+                    configuration.getCloudStorageSecret(),
+                    Option.apply(configuration.getCloudStorageCephs3Endpoint())));
         }
     }
 
-    public Response uploadFile(MultipartFile mFile, String cloudFolderName, String containerName) throws IOException {
-        Response response = new Response();
+    public SBApiResponse uploadFile(MultipartFile mFile, String cloudFolderName, String containerName)
+            throws IOException {
+        SBApiResponse response = ProjectUtil.createDefaultResponse(Constants.API_FILE_UPLOAD);
         File file = null;
         try {
             file = new File(System.currentTimeMillis() + "_" + mFile.getOriginalFilename());
@@ -56,10 +58,12 @@ public class StorageServiceImpl implements StorageService {
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(mFile.getBytes());
             fos.close();
-            return uploadFile(file, cloudFolderName,containerName);
+            return uploadFile(file, cloudFolderName, containerName);
         } catch (Exception e) {
             logger.error("Failed to Upload File Exception", e);
-
+            response.getParams().setStatus(Constants.FAILED);
+            response.getParams().setErrmsg("Failed to upload file. Exception: " + e.getMessage());
+            response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
             return response;
         } finally {
             if (file != null) {
@@ -68,10 +72,9 @@ public class StorageServiceImpl implements StorageService {
         }
     }
 
-
     @Override
-    public Response downloadFile(String fileName) {
-        Response response = new Response();
+    public SBApiResponse downloadFile(String fileName) {
+        SBApiResponse response = ProjectUtil.createDefaultResponse(Constants.API_FILE_DOWNLOAD);
         try {
             String objectKey = configuration.getUserBulkUpdateFolderName() + "/" + fileName;
             storageService.download(configuration.getWorkflowCloudContainerName(), objectKey, Constants.LOCAL_BASE_PATH,
@@ -79,13 +82,15 @@ public class StorageServiceImpl implements StorageService {
             return response;
         } catch (Exception e) {
             logger.error("Failed to Download File" + fileName + ", Exception : ", e);
+            response.getParams().setStatus(Constants.FAILED);
+            response.getParams().setErrmsg("Failed to download the file. Exception: " + e.getMessage());
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
             return response;
         }
     }
 
-    public Response uploadFile(File file, String cloudFolderName, String containerName) {
-        Response response = new Response();
+    public SBApiResponse uploadFile(File file, String cloudFolderName, String containerName) {
+        SBApiResponse response = ProjectUtil.createDefaultResponse(Constants.API_FILE_UPLOAD);
         try {
             String objectKey = cloudFolderName + "/" + file.getName();
             String url = storageService.upload(containerName, file.getAbsolutePath(),
@@ -97,8 +102,9 @@ public class StorageServiceImpl implements StorageService {
             return response;
         } catch (Exception e) {
             logger.error("Failed tp upload file", e);
+            response.getParams().setStatus(Constants.FAILED);
+            response.getParams().setErrmsg("Failed to upload file. Exception: " + e.getMessage());
             response.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            response.put(Constants.ERROR_MESSAGE, e.getMessage());
             return response;
         } finally {
             if (file != null) {
