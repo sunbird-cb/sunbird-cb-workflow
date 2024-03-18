@@ -1015,7 +1015,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 			uploadedFileDetails.put(Constants.COMMENT, "");
 			uploadedFileDetails.put(Constants.CREATED_BY, userId);
 
-			Response insertionResponse = cassandraOperation.insertRecord(Constants.KEYSPACE_SUNBIRD, "user_bulk_upload", uploadedFileDetails);
+			Response insertionResponse = cassandraOperation.insertRecord(Constants.KEYSPACE_SUNBIRD, Constants.TABLE_USER_BULK_UPDATE, uploadedFileDetails);
 			if (!Constants.SUCCESS.equalsIgnoreCase((String)insertionResponse.get("STATUS"))) {
 				setErrorData(uploadResponse, "Failed to insert the upload file details.");
 				log.error("Failed to update database with user bulk upload file details.");
