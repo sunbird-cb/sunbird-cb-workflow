@@ -203,14 +203,14 @@ public class Configuration {
     @Value("${cloud.storage.cephs3.endpoint}")
     private String cloudStorageCephs3Endpoint;
 
-    @Value("${cloud.container.name}")
-    private String cloudContainerName;
+    @Value("${workflow.cloud.container.name}")
+    private String workflowCloudContainerName;
 
-    @Value("${user.bulk.upload.container.name}")
-    private String bulkUploadContainerName;
+    @Value("${user.bulk.update.folder.name}")
+    private String userBulkUpdateFolderName;
 
-    @Value("${kafka.topics.user.update.bulk.upload}")
-    private String userUpdateBulkUploadTopic;
+    @Value("${kafka.topics.user.bulk.update}")
+    private String userBulkUpdateTopic;
 
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
@@ -748,27 +748,27 @@ public class Configuration {
         this.cloudStorageCephs3Endpoint = cloudStorageCephs3Endpoint;
     }
 
-    public String getCloudContainerName() {
-        return cloudContainerName;
+    public String getWorkflowCloudContainerName() {
+        return workflowCloudContainerName;
     }
 
-    public void setCloudContainerName(String cloudContainerName) {
-        this.cloudContainerName = cloudContainerName;
+    public void setWorkflowCloudContainerName(String workflowCloudContainerName) {
+        this.workflowCloudContainerName = workflowCloudContainerName;
     }
 
-    public String getBulkUploadContainerName() {
-        return bulkUploadContainerName;
+    public String getUserBulkUpdateFolderName() {
+        return userBulkUpdateFolderName;
     }
 
-    public void setBulkUploadContainerName(String bulkUploadContainerName) {
-        this.bulkUploadContainerName = bulkUploadContainerName;
+    public void setUserBulkUpdateFolderName(String userBulkUpdateFolderName) {
+        this.userBulkUpdateFolderName = userBulkUpdateFolderName;
     }
 
-    public String getUserUpdateBulkUploadTopic() {
-        return userUpdateBulkUploadTopic;
+    public String getUserBulkUpdateTopic() {
+        return userBulkUpdateTopic;
     }
 
-    public void setUserUpdateBulkUploadTopic(String userUpdateBulkUploadTopic) {
-        this.userUpdateBulkUploadTopic = userUpdateBulkUploadTopic;
+    public void setUserBulkUpdateTopic(String userBulkUpdateTopic) {
+        this.userBulkUpdateTopic = userBulkUpdateTopic;
     }
 }

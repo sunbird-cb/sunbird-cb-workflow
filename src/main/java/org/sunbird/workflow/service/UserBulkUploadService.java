@@ -341,7 +341,7 @@ public class UserBulkUploadService {
         FileOutputStream fileOut = new FileOutputStream(file);
         wb.write(fileOut);
         fileOut.close();
-        Response uploadResponse = storageService.uploadFile(file, configuration.getBulkUploadContainerName(), configuration.getCloudContainerName());
+        Response uploadResponse = storageService.uploadFile(file, configuration.getUserBulkUpdateFolderName(), configuration.getWorkflowCloudContainerName());
         if (!HttpStatus.OK.equals(uploadResponse.getResponseCode())) {
             String errMsg = String.format("Failed to upload file. Error: %s", uploadResponse.getResult().get(Constants.ERROR_MESSAGE));
             logger.info(errMsg);

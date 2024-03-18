@@ -73,8 +73,8 @@ public class StorageServiceImpl implements StorageService {
     public Response downloadFile(String fileName) {
         Response response = new Response();
         try {
-            String objectKey = configuration.getBulkUploadContainerName() + "/" + fileName;
-            storageService.download(configuration.getCloudContainerName(), objectKey, Constants.LOCAL_BASE_PATH,
+            String objectKey = configuration.getUserBulkUpdateFolderName() + "/" + fileName;
+            storageService.download(configuration.getWorkflowCloudContainerName(), objectKey, Constants.LOCAL_BASE_PATH,
                     Option.apply(Boolean.FALSE));
             return response;
         } catch (Exception e) {

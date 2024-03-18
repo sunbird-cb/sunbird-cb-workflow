@@ -1,13 +1,24 @@
 package org.sunbird.workflow.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jclouds.cloudstack.compute.functions.CloudStackSecurityGroupToSecurityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +33,13 @@ import org.sunbird.workflow.config.Constants;
 import org.sunbird.workflow.exception.ApplicationException;
 import org.sunbird.workflow.exception.BadRequestException;
 import org.sunbird.workflow.exception.InvalidDataInputException;
-import org.sunbird.workflow.models.*;
+import org.sunbird.workflow.models.Response;
+import org.sunbird.workflow.models.SearchCriteria;
+import org.sunbird.workflow.models.SearchCriteriaV2;
+import org.sunbird.workflow.models.WfAction;
+import org.sunbird.workflow.models.WfRequest;
+import org.sunbird.workflow.models.WfStatus;
+import org.sunbird.workflow.models.WorkFlowModel;
 import org.sunbird.workflow.postgres.entity.WfAuditEntity;
 import org.sunbird.workflow.postgres.entity.WfStatusCountDTO;
 import org.sunbird.workflow.postgres.entity.WfStatusEntity;
@@ -36,15 +53,9 @@ import org.sunbird.workflow.utils.AccessTokenValidator;
 import org.sunbird.workflow.utils.CassandraOperation;
 import org.sunbird.workflow.utils.LRUCache;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.springframework.core.io.InputStreamResource;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class WorkflowServiceImpl implements Workflowservice {
@@ -967,7 +978,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 	public Response workflowBulkUpdateTransition(String userAuthToken, MultipartFile mFile) {
 		Response response = new Response();
 		try{
-			Response uploadResponse = storageService.uploadFile(mFile, configuration.getBulkUploadContainerName(), configuration.getCloudContainerName());
+			Response uploadResponse = storageService.uploadFile(mFile, configuration.getUserBulkUpdateFolderName(), configuration.getWorkflowCloudContainerName());
 			if (!HttpStatus.OK.equals(uploadResponse.getResponseCode())) {
 				log.info("Failed to upload file to s");
 				response.put(Constants.ERROR_MESSAGE, "Failed to upload file");
@@ -1006,7 +1017,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 				log.info("Failed to update database with user bulk upload file details.");
 				return response;
 			}
-			kafkaProducer.push(configuration.getUserUpdateBulkUploadTopic(), uploadedFileDetails);
+			kafkaProducer.push(configuration.getUserBulkUpdateTopic(), uploadedFileDetails);
 			response.setResponseCode(HttpStatus.OK);
 			response.put(Constants.MESSAGE, Constants.SUCCESSFUL);
 			response.put(Constants.RESPONSE, "File Uploaded Successfully");
