@@ -310,6 +310,6 @@ public class Constants {
 	public static final String INDUSTRY = "industry";
 	public static final String LOCATION = "location";
 	public static final String ERROR_DETAILS = "Error Details";
-	public static final String DATE_OF_JOINING = "doj";
+	public static final String DATE_OF_JOINING = "dojOfService";
 
 }

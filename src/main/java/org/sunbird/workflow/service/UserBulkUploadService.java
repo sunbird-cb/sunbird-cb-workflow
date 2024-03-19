@@ -81,7 +81,6 @@ public class UserBulkUploadService {
         long startTime = System.currentTimeMillis();
         try {
             HashMap<String, String> inputDataMap = objectMapper.readValue(inputData, new TypeReference<HashMap<String, String>>() {});
-            this.processBulkUpload(inputDataMap);
             if (null != inputData) {
                 this.updateUserBulkUploadStatus(inputDataMap.get(Constants.ROOT_ORG_ID),
                         inputDataMap.get(Constants.IDENTIFIER), Constants.STATUS_IN_PROGRESS_UPPERCASE,
@@ -192,7 +191,7 @@ public class UserBulkUploadService {
                             } else if (nextRow.getCell(1).getCellType() == CellType.STRING) {
                                 phoneNumber = nextRow.getCell(1).getStringCellValue().trim();
                             } else {
-                                errList.add("Invalid column type. Expecting number/string format");
+                                errList.add("Invalid Value of Phone Number. Expecting number/string format");
                             }
                         } else {
                             errList.add("Phone Number is Missing");
@@ -201,7 +200,7 @@ public class UserBulkUploadService {
                             isValidPhoneNumber = ValidationUtil.validateContactPattern(phoneNumber);
                             if(isValidPhoneNumber){
                                 userDetails = new HashMap<>();
-                                isEmailOrPhoneNumberValid = this.verifyUserRecordExists("phoneNumber", phoneNumber, userDetails);
+                                isEmailOrPhoneNumberValid = this.verifyUserRecordExists("phone", phoneNumber, userDetails);
                             }
                         }
                     }
@@ -216,12 +215,6 @@ public class UserBulkUploadService {
                             errList.add("Invalid Date Of Joining");
                         }
                     }
-                    if(!CollectionUtils.isEmpty(errList)){
-                        this.setErrorDetails(str, errList, statusCell, errorDetails);
-                        failedRecordsCount++;
-                        totalRecordsCount++;
-                        continue;
-                    }
                     if (nextRow.getCell(3) != null && nextRow.getCell(3).getCellType() != CellType.BLANK) {
                         valuesToBeUpdate.put(Constants.DESIGNATION, nextRow.getCell(3).getStringCellValue().trim());
                     }
@@ -235,13 +228,27 @@ public class UserBulkUploadService {
                         valuesToBeUpdate.put(Constants.CADRE, nextRow.getCell(6).getStringCellValue().trim());
                     }
                     if (nextRow.getCell(7) != null && nextRow.getCell(7).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put(Constants.PAY_TYPE, nextRow.getCell(7).getStringCellValue().trim());
+                        String payType  = null;
+                        if (nextRow.getCell(7).getCellType() == CellType.NUMERIC) {
+                            payType = NumberToTextConverter.toText(nextRow.getCell(7).getNumericCellValue());
+                        } else if (nextRow.getCell(7).getCellType() == CellType.STRING) {
+                            payType = nextRow.getCell(7).getStringCellValue().trim();
+                        } else {
+                            errList.add("Invalid Value of Grade Pay type. Expecting number/string format");
+                        }
+                        valuesToBeUpdate.put(Constants.PAY_TYPE, payType);
                     }
                     if (nextRow.getCell(8) != null && nextRow.getCell(8).getCellType() != CellType.BLANK) {
                         valuesToBeUpdate.put(Constants.INDUSTRY, nextRow.getCell(8).getStringCellValue().trim());
                     }
                     if (nextRow.getCell(9) != null && nextRow.getCell(9).getCellType() != CellType.BLANK) {
                         valuesToBeUpdate.put(Constants.LOCATION, nextRow.getCell(9).getStringCellValue().trim());
+                    }
+                    if(!CollectionUtils.isEmpty(errList)){
+                        this.setErrorDetails(str, errList, statusCell, errorDetails);
+                        failedRecordsCount++;
+                        totalRecordsCount++;
+                        continue;
                     }
                     String userId = null;
                     if(!CollectionUtils.isEmpty(userDetails)){
@@ -257,15 +264,15 @@ public class UserBulkUploadService {
                             for(Map.Entry<String, String> entry : toValue.entrySet()){
                                 if(valuesToBeUpdate.containsKey(entry.getKey())){
                                     WfRequest wfRequest = this.getWFRequest(wfStatusEntity, null);
+                                    wfStatusEntity.setCurrentStatus(Constants.APPROVED);
+                                    wfStatusEntity.setInWorkflow(false);
+                                    wfStatusRepo.save(wfStatusEntity);
                                     userProfileWfService.updateUserProfile(wfRequest);
                                     WfStatusEntity wfStatusEntityFailed = wfStatusRepo.findByWfId(wfRequest.getWfId());
                                     if(Constants.REJECTED.equalsIgnoreCase(wfStatusEntityFailed.getCurrentStatus())){
                                         userRecordUpdate = false;
                                         this.setErrorDetails(str, Collections.singletonList(Constants.UPDATE_FAILED), statusCell, errorDetails);
                                     } else{
-                                        wfStatusEntity.setCurrentStatus(Constants.APPROVED);
-                                        wfStatusEntity.setInWorkflow(false);
-                                        wfStatusRepo.save(wfStatusEntity);
                                         statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
                                     }
                                     valuesToBeUpdate.remove(entry.getKey());
@@ -285,6 +292,7 @@ public class UserBulkUploadService {
                     employmentDetailsKey.add(Constants.SERVICE);
                     employmentDetailsKey.add(Constants.CADRE);
                     employmentDetailsKey.add(Constants.PAY_TYPE);
+                    employmentDetailsKey.add(Constants.DATE_OF_JOINING);
                     WfRequest wfRequest = this.getWFRequest(valuesToBeUpdate, userId);
                     List<HashMap<String, Object>> updatedValues = new ArrayList<>();
                     for(Map.Entry<String, String> entry : valuesToBeUpdate.entrySet()){
@@ -307,17 +315,15 @@ public class UserBulkUploadService {
                         userProfileWfService.updateUserProfileForBulkUpload(wfRequest);
                         WfStatusEntity wfStatusEntityFailed = wfStatusRepo.findByWfId(wfRequest.getWfId());
                         if(null != wfStatusEntityFailed && Constants.REJECTED.equalsIgnoreCase(wfStatusEntityFailed.getCurrentStatus())){
-                            this.setErrorDetails(str, Collections.singletonList(Constants.UPDATE_FAILED), statusCell, errorDetails);
-                            failedRecordsCount++;
-                        } else{
-                            if(userRecordUpdate){
-                                noOfSuccessfulRecords++;
-                                statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
-                            } else{
-                                this.setErrorDetails(str, Collections.singletonList(Constants.UPDATE_FAILED), statusCell, errorDetails);
-                                failedRecordsCount++;
-                            }
+                            userRecordUpdate = false;
                         }
+                    }
+                    if(userRecordUpdate){
+                        noOfSuccessfulRecords++;
+                        statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
+                    } else {
+                        failedRecordsCount++;
+                        this.setErrorDetails(str, Collections.singletonList(Constants.UPDATE_FAILED), statusCell, errorDetails);
                     }
                     totalRecordsCount++;
                     duration = System.currentTimeMillis() - startTime;
