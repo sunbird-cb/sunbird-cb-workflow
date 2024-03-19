@@ -153,7 +153,7 @@ public class UserBulkUploadService {
                     if (errorDetails == null) {
                         errorDetails = firstRow.createCell(11);
                     }
-                    statusCell.setCellValue(Constants.STATUS);
+                    statusCell.setCellValue(Constants.STATUS_BULK_UPLOAD);
                     errorDetails.setCellValue(Constants.ERROR_DETAILS);
                 }
                 int count = 0;
@@ -164,6 +164,22 @@ public class UserBulkUploadService {
                     StringBuffer str = new StringBuffer();
                     List<String> errList = new ArrayList<>();
                     Row nextRow = rowIterator.next();
+                    if (nextRow == null) {
+                        break;
+                    } else{
+                        boolean emailCellExists = true;
+                        boolean phoneCellExists = true;
+                        if(nextRow.getCell(0) == null)
+                            emailCellExists = false;
+                        if(nextRow.getCell(1) == null)
+                            phoneCellExists  = false;
+                        if(nextRow.getCell(0) != null && nextRow.getCell(0).getCellType() == CellType.BLANK)
+                            emailCellExists = false;
+                        if(nextRow.getCell(1) != null && nextRow.getCell(1).getCellType() == CellType.BLANK)
+                            phoneCellExists = false;
+                        if(!emailCellExists && !phoneCellExists)
+                            break;
+                    }
                     Map<String, String> valuesToBeUpdate = new HashMap<>();
                     Map<String, Object> userDetails = null;
                     boolean isEmailOrPhoneNumberValid = false;
@@ -175,7 +191,7 @@ public class UserBulkUploadService {
                     if (errorDetails == null) {
                         errorDetails = nextRow.createCell(11);
                     }
-                    if (nextRow.getCell(0) != null || nextRow.getCell(0).getCellType() != CellType.BLANK) {
+                    if (nextRow.getCell(0) != null && nextRow.getCell(0).getCellType() != CellType.BLANK) {
                         String email = nextRow.getCell(0).getStringCellValue().trim();
                         if(ValidationUtil.validateEmailPattern(email)){
                             userDetails = new HashMap<>();
@@ -185,7 +201,7 @@ public class UserBulkUploadService {
                     if(!isEmailOrPhoneNumberValid){
                         String phoneNumber = null;
                         boolean isValidPhoneNumber = false;
-                        if (nextRow.getCell(1) != null || nextRow.getCell(1).getCellType() != CellType.BLANK) {
+                        if (nextRow.getCell(1) != null && nextRow.getCell(1).getCellType() != CellType.BLANK) {
                             if (nextRow.getCell(1).getCellType() == CellType.NUMERIC) {
                                 phoneNumber = NumberToTextConverter.toText(nextRow.getCell(1).getNumericCellValue());
                             } else if (nextRow.getCell(1).getCellType() == CellType.STRING) {
@@ -200,12 +216,12 @@ public class UserBulkUploadService {
                             isValidPhoneNumber = ValidationUtil.validateContactPattern(phoneNumber);
                             if(isValidPhoneNumber){
                                 userDetails = new HashMap<>();
-                                isEmailOrPhoneNumberValid = this.verifyUserRecordExists("phone", phoneNumber, userDetails);
+                                isEmailOrPhoneNumberValid = this.verifyUserRecordExists(Constants.PHONE, phoneNumber, userDetails);
                             }
                         }
                     }
                     if(!isEmailOrPhoneNumberValid){
-                        errList.add("User Does not Exist, Invalid Email and Phone Number");
+                        errList.add("User record does not exist with given email and/or phone number");
                     }
                     if (nextRow.getCell(2) != null && nextRow.getCell(2).getCellType() != CellType.BLANK) {
                         String dateOfJoining = nextRow.getCell(2).getStringCellValue().trim();
@@ -320,6 +336,7 @@ public class UserBulkUploadService {
                     }
                     if(userRecordUpdate){
                         noOfSuccessfulRecords++;
+                        errorDetails.setCellValue("NA");
                         statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
                     } else {
                         failedRecordsCount++;
@@ -362,7 +379,7 @@ public class UserBulkUploadService {
     }
 
     private void setErrorDetails(StringBuffer str, List<String> errList, Cell statusCell, Cell errorDetails) {
-        str.append("Failed to process user record. Missing Parameters - ").append(errList);
+        str.append("Failed to update user record. Error Cause by - ").append(errList);
         statusCell.setCellValue(Constants.FAILED_UPPERCASE);
         errorDetails.setCellValue(str.toString());
     }
