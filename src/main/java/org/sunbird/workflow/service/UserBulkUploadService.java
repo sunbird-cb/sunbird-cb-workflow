@@ -81,7 +81,6 @@ public class UserBulkUploadService {
         long startTime = System.currentTimeMillis();
         try {
             HashMap<String, String> inputDataMap = objectMapper.readValue(inputData, new TypeReference<HashMap<String, String>>() {});
-            this.processBulkUpload(inputDataMap);
             if (null != inputData) {
                 this.updateUserBulkUploadStatus(inputDataMap.get(Constants.ROOT_ORG_ID),
                         inputDataMap.get(Constants.IDENTIFIER), Constants.STATUS_IN_PROGRESS_UPPERCASE,
@@ -154,8 +153,8 @@ public class UserBulkUploadService {
                     if (errorDetails == null) {
                         errorDetails = firstRow.createCell(11);
                     }
-                    statusCell.setCellValue("Status");
-                    errorDetails.setCellValue("Error Details");
+                    statusCell.setCellValue(Constants.STATUS_BULK_UPLOAD);
+                    errorDetails.setCellValue(Constants.ERROR_DETAILS);
                 }
                 int count = 0;
                 while (rowIterator.hasNext()) {
@@ -165,6 +164,22 @@ public class UserBulkUploadService {
                     StringBuffer str = new StringBuffer();
                     List<String> errList = new ArrayList<>();
                     Row nextRow = rowIterator.next();
+                    if (nextRow == null) {
+                        break;
+                    } else{
+                        boolean emailCellExists = true;
+                        boolean phoneCellExists = true;
+                        if(nextRow.getCell(0) == null)
+                            emailCellExists = false;
+                        if(nextRow.getCell(1) == null)
+                            phoneCellExists  = false;
+                        if(nextRow.getCell(0) != null && nextRow.getCell(0).getCellType() == CellType.BLANK)
+                            emailCellExists = false;
+                        if(nextRow.getCell(1) != null && nextRow.getCell(1).getCellType() == CellType.BLANK)
+                            phoneCellExists = false;
+                        if(!emailCellExists && !phoneCellExists)
+                            break;
+                    }
                     Map<String, String> valuesToBeUpdate = new HashMap<>();
                     Map<String, Object> userDetails = null;
                     boolean isEmailOrPhoneNumberValid = false;
@@ -176,23 +191,23 @@ public class UserBulkUploadService {
                     if (errorDetails == null) {
                         errorDetails = nextRow.createCell(11);
                     }
-                    if (nextRow.getCell(0) != null || nextRow.getCell(0).getCellType() != CellType.BLANK) {
+                    if (nextRow.getCell(0) != null && nextRow.getCell(0).getCellType() != CellType.BLANK) {
                         String email = nextRow.getCell(0).getStringCellValue().trim();
                         if(ValidationUtil.validateEmailPattern(email)){
                             userDetails = new HashMap<>();
-                            isEmailOrPhoneNumberValid = this.verifyUserRecordExists("email", email, userDetails);
+                            isEmailOrPhoneNumberValid = this.verifyUserRecordExists(Constants.EMAIL, email, userDetails);
                         }
                     }
                     if(!isEmailOrPhoneNumberValid){
                         String phoneNumber = null;
                         boolean isValidPhoneNumber = false;
-                        if (nextRow.getCell(1) != null || nextRow.getCell(1).getCellType() != CellType.BLANK) {
+                        if (nextRow.getCell(1) != null && nextRow.getCell(1).getCellType() != CellType.BLANK) {
                             if (nextRow.getCell(1).getCellType() == CellType.NUMERIC) {
-                                phoneNumber = NumberToTextConverter.toText(nextRow.getCell(2).getNumericCellValue());
+                                phoneNumber = NumberToTextConverter.toText(nextRow.getCell(1).getNumericCellValue());
                             } else if (nextRow.getCell(1).getCellType() == CellType.STRING) {
                                 phoneNumber = nextRow.getCell(1).getStringCellValue().trim();
                             } else {
-                                errList.add("Invalid column type. Expecting number/string format");
+                                errList.add("Invalid Value of Phone Number. Expecting number/string format");
                             }
                         } else {
                             errList.add("Phone Number is Missing");
@@ -201,20 +216,49 @@ public class UserBulkUploadService {
                             isValidPhoneNumber = ValidationUtil.validateContactPattern(phoneNumber);
                             if(isValidPhoneNumber){
                                 userDetails = new HashMap<>();
-                                isEmailOrPhoneNumberValid = this.verifyUserRecordExists("phoneNumber", phoneNumber, userDetails);
+                                isEmailOrPhoneNumberValid = this.verifyUserRecordExists(Constants.PHONE, phoneNumber, userDetails);
                             }
                         }
                     }
                     if(!isEmailOrPhoneNumberValid){
-                        errList.add("User Does not Exist, Invalid Email and Phone Number");
+                        errList.add("User record does not exist with given email and/or phone number");
                     }
                     if (nextRow.getCell(2) != null && nextRow.getCell(2).getCellType() != CellType.BLANK) {
-                        String dateOfJoining = nextRow.getCell(1).getStringCellValue().trim();
+                        String dateOfJoining = nextRow.getCell(2).getStringCellValue().trim();
                         if(ValidationUtil.validateDate(dateOfJoining)){
-                            valuesToBeUpdate.put("doj", dateOfJoining);
+                            valuesToBeUpdate.put(Constants.DATE_OF_JOINING, dateOfJoining);
                         }else{
                             errList.add("Invalid Date Of Joining");
                         }
+                    }
+                    if (nextRow.getCell(3) != null && nextRow.getCell(3).getCellType() != CellType.BLANK) {
+                        valuesToBeUpdate.put(Constants.DESIGNATION, nextRow.getCell(3).getStringCellValue().trim());
+                    }
+                    if (nextRow.getCell(4) != null && nextRow.getCell(4).getCellType() != CellType.BLANK) {
+                        valuesToBeUpdate.put(Constants.GROUP, nextRow.getCell(4).getStringCellValue().trim());
+                    }
+                    if (nextRow.getCell(5) != null && nextRow.getCell(5).getCellType() != CellType.BLANK) {
+                        valuesToBeUpdate.put(Constants.SERVICE, nextRow.getCell(5).getStringCellValue().trim());
+                    }
+                    if (nextRow.getCell(6) != null && nextRow.getCell(6).getCellType() != CellType.BLANK) {
+                        valuesToBeUpdate.put(Constants.CADRE, nextRow.getCell(6).getStringCellValue().trim());
+                    }
+                    if (nextRow.getCell(7) != null && nextRow.getCell(7).getCellType() != CellType.BLANK) {
+                        String payType  = null;
+                        if (nextRow.getCell(7).getCellType() == CellType.NUMERIC) {
+                            payType = NumberToTextConverter.toText(nextRow.getCell(7).getNumericCellValue());
+                        } else if (nextRow.getCell(7).getCellType() == CellType.STRING) {
+                            payType = nextRow.getCell(7).getStringCellValue().trim();
+                        } else {
+                            errList.add("Invalid Value of Grade Pay type. Expecting number/string format");
+                        }
+                        valuesToBeUpdate.put(Constants.PAY_TYPE, payType);
+                    }
+                    if (nextRow.getCell(8) != null && nextRow.getCell(8).getCellType() != CellType.BLANK) {
+                        valuesToBeUpdate.put(Constants.INDUSTRY, nextRow.getCell(8).getStringCellValue().trim());
+                    }
+                    if (nextRow.getCell(9) != null && nextRow.getCell(9).getCellType() != CellType.BLANK) {
+                        valuesToBeUpdate.put(Constants.LOCATION, nextRow.getCell(9).getStringCellValue().trim());
                     }
                     if(!CollectionUtils.isEmpty(errList)){
                         this.setErrorDetails(str, errList, statusCell, errorDetails);
@@ -222,32 +266,12 @@ public class UserBulkUploadService {
                         totalRecordsCount++;
                         continue;
                     }
-                    if (nextRow.getCell(3) != null && nextRow.getCell(3).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("designation", nextRow.getCell(3).getStringCellValue().trim());
-                    }
-                    if (nextRow.getCell(4) != null && nextRow.getCell(4).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("group", nextRow.getCell(4).getStringCellValue().trim());
-                    }
-                    if (nextRow.getCell(5) != null && nextRow.getCell(5).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("service", nextRow.getCell(5).getStringCellValue().trim());
-                    }
-                    if (nextRow.getCell(6) != null && nextRow.getCell(6).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("cadre", nextRow.getCell(6).getStringCellValue().trim());
-                    }
-                    if (nextRow.getCell(7) != null && nextRow.getCell(7).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("payType", nextRow.getCell(6).getStringCellValue().trim());
-                    }
-                    if (nextRow.getCell(8) != null && nextRow.getCell(8).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("industry", nextRow.getCell(8).getStringCellValue().trim());
-                    }
-                    if (nextRow.getCell(9) != null && nextRow.getCell(9).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put("location", nextRow.getCell(9).getStringCellValue().trim());
-                    }
                     String userId = null;
                     if(!CollectionUtils.isEmpty(userDetails)){
                         userId = (String) userDetails.get(Constants.USER_ID);
                     }
                     List<WfStatusEntity> userPendingRequest = wfStatusRepo.findByUserIdAndCurrentStatus(userId, true);
+                    boolean userRecordUpdate = true;
                     if(!CollectionUtils.isEmpty(userPendingRequest)){
                         for(WfStatusEntity wfStatusEntity : userPendingRequest){
                             String updateValuesString = wfStatusEntity.getUpdateFieldValues();
@@ -256,15 +280,15 @@ public class UserBulkUploadService {
                             for(Map.Entry<String, String> entry : toValue.entrySet()){
                                 if(valuesToBeUpdate.containsKey(entry.getKey())){
                                     WfRequest wfRequest = this.getWFRequest(wfStatusEntity, null);
+                                    wfStatusEntity.setCurrentStatus(Constants.APPROVED);
+                                    wfStatusEntity.setInWorkflow(false);
+                                    wfStatusRepo.save(wfStatusEntity);
                                     userProfileWfService.updateUserProfile(wfRequest);
                                     WfStatusEntity wfStatusEntityFailed = wfStatusRepo.findByWfId(wfRequest.getWfId());
                                     if(Constants.REJECTED.equalsIgnoreCase(wfStatusEntityFailed.getCurrentStatus())){
-                                        this.setErrorDetails(str, Collections.singletonList("UPDATE FAILED"), statusCell, errorDetails);
-                                        failedRecordsCount++;
+                                        userRecordUpdate = false;
+                                        this.setErrorDetails(str, Collections.singletonList(Constants.UPDATE_FAILED), statusCell, errorDetails);
                                     } else{
-                                        wfStatusEntity.setCurrentStatus(Constants.APPROVED);
-                                        wfStatusEntity.setInWorkflow(false);
-                                        wfStatusRepo.save(wfStatusEntity);
                                         statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
                                     }
                                     valuesToBeUpdate.remove(entry.getKey());
@@ -272,10 +296,19 @@ public class UserBulkUploadService {
                             }
                         }
                     }
+                    if(valuesToBeUpdate.isEmpty()){
+                        if(userRecordUpdate)
+                            noOfSuccessfulRecords++;
+                        else
+                            failedRecordsCount++;
+                        totalRecordsCount++;
+                        continue;
+                    }
                     Set<String> employmentDetailsKey = new HashSet<>();
-                    employmentDetailsKey.add("service");
-                    employmentDetailsKey.add("cadre");
-                    employmentDetailsKey.add("payType");
+                    employmentDetailsKey.add(Constants.SERVICE);
+                    employmentDetailsKey.add(Constants.CADRE);
+                    employmentDetailsKey.add(Constants.PAY_TYPE);
+                    employmentDetailsKey.add(Constants.DATE_OF_JOINING);
                     WfRequest wfRequest = this.getWFRequest(valuesToBeUpdate, userId);
                     List<HashMap<String, Object>> updatedValues = new ArrayList<>();
                     for(Map.Entry<String, String> entry : valuesToBeUpdate.entrySet()){
@@ -283,14 +316,14 @@ public class UserBulkUploadService {
                         HashMap<String, Object> updatedValueMap = new HashMap<>();
                         updatedValueMap.put(entry.getKey(), entry.getValue());
                         HashMap<String, Object> updateValues = new HashMap<>();
-                        updateValues.put("fromValue", new HashMap<>());
-                        updateValues.put("toValue", updatedValueMap);
+                        updateValues.put(Constants.FROM_VALUE, new HashMap<>());
+                        updateValues.put(Constants.TO_VALUE, updatedValueMap);
                         if(employmentDetailsKey.contains(entry.getKey())){
-                            fieldKey = "employmentDetails";
+                            fieldKey = Constants.EMPLOYMENT_DETAILS;
                         } else{
-                            fieldKey = "professionalDetails";
-                        }
-                        updateValues.put("fieldKey", fieldKey);
+                            fieldKey = Constants.PROFESSIONAL_DETAILS;
+                         }
+                        updateValues.put(Constants.FIELD_KEY, fieldKey);
                         updatedValues.add(updateValues);
                         if(null != wfRequest){
                             wfRequest.setUpdateFieldValues(updatedValues);
@@ -298,11 +331,16 @@ public class UserBulkUploadService {
                         userProfileWfService.updateUserProfileForBulkUpload(wfRequest);
                         WfStatusEntity wfStatusEntityFailed = wfStatusRepo.findByWfId(wfRequest.getWfId());
                         if(null != wfStatusEntityFailed && Constants.REJECTED.equalsIgnoreCase(wfStatusEntityFailed.getCurrentStatus())){
-                            this.setErrorDetails(str, Collections.singletonList("UPDATE FAILED"), statusCell, errorDetails);
-                            failedRecordsCount++;
-                        } else{
-                            statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
+                            userRecordUpdate = false;
                         }
+                    }
+                    if(userRecordUpdate){
+                        noOfSuccessfulRecords++;
+                        errorDetails.setCellValue("NA");
+                        statusCell.setCellValue(Constants.SUCCESS_UPPERCASE);
+                    } else {
+                        failedRecordsCount++;
+                        this.setErrorDetails(str, Collections.singletonList(Constants.UPDATE_FAILED), statusCell, errorDetails);
                     }
                     totalRecordsCount++;
                     duration = System.currentTimeMillis() - startTime;
@@ -341,7 +379,7 @@ public class UserBulkUploadService {
     }
 
     private void setErrorDetails(StringBuffer str, List<String> errList, Cell statusCell, Cell errorDetails) {
-        str.append("Failed to process user record. Missing Parameters - ").append(errList);
+        str.append("Failed to update user record. Error Cause by - ").append(errList);
         statusCell.setCellValue(Constants.FAILED_UPPERCASE);
         errorDetails.setCellValue(str.toString());
     }
