@@ -222,6 +222,16 @@ public class UserBulkUploadService {
                     }
                     if(!isEmailOrPhoneNumberValid){
                         errList.add("User record does not exist with given email and/or phone number");
+                    } else{
+                        String userRootOrgId = (String) userDetails.get(Constants.ROOT_ORG_ID);
+                        String mdoAdminRootOrgId = inputDataMap.get(Constants.ROOT_ORG_ID);
+                        if(mdoAdminRootOrgId.equalsIgnoreCase(userRootOrgId)){
+                            errList.add("The User belongs to a different MDO Organisation");
+                            this.setErrorDetails(str, errList, statusCell, errorDetails);
+                            failedRecordsCount++;
+                            totalRecordsCount++;
+                            continue;
+                        }
                     }
                     if (nextRow.getCell(2) != null && nextRow.getCell(2).getCellType() != CellType.BLANK) {
                         String dateOfJoining = nextRow.getCell(2).getStringCellValue().trim();
@@ -427,6 +437,7 @@ public class UserBulkUploadService {
                     for (Map<String, Object> content : contents) {
                         userRecordDetails.put(Constants.USER_ID, content.get(Constants.USER_ID));
                         userRecordDetails.put(Constants.DEPARTMENT_NAME, content.get(Constants.CHANNEL));
+                        userRecordDetails.put(Constants.ROOT_ORG_ID, content.get(Constants.ROOT_ORG_ID));
                     }
                     return true;
                 }
