@@ -225,7 +225,7 @@ public class UserBulkUploadService {
                     } else{
                         String userRootOrgId = (String) userDetails.get(Constants.ROOT_ORG_ID);
                         String mdoAdminRootOrgId = inputDataMap.get(Constants.ROOT_ORG_ID);
-                        if(mdoAdminRootOrgId.equalsIgnoreCase(userRootOrgId)){
+                        if(!mdoAdminRootOrgId.equalsIgnoreCase(userRootOrgId)){
                             errList.add("The User belongs to a different MDO Organisation");
                             this.setErrorDetails(str, errList, statusCell, errorDetails);
                             failedRecordsCount++;
