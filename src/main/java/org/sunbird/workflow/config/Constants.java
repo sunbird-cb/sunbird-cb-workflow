@@ -319,8 +319,6 @@ public class Constants {
 	public static final String DOMICILE_MEDIUM = "domicileMedium";
 	public static final String PINCODE = "pinCode";
 	public static final String EMPLOYEE_CODE = "employeeCode";
-	public static final String PROFILE_STATUS = "profileStatus";
-	public static final String NOT_VERIFIED = "NOT-VERIFIED";
 	public static final String GENDER = "gender";
 	public static final String DOB = "dob";
 	public static final String CATEGORY = "category";

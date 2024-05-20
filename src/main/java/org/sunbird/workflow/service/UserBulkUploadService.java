@@ -232,16 +232,29 @@ public class UserBulkUploadService {
                         }
                     }
                     if (nextRow.getCell(2) != null && nextRow.getCell(2).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put(Constants.FIRSTNAME, nextRow.getCell(2).getStringCellValue().trim());
-                        if (!ValidationUtil.validateFullName(nextRow.getCell(2).getStringCellValue().trim())) {
-                            errList.add("Invalid Full Name");
+                        if (nextRow.getCell(2).getCellType() == CellType.STRING) {
+                            valuesToBeUpdate.put(Constants.FIRSTNAME, nextRow.getCell(2).getStringCellValue().trim());
+                            if (!ValidationUtil.validateFullName(nextRow.getCell(2).getStringCellValue().trim())) {
+                                errList.add("Invalid Full Name");
+                            }
+                        } else {
+                            errList.add("Invalid value for Full Name type. Expecting string format");
                         }
                     }
                     if (nextRow.getCell(3) != null && nextRow.getCell(3).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put(Constants.DESIGNATION, nextRow.getCell(3).getStringCellValue().trim());
+                        if (nextRow.getCell(3).getCellType() == CellType.STRING) {
+                            valuesToBeUpdate.put(Constants.DESIGNATION, nextRow.getCell(3).getStringCellValue().trim());
+                        } else {
+                            errList.add("Invalid value for Designation type. Expecting string format");
+                        }
+
                     }
                     if (nextRow.getCell(4) != null && nextRow.getCell(4).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put(Constants.GROUP, nextRow.getCell(4).getStringCellValue().trim());
+                        if (nextRow.getCell(4).getCellType() == CellType.STRING) {
+                            valuesToBeUpdate.put(Constants.GROUP, nextRow.getCell(4).getStringCellValue().trim());
+                        } else {
+                            errList.add("Invalid value for Group type. Expecting string format");
+                        }
                     }
                     if (nextRow.getCell(5) != null && nextRow.getCell(5).getCellType() != CellType.BLANK) {
                         if (nextRow.getCell(5).getCellType() == CellType.NUMERIC) {
@@ -249,32 +262,36 @@ public class UserBulkUploadService {
                         } else if (nextRow.getCell(5).getCellType() == CellType.STRING) {
                             valuesToBeUpdate.put(Constants.EMPLOYEE_CODE, nextRow.getCell(5).getStringCellValue().trim());
                         } else {
-                            errList.add("Invalid column type. Expecting string/number format");
+                            errList.add("Invalid value for Employee ID type. Expecting string/number format");
                         }
 
                     }
                     if (nextRow.getCell(6) != null && nextRow.getCell(6).getCellType() != CellType.BLANK) {
-                        valuesToBeUpdate.put(Constants.GENDER, nextRow.getCell(6).getStringCellValue().trim());
+                        if (nextRow.getCell(6).getCellType() == CellType.STRING) {
+                            valuesToBeUpdate.put(Constants.GENDER, nextRow.getCell(6).getStringCellValue().trim());
+                        } else {
+                            errList.add("Invalid value for Gender type. Expecting string format");
+                        }
                     }
                     if (nextRow.getCell(7) != null && nextRow.getCell(7).getCellType() != CellType.BLANK) {
                         if (nextRow.getCell(7).getCellType() == CellType.STRING) {
                             valuesToBeUpdate.put(Constants.DOB, nextRow.getCell(7).getStringCellValue().trim());
                         } else {
-                            errList.add("Invalid column type. Expecting string format");
+                            errList.add("Invalid value for DOB type. Expecting string format");
                         }
                     }
                     if (nextRow.getCell(8) != null && nextRow.getCell(8).getCellType() != CellType.BLANK) {
                         if (nextRow.getCell(8).getCellType() == CellType.STRING) {
                             valuesToBeUpdate.put(Constants.DOMICILE_MEDIUM, nextRow.getCell(8).getStringCellValue().trim());
                         } else {
-                            errList.add("Invalid column type. Expecting string format");
+                            errList.add("Invalid value for Mother tongue type. Expecting string format");
                         }
                     }
                     if (nextRow.getCell(9) != null && nextRow.getCell(9).getCellType() != CellType.BLANK) {
                         if (nextRow.getCell(9).getCellType() == CellType.STRING) {
                             valuesToBeUpdate.put(Constants.CATEGORY, nextRow.getCell(9).getStringCellValue().trim());
                         } else {
-                            errList.add("Invalid column type. Expecting string format");
+                            errList.add("Invalid value for category type. Expecting string format");
                         }
                     }
                     if (nextRow.getCell(10) != null && nextRow.getCell(10).getCellType() != CellType.BLANK) {
@@ -283,7 +300,7 @@ public class UserBulkUploadService {
                         } else if (nextRow.getCell(10).getCellType() == CellType.STRING) {
                             valuesToBeUpdate.put(Constants.PINCODE, nextRow.getCell(10).getStringCellValue().trim());
                         } else {
-                            errList.add("Invalid column type. Expecting number/string format");
+                            errList.add("Invalid value for pincode type. Expecting number/string format");
                         }
                     }
                     if (nextRow.getCell(11) != null && nextRow.getCell(11).getCellType() != CellType.BLANK) {
@@ -298,7 +315,7 @@ public class UserBulkUploadService {
                                 errList.add("Invalid External System ID : External System Id can contain alphanumeric characters and have a max length of 30");
                             }
                         } else {
-                            errList.add("Invalid column type. Expecting string/number format");
+                            errList.add("Invalid value for External System ID type. Expecting string/number format");
                         }
                     }
                     if (nextRow.getCell(12) != null && !org.apache.commons.lang.StringUtils.isBlank(nextRow.getCell(12).toString())) {
@@ -308,7 +325,7 @@ public class UserBulkUploadService {
                                 errList.add("Invalid External System : External System can contain only alphabets and can have a max length of 255");
                             }
                         } else {
-                            errList.add("Invalid column type. Expecting string format");
+                            errList.add("Invalid value for External System type. Expecting string format");
                         }
                     }
                     if (nextRow.getCell(13) != null && nextRow.getCell(13).getCellType() != CellType.BLANK) {
@@ -326,7 +343,7 @@ public class UserBulkUploadService {
                                 errList.add("Invalid Tag : Tags are comma seperated string values. A Tag can contain only alphabets with spaces. eg: Bihar Circle, Patna Division");
                             }
                         } else {
-                            errList.add("Invalid column type. Expecting string format");
+                            errList.add("Invalid value for Tags type. Expecting string format");
                         }
                     }
                     if(!CollectionUtils.isEmpty(errList)){
