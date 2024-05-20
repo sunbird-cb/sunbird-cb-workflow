@@ -314,7 +314,7 @@ public class Constants {
 	public static final String STATUS_BULK_UPLOAD = "Status";
 	public static final String WITHDRAW = "WITHDRAW";
 	public static final String SENDER = "sender";
-
 	public static final String TRANSFER_SUBJECT_LINE = "Transfer Notification: #username";
+	public static final String LAST_UPDATED_ON = "lastUpdatedOn";
 
 }

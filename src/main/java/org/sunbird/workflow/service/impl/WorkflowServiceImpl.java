@@ -1111,6 +1111,7 @@ public class WorkflowServiceImpl implements Workflowservice {
 						resultData.put("wfId", fields[1]);
 						resultData.put(toValueMap.entrySet().iterator().next().getKey(), toValueMap.entrySet().iterator().next().getValue());
 						resultData.put(Constants.COMMENT, fields[2]);
+						resultData.put(Constants.LAST_UPDATED_ON, fields[3]);
 						result.add(resultData);
 					}
 				}
