@@ -324,5 +324,6 @@ public class Constants {
 	public static final String CATEGORY = "category";
 	public static final String EXTERNAL_SYSTEM_ID = "externalSystemId";
 	public static final String EXTERNAL_SYSTEM = "externalSystem";
+	public static final String IS_ORG_TRANSFER_REQUEST = "isOrgTransferRequest";
 
 }
