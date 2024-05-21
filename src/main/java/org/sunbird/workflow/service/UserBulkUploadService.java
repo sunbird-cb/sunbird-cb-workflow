@@ -429,11 +429,11 @@ public class UserBulkUploadService {
                         if(null != wfRequest){
                             wfRequest.setUpdateFieldValues(updatedValues);
                         }
-                        userProfileWfService.updateUserProfileForBulkUpload(wfRequest);
-                        WfStatusEntity wfStatusEntityFailed = wfStatusRepo.findByWfId(wfRequest.getWfId());
-                        if(null != wfStatusEntityFailed && Constants.REJECTED.equalsIgnoreCase(wfStatusEntityFailed.getCurrentStatus())){
-                            userRecordUpdate = false;
-                        }
+                    }
+                    userProfileWfService.updateUserProfileForBulkUpload(wfRequest);
+                    WfStatusEntity wfStatusEntityFailed = wfStatusRepo.findByWfId(wfRequest.getWfId());
+                    if(null != wfStatusEntityFailed && Constants.REJECTED.equalsIgnoreCase(wfStatusEntityFailed.getCurrentStatus())){
+                        userRecordUpdate = false;
                     }
                     if(userRecordUpdate){
                         noOfSuccessfulRecords++;
