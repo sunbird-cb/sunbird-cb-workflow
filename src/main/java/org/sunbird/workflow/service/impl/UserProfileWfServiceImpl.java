@@ -1,9 +1,13 @@
 package org.sunbird.workflow.service.impl;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.Gson;
+
+import org.apache.commons.collections4.MapUtils;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -15,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.sunbird.workflow.config.Configuration;
@@ -125,6 +130,7 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 	}
 
 	public Map<String, Object> updateRequestWithWF(String uuid, List<HashMap<String, Object>> wfRequestParamList, Map<String, Object> existingProfileDetail) {
+		Map<String, Object> exitingProfileDetailCopy = deepCopyObject(existingProfileDetail);
 		try {
 			// merge wfRequestParamList and existingProfileDetail to add osid(s)
 			for (Map<String, Object> wfRequestParamObj : wfRequestParamList) {
@@ -178,6 +184,53 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 			} else {
 				existingProfileDetail.put(Constants.PROFILE_STATUS, Constants.NOT_VERIFIED);
 			}
+		}
+		
+										
+		if (exitingProfileDetailCopy != null) {
+			boolean isGroupOrDesignationUpdated = false;
+			List<Map<String, Object>> existingProfessionalList = (List<Map<String, Object>>) exitingProfileDetailCopy
+					.get(Constants.PROFESSIONAL_DETAILS);
+			List<Map<String, Object>> updatedProfessionalList = (List<Map<String, Object>>) existingProfileDetail.get(Constants.PROFESSIONAL_DETAILS);
+			Map<String, Object> updatedProfMap = null;
+			String updatedGroup = null;
+			String updatedDesignation = null;
+			if (!CollectionUtils.isEmpty(updatedProfessionalList)) {
+				updatedProfMap = updatedProfessionalList.get(0);
+				if (MapUtils.isNotEmpty(updatedProfMap)) {
+					updatedGroup = (String) updatedProfMap.get(Constants.GROUP);
+					updatedDesignation = (String) updatedProfMap.get(Constants.DESIGNATION);
+					String existingGroup = null;
+					String existingDesignation = null;
+					if (!CollectionUtils.isEmpty(existingProfessionalList)) {
+						Map<String, Object> existingProfMap = existingProfessionalList.get(0);
+						existingGroup = (String) existingProfMap.get(Constants.GROUP);
+						existingDesignation = (String) existingProfMap.get(Constants.DESIGNATION);
+					}
+					if ((!StringUtils.isEmpty(updatedGroup) && !updatedGroup.equalsIgnoreCase(existingGroup)) || 
+						(!StringUtils.isEmpty(updatedDesignation) && !updatedDesignation.equalsIgnoreCase(existingDesignation))) {
+							isGroupOrDesignationUpdated = true;
+					}
+				}
+			}
+			if (isGroupOrDesignationUpdated) {
+				if (!StringUtils.isEmpty(updatedGroup) && !StringUtils.isEmpty(updatedDesignation)) {
+					updatedProfMap.put(Constants.PROFILE_STATUS, Constants.VERIFIED);
+				} else {
+					updatedProfMap.put(Constants.PROFILE_STATUS, Constants.NOT_VERIFIED);
+				}
+				String timeStamp = new SimpleDateFormat("dd-MM-yyyy HH.mm.ss").format(new java.util.Date());
+				existingProfileDetail.put(Constants.PROFILE_STATUS_UPDATED_ON, timeStamp);
+				Map<String, Object> additionalProperties = (Map<String, Object>) existingProfileDetail
+						.get(Constants.ADDITIONAL_PROPERTIES);
+				if (ObjectUtils.isEmpty(additionalProperties)) {
+					additionalProperties = new HashMap<>();
+				}
+				additionalProperties.put(Constants.PROFILE_STATUS_UPDATED_MSG_VIEWED, false);
+				existingProfileDetail.put(Constants.ADDITIONAL_PROPERTIES, additionalProperties);
+			}
+		} else {
+			logger.error("Failed to copy existing profileDetails object.");
 		}
 
 		return existingProfileDetail;
@@ -496,6 +549,18 @@ public class UserProfileWfServiceImpl implements UserProfileWfService {
 
 	public void updateUserProfileForBulkUpload(WfRequest wfRequest) {
 		this.updateProfile(wfRequest);
+	}
+
+	private Map<String, Object> deepCopyObject(Map<String, Object> oldObject) {
+		try {
+			ObjectMapper om = new ObjectMapper();
+			String objStr = om.writeValueAsString(oldObject);
+			return om.readValue(objStr, new TypeReference<Map<String, Object>>() {
+			});
+		}catch(Exception e) {
+			logger.error("Failed to create a copy for Object. Exception: " + e.getMessage(), e);
+		}
+		return null;
 	}
 
 }

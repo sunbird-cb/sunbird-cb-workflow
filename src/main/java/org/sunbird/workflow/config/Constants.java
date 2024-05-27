@@ -329,5 +329,7 @@ public class Constants {
 	public static final String NOT_VERIFIED = "NOT-VERIFIED";
 	public static final String VERIFIED = "VERIFIED";
 	public static final String CURRENT_STATUS_KEY = "currentStatus";
+	public static final String PROFILE_STATUS_UPDATED_ON = "profileStatusUpdatedOn";
+	public static final String PROFILE_STATUS_UPDATED_MSG_VIEWED = "isProfileUpdatedMsgViewed";
 
 }
