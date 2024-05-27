@@ -81,6 +81,6 @@ public class ValidationUtil {
 	}
 
 	public static Boolean validatePinCode(String regex) {
-		return regex.matches("^[0-9]{4,7}$");
+		return regex.matches("^[0-9]{6}$");
 	}
 }
