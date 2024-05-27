@@ -215,6 +215,12 @@ public class Configuration {
     @Value("${mdo.org.change.email.template}")
     private String orgChangeNotificationTemplate;
 
+    @Value("${user.bulk.upload.gender.value}")
+    private String bulkUploadGenderValue;
+
+    @Value("${user.bulk.upload.category.value}")
+    private String bulkUploadCategoryValue;
+
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
     }
@@ -781,5 +787,21 @@ public class Configuration {
 
     public void setOrgChangeNotificationTemplate(String orgChangeNotificationTemplate) {
         this.orgChangeNotificationTemplate = orgChangeNotificationTemplate;
+    }
+
+    public List<String> getBulkUploadGenderValue() {
+        return Arrays.asList(bulkUploadGenderValue.split(",", -1));
+    }
+
+    public void setBulkUploadGenderValue(String bulkUploadGenderValue) {
+        this.bulkUploadGenderValue = bulkUploadGenderValue;
+    }
+
+    public List<String> getBulkUploadCategoryValue() {
+        return Arrays.asList(bulkUploadCategoryValue.split(",", -1));
+    }
+
+    public void setBulkUploadCategoryValue(String bulkUploadCategoryValue) {
+        this.bulkUploadCategoryValue = bulkUploadCategoryValue;
     }
 }
