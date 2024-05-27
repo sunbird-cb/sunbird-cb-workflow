@@ -198,7 +198,7 @@ public class UserBulkUploadService {
                         boolean isValidPhoneNumber = false;
                         if (nextRow.getCell(2) != null && nextRow.getCell(2).getCellType() != CellType.BLANK) {
                             if (nextRow.getCell(2).getCellType() == CellType.NUMERIC) {
-                                phoneNumber = NumberToTextConverter.toText(nextRow.getCell(1).getNumericCellValue());
+                                phoneNumber = NumberToTextConverter.toText(nextRow.getCell(2).getNumericCellValue());
                             } else if (nextRow.getCell(2).getCellType() == CellType.STRING) {
                                 phoneNumber = nextRow.getCell(2).getStringCellValue().trim();
                             } else {
@@ -289,7 +289,7 @@ public class UserBulkUploadService {
                             if (ValidationUtil.validateDate(nextRow.getCell(7).getStringCellValue().trim())) {
                                 valuesToBeUpdate.put(Constants.DOB, nextRow.getCell(7).getStringCellValue().trim());
                             } else {
-                                errList.add("Invalid format for Date of Birth type. Expecting in format dd-MM-yyyy");
+                                errList.add("Invalid format for Date of Birth type. Expecting in format dd-mm-yyyy");
                             }
                         } else if (nextRow.getCell(7).getCellType() == CellType.NUMERIC) {
                             if (DateUtil.isCellDateFormatted(nextRow.getCell(7))) {
@@ -299,7 +299,7 @@ public class UserBulkUploadService {
                                 if (ValidationUtil.validateDate(dob)) {
                                     valuesToBeUpdate.put(Constants.DOB, dob);
                                 } else {
-                                    errList.add("Invalid format for Date of Birth type. Expecting in format dd-MM-yyyy");
+                                    errList.add("Invalid format for Date of Birth type. Expecting in format dd-mm-yyyy");
                                 }
                             } else {
                                 errList.add("Cell is numeric but not a date.");
