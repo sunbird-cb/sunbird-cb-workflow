@@ -166,9 +166,9 @@ public class UserBulkUploadService {
                             emailCellExists = false;
                         if(nextRow.getCell(2) == null)
                             phoneCellExists  = false;
-                        if(nextRow.getCell(1) != null && nextRow.getCell(0).getCellType() == CellType.BLANK)
+                        if(nextRow.getCell(1) != null && nextRow.getCell(1).getCellType() == CellType.BLANK)
                             emailCellExists = false;
-                        if(nextRow.getCell(2) != null && nextRow.getCell(1).getCellType() == CellType.BLANK)
+                        if(nextRow.getCell(2) != null && nextRow.getCell(2).getCellType() == CellType.BLANK)
                             phoneCellExists = false;
                         if(!emailCellExists && !phoneCellExists)
                             break;
