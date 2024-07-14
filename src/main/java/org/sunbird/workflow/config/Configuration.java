@@ -227,6 +227,12 @@ public class Configuration {
     @Value("${pending.request.count.limit}")
     private int pendingRequestCountLimit;
 
+    @Value("${sb.csv.delimiter}")
+    private char csvDelimiter;
+
+    @Value(("${sb.tags.delimiter}"))
+    private String tagsDelimiter;
+
     public String getModificationRecordAllowActions() {
         return modificationRecordAllowActions;
     }
@@ -825,5 +831,13 @@ public class Configuration {
 
     public void setPendingRequestCountLimit(int pendingRequestCountLimit) {
         this.pendingRequestCountLimit = pendingRequestCountLimit;
+    }
+
+    public char getCsvDelimiter() {
+        return csvDelimiter;
+    }
+
+    public String getTagsDelimiter() {
+        return tagsDelimiter;
     }
 }
